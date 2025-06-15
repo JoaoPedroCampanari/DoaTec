@@ -11,6 +11,9 @@ public class Aluno extends Pessoa {
 
     private String ra;
 
+    @Column(columnDefinition = "TEXT")
+    private String justificativa;
+
     public Aluno() {
     }
 
@@ -19,11 +22,23 @@ public class Aluno extends Pessoa {
         this.ra = ra;
     }
 
+    public String getJustificativa() {
+        return justificativa;
+    }
+
+    public void setJustificativa(String justificativa) {
+        this.justificativa = justificativa;
+    }
+
     public String getRa() {
         return ra;
     }
 
     public void setRa(String ra) {
         this.ra = ra;
+    }
+
+    public void alterarJustificativa(String texto){
+        this.justificativa = texto;
     }
 }
