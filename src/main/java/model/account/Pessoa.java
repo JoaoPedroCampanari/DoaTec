@@ -1,34 +1,37 @@
-package model;
-
+package model.account;
 
 import jakarta.persistence.*;
 
 import java.util.UUID;
 
-@MappedSuperclass
+@Entity
+@Table(name = "pessoa") // Tabela base para os campos comuns
+@Inheritance(strategy = InheritanceType.JOINED) // Estratégia de herança
 public abstract class Pessoa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String nome;
     private String email;
     private String senha;
     private String endereco;
     private String telefone;
+
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
 
     public Pessoa() {
     }
 
-    public Pessoa(UUID id, String nome, String email, String senha, String endereco, String telefone) {
-        this.id = id;
+    public Pessoa(String nome, String email, String senha, String endereco, String telefone, TipoUsuario tipo) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
         this.endereco = endereco;
         this.telefone = telefone;
+        this.tipo = tipo;
     }
 
     public UUID getId() {
@@ -77,5 +80,13 @@ public abstract class Pessoa {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public TipoUsuario getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(TipoUsuario tipo) {
+        this.tipo = tipo;
     }
 }

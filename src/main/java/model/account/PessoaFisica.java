@@ -1,12 +1,14 @@
-package model;
+package model.account;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "pessoa_fisica")
+@PrimaryKeyJoinColumn(name = "pessoa_id")
 public class PessoaFisica extends Pessoa{
 
     private String cpf;
@@ -15,8 +17,8 @@ public class PessoaFisica extends Pessoa{
 
     }
 
-    public PessoaFisica(UUID id, String nome, String email, String senha, String endereco, String telefone, String cpf) {
-        super(id, nome, email, senha, endereco, telefone);
+    public PessoaFisica(String nome, String email, String senha, String endereco, String telefone, TipoUsuario tipo, String cpf) {
+        super(nome, email, senha, endereco, telefone, tipo);
         this.cpf = cpf;
     }
 

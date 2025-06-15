@@ -1,4 +1,4 @@
-package model;
+package model.account;
 
 import jakarta.persistence.*;
 
@@ -6,15 +6,16 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "aluno")
-public class Aluno extends Pessoa{
+@PrimaryKeyJoinColumn(name = "pessoa_id")
+public class Aluno extends Pessoa {
 
     private String ra;
 
     public Aluno() {
     }
 
-    public Aluno(UUID id, String nome, String email, String senha, String endereco, String telefone, String ra) {
-        super(id, nome, email, senha, endereco, telefone);
+    public Aluno(String nome, String email, String senha, String endereco, String telefone, TipoUsuario tipo, String ra) {
+        super(nome, email, senha, endereco, telefone, tipo);
         this.ra = ra;
     }
 
