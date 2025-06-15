@@ -1,8 +1,8 @@
-package com.doatec.controller; // Certifique-se de que o pacote está correto
+package com.doatec.controller;
 
-import com.doatec.dtos.RegistroDto; // Importe seu DTO de registro
-import com.doatec.model.account.Pessoa; // Importe sua entidade Pessoa
-import com.doatec.service.PessoaService; // Importe seu PessoaService
+import com.doatec.dtos.RegistroDto;
+import com.doatec.model.account.Pessoa;
+import com.doatec.service.PessoaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

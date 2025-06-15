@@ -14,14 +14,8 @@ public class SuporteFormulario {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "autor_id")
+    @JoinColumn(name = "autor_id", nullable = false)
     private Pessoa autor;
-
-    @Column(nullable = false)
-    private String nome;
-
-    @Column(nullable = false)
-    private String email;
 
     @Column(nullable = false)
     private String assunto;
@@ -38,10 +32,9 @@ public class SuporteFormulario {
     public SuporteFormulario() {
     }
 
-    public SuporteFormulario(Pessoa autor, String nome, String email, String assunto, String mensagem, String status, LocalDateTime dataCriacao) {
+    public SuporteFormulario(UUID id, Pessoa autor, String assunto, String mensagem, String status, LocalDateTime dataCriacao) {
+        this.id = id;
         this.autor = autor;
-        this.nome = nome;
-        this.email = email;
         this.assunto = assunto;
         this.mensagem = mensagem;
         this.status = status;
@@ -62,22 +55,6 @@ public class SuporteFormulario {
 
     public void setAutor(Pessoa autor) {
         this.autor = autor;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getAssunto() {

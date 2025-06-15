@@ -1,0 +1,1 @@
+ALTER TABLE suporte_formulario DROP COLUMN nome;

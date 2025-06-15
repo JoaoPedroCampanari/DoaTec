@@ -1,6 +1,9 @@
 package com.doatec.model.account;
 
+import com.doatec.model.solicitacao.SolicitacaoHardware;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "aluno")
@@ -11,6 +14,9 @@ public class Aluno extends Pessoa {
 
     @Column(columnDefinition = "TEXT")
     private String justificativa;
+
+    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SolicitacaoHardware> solicitacoes;
 
     private String preferenciaEquipamento;
 
@@ -42,9 +48,18 @@ public class Aluno extends Pessoa {
         return preferenciaEquipamento;
     }
 
+    public List<SolicitacaoHardware> getSolicitacoes() {
+        return solicitacoes;
+    }
+
+    public void setSolicitacoes(List<SolicitacaoHardware> solicitacoes) {
+        this.solicitacoes = solicitacoes;
+    }
+
     public void setPreferenciaEquipamento(String preferenciaEquipamento) {
         this.preferenciaEquipamento = preferenciaEquipamento;
     }
+
 
     public void alterarJustificativaPreferencia(String texto, String preferenciaEquipamento){
         this.justificativa = texto;

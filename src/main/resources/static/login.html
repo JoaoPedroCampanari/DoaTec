@@ -10,30 +10,72 @@
     </style>
 </head>
 <body class="login-page">
-    <div class="back-button-container">
-        <a href="index.html" class="btn btn-secondary">‹ Voltar ao Início</a>
-    </div>
+<div class="back-button-container">
+    <a href="login.html" class="btn btn-secondary">‹ Voltar ao Início</a>
+</div>
 
-    <div class="login-container">
-        <div class="login-box">
-            <div class="logo">
-                <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
-            </div>
-            <h1>Fazer Login</h1>
-            <form id="loginForm" class="application-form">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-submit">Entrar</button>
-            </form>
-            <p class="footer-link">Não tem uma conta? <a href="registro.html">Crie uma</a></p>
+<div class="login-container">
+    <div class="login-box">
+        <div class="logo">
+            <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
         </div>
+        <h1>Fazer Login</h1>
+        <form id="loginForm" class="application-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-submit">Entrar</button>
+        </form>
+        <p class="footer-link">Não tem uma conta? <a href="registro.html">Crie uma</a></p>
     </div>
+</div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginForm = document.getElementById('loginForm');
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value; // Nome do campo no HTML
+
+            const loginData = {
+                email: email,
+                senha: password // O nome do campo no seu LoginDto é 'senha'
+            };
+
+            try {
+                const response = await fetch('/api/login', { // Endpoint do seu Spring Boot
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                if (response.ok) { // Status 200 OK
+                    const message = await response.text();
+                    alert(message);
+                    window.location.href = 'index.html'; // Redireciona para a página inicial (home)
+                } else if (response.status === 401) { // Status 401 Unauthorized
+                    const errorMessage = await response.text();
+                    alert('Erro no login: ' + errorMessage);
+                } else { // Outros erros
+                    const errorMessage = await response.text();
+                    alert('Ocorreu um erro inesperado: ' + errorMessage);
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro ao tentar fazer login. Verifique a conexão com o servidor.');
+            }
+        });
+    });
+</script>
 </body>
 </html>

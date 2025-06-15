@@ -110,7 +110,7 @@
         const pfFields = document.getElementById('pfFields');
         const pjFields = document.getElementById('pjFields');
         const alunoFields = document.getElementById('alunoFields');
-        const registerForm = document.getElementById('registerForm'); // Adicionado para pegar o formulário
+        const registerForm = document.getElementById('registerForm');
 
 
         function updateUserForm() {
@@ -119,7 +119,7 @@
             pjFields.style.display = 'none';
             alunoFields.style.display = 'none';
 
-            // Limpa os valores dos campos antes de esconder para evitar envio de dados de outros tipos
+
             document.getElementById('fullNamePf').value = '';
             document.getElementById('cpf').value = '';
             document.getElementById('companyName').value = '';
@@ -141,9 +141,9 @@
         });
         updateUserForm();
 
-        // *** O CÓDIGO ABAIXO PRECISA SER ADICIONADO OU DESCOMENTADO ***
+
         registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
 
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
             const regEmail = document.getElementById('regEmail').value;
@@ -152,7 +152,6 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const termsAccepted = document.getElementById('terms').checked;
 
-            // Validação simples de senha
             if (regPassword !== confirmPassword) {
                 alert('As senhas não coincidem!');
                 return;
@@ -181,12 +180,12 @@
                 nome: nome,
                 identidade: identidade,
                 email: regEmail,
-                endereco: cep, // O campo 'endereco' no DTO será o CEP
+                endereco: cep,
                 senha: regPassword
             };
 
             try {
-                const response = await fetch('/api/register', { // Endpoint do seu Spring Boot
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -195,9 +194,9 @@
                 });
 
                 if (response.ok) {
-                    const message = await response.text(); // Ou response.json() se o backend retornar JSON
-                    alert(message); // Exibe a mensagem de sucesso do backend
-                    window.location.href = 'login.html'; // Redireciona para a página de login
+                    const message = await response.text();
+                    alert(message);
+                    window.location.href = 'login.html';
                 } else {
                     const errorData = await response.text();
                     alert('Erro no registro: ' + errorData);

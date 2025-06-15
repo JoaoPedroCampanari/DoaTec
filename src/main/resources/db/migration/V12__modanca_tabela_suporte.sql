@@ -1,0 +1,1 @@
+ALTER TABLE suporte_formulario ALTER COLUMN autor_id SET NOT NULL;
