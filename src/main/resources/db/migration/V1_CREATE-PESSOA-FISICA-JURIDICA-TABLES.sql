@@ -1,1 +1,0 @@
-create table pessoa_fisica

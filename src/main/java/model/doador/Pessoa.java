@@ -16,16 +16,18 @@ public abstract class Pessoa {
     private UUID id;
     private String nome;
     private String email;
+    private String senha;
     private String endereco;
 
     public Pessoa() {
     }
 
-    public Pessoa(UUID id, String nome, String email, String endereco) {
+    public Pessoa(UUID id, String nome, String email, String endereco, String senha) {
         this.id = id;
         this.nome = nome;
         this.email = email;
         this.endereco = endereco;
+        this.senha = senha;
     }
 
     public UUID getId() {
@@ -58,5 +60,13 @@ public abstract class Pessoa {
 
     public void setEndereco(String endereco) {
         this.endereco = endereco;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 }
