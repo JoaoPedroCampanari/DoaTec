@@ -1,10 +1,12 @@
 package model.doador;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.UUID;
 
 @Entity
+@Table(name = "pessoa_fisica")
 public class PessoaFisica extends Pessoa{
 
     private String cpf;

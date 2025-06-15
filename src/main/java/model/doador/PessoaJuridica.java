@@ -1,8 +1,10 @@
 package model.doador;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "pessoa_juridica")
 public class PessoaJuridica extends Pessoa{
 
     private String cnpj;
