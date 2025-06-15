@@ -14,6 +14,8 @@ public class Aluno extends Pessoa {
     @Column(columnDefinition = "TEXT")
     private String justificativa;
 
+    private String preferenciaEquipamento;
+
     public Aluno() {
     }
 
@@ -38,7 +40,16 @@ public class Aluno extends Pessoa {
         this.ra = ra;
     }
 
-    public void alterarJustificativa(String texto){
+    public String getPreferenciaEquipamento() {
+        return preferenciaEquipamento;
+    }
+
+    public void setPreferenciaEquipamento(String preferenciaEquipamento) {
+        this.preferenciaEquipamento = preferenciaEquipamento;
+    }
+
+    public void alterarJustificativaPreferencia(String texto, String preferenciaEquipamento){
         this.justificativa = texto;
+        this.preferenciaEquipamento = preferenciaEquipamento;
     }
 }
