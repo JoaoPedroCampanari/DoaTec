@@ -1,4 +1,4 @@
-package model.doador;
+package model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -15,12 +15,8 @@ public class PessoaFisica extends Pessoa{
 
     }
 
-    public PessoaFisica(String cpf) {
-        this.cpf = cpf;
-    }
-
-    public PessoaFisica(UUID id, String nome, String email,String senha ,String endereco, String cpf) {
-        super(id, nome, email,senha ,endereco);
+    public PessoaFisica(UUID id, String nome, String email, String senha, String endereco, String telefone, String cpf) {
+        super(id, nome, email, senha, endereco, telefone);
         this.cpf = cpf;
     }
 
@@ -32,3 +28,4 @@ public class PessoaFisica extends Pessoa{
         this.cpf = cpf;
     }
 }
+

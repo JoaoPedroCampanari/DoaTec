@@ -1,4 +1,4 @@
-package model.doador;
+package model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -14,12 +14,8 @@ public class PessoaJuridica extends Pessoa{
     public PessoaJuridica() {
     }
 
-    public PessoaJuridica(String cnpj) {
-        this.cnpj = cnpj;
-    }
-
-    public PessoaJuridica(UUID id, String nome, String email, String endereco, String senha, String cnpj) {
-        super(id, nome, email, endereco, senha);
+    public PessoaJuridica(UUID id, String nome, String email, String senha, String endereco, String telefone, String cnpj) {
+        super(id, nome, email, senha, endereco, telefone);
         this.cnpj = cnpj;
     }
 

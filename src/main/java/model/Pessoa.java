@@ -1,10 +1,7 @@
-package model.doador;
+package model;
 
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 
 import java.util.UUID;
 
@@ -18,16 +15,20 @@ public abstract class Pessoa {
     private String email;
     private String senha;
     private String endereco;
+    private String telefone;
+    @Enumerated(EnumType.STRING)
+    private TipoUsuario tipo;
 
     public Pessoa() {
     }
 
-    public Pessoa(UUID id, String nome, String email, String endereco, String senha) {
+    public Pessoa(UUID id, String nome, String email, String senha, String endereco, String telefone) {
         this.id = id;
         this.nome = nome;
         this.email = email;
-        this.endereco = endereco;
         this.senha = senha;
+        this.endereco = endereco;
+        this.telefone = telefone;
     }
 
     public UUID getId() {
@@ -54,6 +55,14 @@ public abstract class Pessoa {
         this.email = email;
     }
 
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
     public String getEndereco() {
         return endereco;
     }
@@ -62,11 +71,11 @@ public abstract class Pessoa {
         this.endereco = endereco;
     }
 
-    public String getSenha() {
-        return senha;
+    public String getTelefone() {
+        return telefone;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 }
