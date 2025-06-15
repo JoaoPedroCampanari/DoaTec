@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Plataforma de Doação</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+    </style>
+</head>
+
+<body class="login-page">
+
+<div class="back-button-container">
+    <a href="index.html" class="btn btn-secondary">‹ Voltar ao Início</a>
+</div>
+
+<div class="login-container">
+    <div class="login-box">
+        <div class="logo">
+            <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
+        </div>
+        <h1>Crie sua Conta</h1>
+
+        <div class="form-group user-type-selection">
+            <div>
+                <input type="radio" id="typePf" name="userType" value="pf" checked>
+                <label for="typePf" class="radio-label">Pessoa Física</label>
+            </div>
+            <div>
+                <input type="radio" id="typePj" name="userType" value="pj">
+                <label for="typePj" class="radio-label">Pessoa Jurídica</label>
+            </div>
+            <div>
+                <input type="radio" id="typeAluno" name="userType" value="aluno">
+                <label for="typeAluno" class="radio-label">Aluno</label>
+            </div>
+        </div>
+
+        <form id="registerForm" class="application-form">
+
+            <div id="pfFields">
+                <div class="form-group">
+                    <label for="fullNamePf" id="nameLabel">Nome Completo</label>
+                    <input type="text" id="fullNamePf" name="fullNamePf">
+                </div>
+                <div class="form-group">
+                    <label for="cpf">CPF</label>
+                    <input type="text" id="cpf" name="cpf">
+                </div>
+            </div>
+
+            <div id="pjFields" style="display: none;">
+                <div class="form-group">
+                    <label for="companyName">Nome da Empresa</label>
+                    <input type="text" id="companyName" name="companyName">
+                </div>
+                <div class="form-group">
+                    <label for="cnpj">CNPJ</label>
+                    <input type="text" id="cnpj" name="cnpj">
+                </div>
+            </div>
+
+            <div id="alunoFields" style="display: none;">
+                <div class="form-group">
+                    <label for="fullNameAluno">Nome Completo do Aluno</label>
+                    <input type="text" id="fullNameAluno" name="fullNameAluno">
+                </div>
+                <div class="form-group">
+                    <label for="ra">Matrícula (RA)</label>
+                    <input type="text" id="ra" name="ra">
+                </div>
+            </div>
+
+            <hr style="border: 1px solid #eee; margin: 20px 0;">
+
+            <div class="form-group">
+                <label for="regEmail">Email</label>
+                <input type="email" id="regEmail" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cep">CEP</label>
+                <input type="text" id="cep" name="cep" required>
+            </div>
+
+            <div class="form-group">
+                <label for="regPassword">Crie uma Senha</label>
+                <input type="password" id="regPassword" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirme a Senha</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms" class="checkbox-label">Eu li e concordo com os <a href="#">Termos de
+                    Serviço</a>.</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-submit">Registrar</button>
+        </form>
+        <p class="footer-link">Já tem uma conta? <a href="login.html">Faça o login</a></p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const userTypeRadios = document.querySelectorAll('input[name="userType"]');
+        const pfFields = document.getElementById('pfFields');
+        const pjFields = document.getElementById('pjFields');
+        const alunoFields = document.getElementById('alunoFields');
+        const registerForm = document.getElementById('registerForm'); // Adicionado para pegar o formulário
+
+
+        function updateUserForm() {
+            const selectedType = document.querySelector('input[name="userType"]:checked').value;
+            pfFields.style.display = 'none';
+            pjFields.style.display = 'none';
+            alunoFields.style.display = 'none';
+
+            // Limpa os valores dos campos antes de esconder para evitar envio de dados de outros tipos
+            document.getElementById('fullNamePf').value = '';
+            document.getElementById('cpf').value = '';
+            document.getElementById('companyName').value = '';
+            document.getElementById('cnpj').value = '';
+            document.getElementById('fullNameAluno').value = '';
+            document.getElementById('ra').value = '';
+
+
+            if (selectedType === 'pf') {
+                pfFields.style.display = 'block';
+            } else if (selectedType === 'pj') {
+                pjFields.style.display = 'block';
+            } else if (selectedType === 'aluno') {
+                alunoFields.style.display = 'block';
+            }
+        }
+        userTypeRadios.forEach(radio => {
+            radio.addEventListener('change', updateUserForm);
+        });
+        updateUserForm();
+
+        // *** O CÓDIGO ABAIXO PRECISA SER ADICIONADO OU DESCOMENTADO ***
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const selectedType = document.querySelector('input[name="userType"]:checked').value;
+            const regEmail = document.getElementById('regEmail').value;
+            const cep = document.getElementById('cep').value;
+            const regPassword = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const termsAccepted = document.getElementById('terms').checked;
+
+            // Validação simples de senha
+            if (regPassword !== confirmPassword) {
+                alert('As senhas não coincidem!');
+                return;
+            }
+            if (!termsAccepted) {
+                alert('Você deve aceitar os Termos de Serviço.');
+                return;
+            }
+
+            let nome;
+            let identidade;
+
+            if (selectedType === 'pf') {
+                nome = document.getElementById('fullNamePf').value;
+                identidade = document.getElementById('cpf').value;
+            } else if (selectedType === 'pj') {
+                nome = document.getElementById('companyName').value;
+                identidade = document.getElementById('cnpj').value;
+            } else if (selectedType === 'aluno') {
+                nome = document.getElementById('fullNameAluno').value;
+                identidade = document.getElementById('ra').value;
+            }
+
+            const registroData = {
+                tipoUsuario: selectedType,
+                nome: nome,
+                identidade: identidade,
+                email: regEmail,
+                endereco: cep, // O campo 'endereco' no DTO será o CEP
+                senha: regPassword
+            };
+
+            try {
+                const response = await fetch('/api/register', { // Endpoint do seu Spring Boot
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registroData)
+                });
+
+                if (response.ok) {
+                    const message = await response.text(); // Ou response.json() se o backend retornar JSON
+                    alert(message); // Exibe a mensagem de sucesso do backend
+                    window.location.href = 'login.html'; // Redireciona para a página de login
+                } else {
+                    const errorData = await response.text();
+                    alert('Erro no registro: ' + errorData);
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro ao tentar registrar. Verifique a conexão com o servidor.');
+            }
+        });
+    });
+</script>
+
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-package model.donation;
+package com.doatec.model.donation;
 
 import jakarta.persistence.*;
 import java.util.UUID;

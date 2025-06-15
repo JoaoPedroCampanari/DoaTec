@@ -1,8 +1,6 @@
-package model.account;
+package com.doatec.model.account;
 
 import jakarta.persistence.*;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "aluno")

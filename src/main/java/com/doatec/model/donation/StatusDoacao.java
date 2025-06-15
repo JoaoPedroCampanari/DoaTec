@@ -1,4 +1,4 @@
-package model.donation;
+package com.doatec.model.donation;
 
 public enum StatusDoacao {
     AGUARDANDO_COLETA,

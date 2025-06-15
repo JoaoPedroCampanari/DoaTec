@@ -1,10 +1,8 @@
-package model.account;
+package com.doatec.model.account;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "pessoa_juridica")

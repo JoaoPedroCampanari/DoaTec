@@ -1,7 +1,7 @@
-package model.suporte;
+package com.doatec.model.suporte;
 
 import jakarta.persistence.*;
-import model.account.Pessoa;
+import com.doatec.model.account.Pessoa;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

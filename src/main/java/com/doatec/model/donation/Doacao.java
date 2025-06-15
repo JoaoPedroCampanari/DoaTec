@@ -1,7 +1,7 @@
-package model.donation;
+package com.doatec.model.donation;
 
 import jakarta.persistence.*;
-import model.account.Pessoa;
+import com.doatec.model.account.Pessoa;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

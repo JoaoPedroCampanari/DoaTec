@@ -1,4 +1,4 @@
-package model.account;
+package com.doatec.model.account;
 
 import jakarta.persistence.*;
 
