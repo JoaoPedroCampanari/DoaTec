@@ -28,13 +28,17 @@ public class Doacao {
     @Enumerated(EnumType.STRING)
     private StatusDoacao status = StatusDoacao.EM_ANALISE;
 
+    @Enumerated(EnumType.STRING)
+    private PreferenciaEntrega preferenciaEntrega;
+
 
     public Doacao() {
     }
 
-    public Doacao(Pessoa doador, StatusDoacao status) {
+    public Doacao(Pessoa doador, StatusDoacao status, PreferenciaEntrega preferenciaEntrega) {
         this.doador = doador;
         this.status = status;
+        this.preferenciaEntrega = preferenciaEntrega;
     }
 
     public UUID getId() {
@@ -75,5 +79,13 @@ public class Doacao {
 
     public void setStatus(StatusDoacao status) {
         this.status = status;
+    }
+
+    public PreferenciaEntrega getPreferenciaEntrega() {
+        return preferenciaEntrega;
+    }
+
+    public void setPreferenciaEntrega(PreferenciaEntrega preferenciaEntrega) {
+        this.preferenciaEntrega = preferenciaEntrega;
     }
 }

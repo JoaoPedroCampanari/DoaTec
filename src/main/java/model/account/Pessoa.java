@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "pessoa") // Tabela base para os campos comuns
-@Inheritance(strategy = InheritanceType.JOINED) // Estratégia de herança
+@Table(name = "pessoa")
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Pessoa {
 
     @Id
