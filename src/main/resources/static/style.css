@@ -25,12 +25,15 @@ body {
 .navbar {
     background: #343a40;
     color: #fff;
-    padding: 0.5rem 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
 }
+
 
 .navbar .container {
     display: flex;
