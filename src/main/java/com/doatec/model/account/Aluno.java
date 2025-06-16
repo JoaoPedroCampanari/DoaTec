@@ -10,6 +10,7 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name = "pessoa_id")
 public class Aluno extends Pessoa {
 
+    //Documento de matricula
     private String ra;
 
     @Column(columnDefinition = "TEXT")

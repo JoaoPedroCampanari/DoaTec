@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -105,21 +104,27 @@
 </div>
 
 <script>
+    // Adiciona um "ouvinte" que espera toda a página HTML ser carregada antes de executar o script.
     document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Lógica para alternar os campos do formulário com base no tipo de usuário ---
         const userTypeRadios = document.querySelectorAll('input[name="userType"]');
         const pfFields = document.getElementById('pfFields');
         const pjFields = document.getElementById('pjFields');
         const alunoFields = document.getElementById('alunoFields');
         const registerForm = document.getElementById('registerForm');
 
-
+        // Função para mostrar/ocultar os campos corretos.
         function updateUserForm() {
+            // Pega o valor do tipo de usuário selecionado.
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
+
+            // Esconde todos os blocos de campos específicos primeiro.
             pfFields.style.display = 'none';
             pjFields.style.display = 'none';
             alunoFields.style.display = 'none';
 
-
+            // Limpa os valores dos campos para evitar enviar dados de campos ocultos.
             document.getElementById('fullNamePf').value = '';
             document.getElementById('cpf').value = '';
             document.getElementById('companyName').value = '';
@@ -127,7 +132,7 @@
             document.getElementById('fullNameAluno').value = '';
             document.getElementById('ra').value = '';
 
-
+            // Mostra apenas o bloco de campos correspondente ao tipo de usuário selecionado.
             if (selectedType === 'pf') {
                 pfFields.style.display = 'block';
             } else if (selectedType === 'pj') {
@@ -136,15 +141,20 @@
                 alunoFields.style.display = 'block';
             }
         }
+        // Adiciona um "ouvinte" para cada botão de rádio. A função updateUserForm será chamada sempre que uma opção for alterada.
         userTypeRadios.forEach(radio => {
             radio.addEventListener('change', updateUserForm);
         });
+        // Chama a função uma vez no início para garantir que o formulário seja exibido corretamente ao carregar a página.
         updateUserForm();
 
 
+        // --- Lógica para o envio do formulário de registro ---
         registerForm.addEventListener('submit', async (event) => {
+            // Impede o comportamento padrão do formulário (recarregar a página).
             event.preventDefault();
 
+            // Coleta os valores dos campos comuns.
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
             const regEmail = document.getElementById('regEmail').value;
             const cep = document.getElementById('cep').value;
@@ -152,15 +162,18 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const termsAccepted = document.getElementById('terms').checked;
 
+            // Validação no lado do cliente: verifica se as senhas coincidem.
             if (regPassword !== confirmPassword) {
                 alert('As senhas não coincidem!');
-                return;
+                return; // Interrompe o envio.
             }
+            // Validação no lado do cliente: verifica se os termos foram aceitos.
             if (!termsAccepted) {
                 alert('Você deve aceitar os Termos de Serviço.');
-                return;
+                return; // Interrompe o envio.
             }
 
+            // Coleta o nome e a identidade (CPF/CNPJ/RA) dos campos que estão visíveis.
             let nome;
             let identidade;
 
@@ -175,33 +188,36 @@
                 identidade = document.getElementById('ra').value;
             }
 
+            // Monta o objeto com os dados para enviar à API. As chaves devem corresponder ao DTO do backend.
             const registroData = {
                 tipoUsuario: selectedType,
                 nome: nome,
                 identidade: identidade,
                 email: regEmail,
-                endereco: cep,
+                endereco: cep, // O campo CEP do formulário é mapeado para 'endereco' no DTO.
                 senha: regPassword
             };
 
+            // Tenta enviar os dados para o backend.
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(registroData)
                 });
 
+                // Se o registro for bem-sucedido, redireciona para a página de login.
                 if (response.ok) {
                     const message = await response.text();
                     alert(message);
                     window.location.href = 'login.html';
                 } else {
+                    // Se houver um erro de validação no backend, exibe a mensagem de erro.
                     const errorData = await response.text();
                     alert('Erro no registro: ' + errorData);
                 }
             } catch (error) {
+                // Se houver um erro de rede, exibe uma mensagem de erro genérica.
                 console.error('Erro na requisição:', error);
                 alert('Ocorreu um erro ao tentar registrar. Verifique a conexão com o servidor.');
             }

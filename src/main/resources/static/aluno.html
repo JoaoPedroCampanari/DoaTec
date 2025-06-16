@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preciso de um Computador - DoaTec</title>
-    <link rel="stylesheet" href="style.css"> </head>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
+
 <header>
     <nav class="navbar">
         <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
@@ -83,13 +85,17 @@
 </footer>
 
 <script>
+    // Adiciona um "ouvinte" que espera toda a estrutura HTML da página ser carregada antes de executar o código.
     document.addEventListener('DOMContentLoaded', function() {
+        // Encontra o elemento do formulário no HTML pelo seu ID.
         const form = document.getElementById('alunoRequestForm');
 
+        // Adiciona um "ouvinte" para o evento de 'submit' (envio) do formulário.
         form.addEventListener('submit', async (event) => {
+            // Impede o comportamento padrão do formulário, que é recarregar a página.
             event.preventDefault();
 
-            // Coleta todos os dados do formulário
+            // Coleta todos os dados dos campos do formulário em um objeto JavaScript.
             const requestData = {
                 nome: document.getElementById('nome').value,
                 email: document.getElementById('email').value,
@@ -100,23 +106,28 @@
                 preferenciaEquipamento: document.getElementById('preferenciaEquipamento').value
             };
 
-            // O campo de arquivo com id="comprovante" é intencionalmente ignorado aqui.
+            // O campo de arquivo com id="comprovante" é intencionalmente ignorado aqui, como solicitado.
 
+            // Tenta executar a requisição para a API.
             try {
+                // Envia os dados para o backend na URL especificada.
                 const response = await fetch('http://localhost:8080/api/solicitacoes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
+                    method: 'POST', // Define o método HTTP como POST.
+                    headers: { 'Content-Type': 'application/json' }, // Informa ao backend que estamos enviando dados em formato JSON.
+                    body: JSON.stringify(requestData) // Converte o objeto JavaScript em uma string JSON para envio.
                 });
 
+                // Pega a mensagem de texto da resposta do backend (seja de sucesso ou de erro).
                 const message = await response.text();
-                alert(message); // Exibe a mensagem de sucesso ou de erro vinda do backend
+                alert(message); // Exibe a mensagem para o usuário em um pop-up.
 
+                // Se a requisição foi bem-sucedida (status 2xx), limpa os campos do formulário.
                 if (response.ok) {
-                    form.reset(); // Limpa o formulário se a solicitação foi bem-sucedida
+                    form.reset();
                 }
 
             } catch (error) {
+                // Se ocorrer um erro de rede (ex: backend desligado), exibe um alerta e loga o erro no console.
                 console.error('Erro na requisição:', error);
                 alert('Ocorreu um erro ao enviar sua solicitação. Verifique a conexão e tente novamente.');
             }

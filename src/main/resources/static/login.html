@@ -6,7 +6,7 @@
     <title>Login - Plataforma de Doação</title>
     <link rel="stylesheet" href="style.css">
     <style>
-
+        /* Estilos CSS embutidos podem ser colocados aqui, se necessário */
     </style>
 </head>
 <body class="login-page">
@@ -36,41 +36,55 @@
 </div>
 
 <script>
+    // Adiciona um "ouvinte" que espera toda a página HTML ser carregada antes de executar o script.
     document.addEventListener('DOMContentLoaded', () => {
+        // Encontra o elemento do formulário no HTML pelo seu ID.
         const loginForm = document.getElementById('loginForm');
 
+        // Adiciona um "ouvinte" para o evento de 'submit' (envio) do formulário.
         loginForm.addEventListener('submit', async (event) => {
+            // Impede o comportamento padrão do formulário, que é recarregar a página.
             event.preventDefault();
 
+            // Coleta os valores dos campos de email e senha.
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
+            // Cria um objeto JavaScript com os dados do login para enviar à API.
+            // As chaves 'email' e 'senha' devem corresponder ao DTO no backend.
             const loginData = {
                 email: email,
                 senha: password
             };
 
+            // Tenta executar a requisição para a API.
             try {
+                // Envia os dados para o endpoint de login no backend.
                 const response = await fetch('/api/login', {
-                    method: 'POST',
+                    method: 'POST', // Define o método HTTP como POST.
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json' // Informa ao backend que estamos enviando dados em formato JSON.
                     },
-                    body: JSON.stringify(loginData)
+                    body: JSON.stringify(loginData) // Converte o objeto JavaScript em uma string JSON.
                 });
 
+                // Verifica se a resposta do servidor foi bem-sucedida (status 2xx).
                 if (response.ok) {
                     const message = await response.text();
                     alert(message);
+                    // Redireciona o usuário para a página inicial após o login bem-sucedido.
                     window.location.href = 'index.html';
                 } else if (response.status === 401) {
+                    // Trata especificamente o erro de "Não Autorizado" (senha/email errados).
                     const errorMessage = await response.text();
                     alert('Erro no login: ' + errorMessage);
                 } else {
+                    // Trata outros erros HTTP que possam ocorrer.
                     const errorMessage = await response.text();
                     alert('Ocorreu um erro inesperado: ' + errorMessage);
                 }
             } catch (error) {
+                // Se ocorrer um erro de rede (ex: backend offline), exibe um alerta e loga o erro no console do navegador.
                 console.error('Erro na requisição:', error);
                 alert('Ocorreu um erro ao tentar fazer login. Verifique a conexão com o servidor.');
             }

@@ -26,6 +26,7 @@
         </div>
     </nav>
 </header>
+
 <main>
     <section class="application-section">
         <div class="container">
@@ -119,11 +120,16 @@
     </div>
 </footer>
 <script>
+    // Adiciona um "ouvinte" que espera toda a página HTML ser carregada antes de executar o script.
     document.addEventListener('DOMContentLoaded', function() {
+
+        // --- Lógica para atualizar dinamicamente o campo de documento (CPF/CNPJ) ---
         const radioCpf = document.getElementById('typeCpf');
         const radioCnpj = document.getElementById('typeCnpj');
         const documentLabel = document.getElementById('documentLabel');
         const documentInput = document.getElementById('documentNumber');
+
+        // Função que muda o texto do label e o placeholder do input com base na seleção.
         function updateDocumentField() {
             if (radioCpf.checked) {
                 documentLabel.textContent = 'CPF:';
@@ -133,40 +139,45 @@
                 documentInput.placeholder = 'Digite seu CNPJ (apenas números)';
             }
         }
+        // Adiciona "ouvintes" para o evento de mudança nos botões de rádio.
         radioCpf.addEventListener('change', updateDocumentField);
         radioCnpj.addEventListener('change', updateDocumentField);
+        // Chama a função uma vez no início para definir o estado inicial correto.
         updateDocumentField();
 
+        // --- Lógica para o envio do formulário ---
+        // Encontra o formulário de doação no HTML pelo seu ID.
         const donationForm = document.getElementById('donationForm');
 
+        // Adiciona um "ouvinte" para o evento de 'submit' (envio) do formulário.
         donationForm.addEventListener('submit', async (event) => {
+            // Impede o comportamento padrão do formulário, que é recarregar a página.
             event.preventDefault();
 
-            // Informações do Doador
-            const nome = document.getElementById('donorName').value; // Mapeia para 'nome' no DTO
-            const tipoDocumento = document.querySelector('input[name="documentType"]:checked').value; // Mapeia para 'tipoDocumento'
-            const numeroDocumento = document.getElementById('documentNumber').value; // Mapeia para 'numeroDocumento'
+            // Coleta os valores de todos os campos do formulário.
+            const nome = document.getElementById('donorName').value;
+            const tipoDocumento = document.querySelector('input[name="documentType"]:checked').value;
+            const numeroDocumento = document.getElementById('documentNumber').value;
             const email = document.getElementById('email').value;
-            const telefone = document.getElementById('phone').value; // Mapeia para 'telefone'
-
-            // Detalhes da Doação
+            const telefone = document.getElementById('phone').value;
             const selectedDonatedItem = document.querySelector('input[name="donatedItems"]:checked');
             const tipoItem = selectedDonatedItem ? selectedDonatedItem.value : '';
-            const descricaoItem = document.getElementById('itemDescription').value; // Mapeia para 'descricaoItem'
-
-            // Logística
-            const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value; // Mapeia para 'preferenciaEntrega'
+            const descricaoItem = document.getElementById('itemDescription').value;
+            const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value;
             const termsAccepted = document.getElementById('terms').checked;
 
+            // Validação: verifica se os termos foram aceitos.
             if (!termsAccepted) {
                 alert('Você deve concordar com os termos da doação.');
-                return;
+                return; // Interrompe o envio do formulário.
             }
+            // Validação: verifica se um tipo de item foi selecionado.
             if (!tipoItem) {
                 alert('Por favor, selecione o que você gostaria de doar.');
-                return;
+                return; // Interrompe o envio do formulário.
             }
 
+            // Monta o objeto com os dados da doação para ser enviado como JSON.
             const doacaoData = {
                 nome: nome,
                 tipoDocumento: tipoDocumento,
@@ -178,6 +189,7 @@
                 preferenciaEntrega: preferenciaEntrega
             };
 
+            // Tenta enviar os dados para a API do backend.
             try {
                 const response = await fetch('/api/donations', {
                     method: 'POST',
@@ -187,15 +199,19 @@
                     body: JSON.stringify(doacaoData)
                 });
 
+                // Se a resposta for bem-sucedida, executa o bloco if.
                 if (response.ok) {
                     const message = await response.text();
                     alert(message);
+                    // Limpa o formulário após o sucesso.
                     donationForm.reset();
                 } else {
+                    // Se houver um erro, pega a mensagem de erro do backend.
                     const errorData = await response.text();
                     alert('Erro ao registrar doação: ' + errorData);
                 }
             } catch (error) {
+                // Se ocorrer um erro de rede, exibe um alerta e loga o erro no console.
                 console.error('Erro na requisição de doação:', error);
                 alert('Ocorreu um erro ao enviar sua doação. Verifique a conexão com o servidor.');
             }
