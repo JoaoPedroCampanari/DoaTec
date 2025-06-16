@@ -9,6 +9,9 @@ public class RegistroDto {
     private String endereco;
     private String senha;
 
+    public RegistroDto() {
+    }
+
     public RegistroDto(String tipoUsuario, String nome, String identidade, String email, String endereco, String senha) {
         this.tipoUsuario = tipoUsuario;
         this.nome = nome;
@@ -16,9 +19,6 @@ public class RegistroDto {
         this.email = email;
         this.endereco = endereco;
         this.senha = senha;
-    }
-
-    public RegistroDto() {
     }
 
     public String getTipoUsuario() {
@@ -69,4 +69,3 @@ public class RegistroDto {
         this.senha = senha;
     }
 }
-

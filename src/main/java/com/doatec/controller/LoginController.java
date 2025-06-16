@@ -1,6 +1,8 @@
 package com.doatec.controller;
 
 import com.doatec.dtos.LoginDto;
+import com.doatec.dtos.UserLoginResponseDto; // Importar o novo DTO
+import com.doatec.model.account.Pessoa;
 import com.doatec.service.PessoaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,15 +23,21 @@ public class LoginController {
     private PessoaService pessoaService;
 
     @PostMapping
-    public ResponseEntity<String> loginUser(@RequestBody LoginDto loginDto) {
-        // Chama o serviço para verificar se o email e a senha são válidos.
-        boolean credenciaisValidas = pessoaService.verificarCredenciais(loginDto);
+    public ResponseEntity<?> loginUser(@RequestBody LoginDto loginDto) {
+        Pessoa pessoaAutenticada = pessoaService.autenticar(loginDto);
 
-        if (credenciaisValidas) {
-            // Se as credenciais estiverem corretas, retorna uma resposta de sucesso.
-            return ResponseEntity.ok("Login bem-sucedido! Redirecionando para a home.");
+        if (pessoaAutenticada != null) {
+            // Cria o DTO de resposta com os dados da pessoa
+            UserLoginResponseDto responseDto = new UserLoginResponseDto(
+                    pessoaAutenticada.getId(),
+                    pessoaAutenticada.getNome(),
+                    pessoaAutenticada.getEmail(),
+                    pessoaAutenticada.getTelefone(),
+                    pessoaAutenticada.getTipo(),
+                    pessoaAutenticada.getDocumento()
+            );
+            return ResponseEntity.ok(responseDto); // Retorna o DTO no corpo da resposta
         } else {
-            // Se estiverem incorretas, retorna uma resposta de não autorizado.
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha incorretos.");
         }
     }

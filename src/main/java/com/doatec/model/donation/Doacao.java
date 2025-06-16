@@ -2,19 +2,17 @@ package com.doatec.model.donation;
 
 import jakarta.persistence.*;
 import com.doatec.model.account.Pessoa;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "doacao")
 public class Doacao {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
+    private Integer id; // Alterado de String para Integer
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doador_id", nullable = false)
@@ -31,21 +29,21 @@ public class Doacao {
     @Enumerated(EnumType.STRING)
     private PreferenciaEntrega preferenciaEntrega;
 
-
     public Doacao() {
     }
 
+    // Construtor sem ID
     public Doacao(Pessoa doador, StatusDoacao status, PreferenciaEntrega preferenciaEntrega) {
         this.doador = doador;
         this.status = status;
         this.preferenciaEntrega = preferenciaEntrega;
     }
 
-    public UUID getId() {
+    public Integer getId() { // Alterado de String para Integer
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Integer id) { // Alterado de String para Integer
         this.id = id;
     }
 

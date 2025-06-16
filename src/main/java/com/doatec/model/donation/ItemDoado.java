@@ -1,15 +1,14 @@
 package com.doatec.model.donation;
 
 import jakarta.persistence.*;
-import java.util.UUID;
 
 @Entity
 @Table(name = "item_doado")
 public class ItemDoado {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
+    private Integer id; // Alterado de String para Integer
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doacao_id", nullable = false)
@@ -24,17 +23,18 @@ public class ItemDoado {
     public ItemDoado() {
     }
 
+    // Construtor sem ID
     public ItemDoado(Doacao doacao, String tipoItem, String descricao) {
         this.doacao = doacao;
         this.tipoItem = tipoItem;
         this.descricao = descricao;
     }
 
-    public UUID getId() {
+    public Integer getId() { // Alterado de String para Integer
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Integer id) { // Alterado de String para Integer
         this.id = id;
     }
 

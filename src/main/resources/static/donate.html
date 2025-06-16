@@ -19,11 +19,12 @@
             <li><a href="suporte.html">Suporte</a></li>
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
-        <div class="menu-toggle">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
+        <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+        <button id="logoutButton" class="btn btn-secondary" style="margin-left: 10px;">Sair</button> <div class="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
     </nav>
 </header>
 
@@ -39,31 +40,21 @@
                     <legend>Informações do Doador</legend>
                     <div class="form-group">
                         <label for="donorName">Seu Nome ou Nome da Empresa:</label>
-                        <input type="text" id="donorName" name="donorName" required>
+                        <input type="text" id="donorName" name="donorName" required disabled>
                     </div>
+
                     <div class="form-group">
-                        <label>Tipo de Doador:</label>
-                        <div>
-                            <input type="radio" id="typeCpf" name="documentType" value="cpf" checked>
-                            <label for="typeCpf" class="radio-label">Pessoa Física (CPF)</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="typeCnpj" name="documentType" value="cnpj">
-                            <label for="typeCnpj" class="checkbox-label">Pessoa Jurídica (CNPJ)</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="documentNumber" id="documentLabel">CPF:</label>
+                        <label for="documentNumber" id="documentLabel">Documento:</label>
                         <input type="text" id="documentNumber" name="documentNumber" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Email para Contato*:</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" required disabled>
                         <small class="form-text">Usaremos este email para coordenar a coleta/entrega da sua doação.</small>
                     </div>
                     <div class="form-group">
                         <label for="phone">Telefone (Opcional):</label>
-                        <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX">
+                        <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX" disabled>
                         <small class="form-text">Ajuda a agilizar o contato, se necessário.</small>
                     </div>
                 </fieldset>
@@ -72,16 +63,16 @@
                     <div class="form-group">
                         <label>O que você gostaria de doar?</label>
                         <div>
-                            <input type="radio" id="itemDesktop" name="donatedItems" value="desktop">
-                            <label for="itemDesktop" class="checkbox-label">Computador de Mesa (Desktop)</label>
+                            <input type="radio" id="itemDesktop" name="donatedItems" value="desktop" checked>
+                            <label for="itemDesktop" class="radio-label">Computador de Mesa (Desktop)</label>
                         </div>
                         <div>
                             <input type="radio" id="itemNotebook" name="donatedItems" value="notebook">
-                            <label for="itemNotebook" class="checkbox-label">Notebook</label>
+                            <label for="itemNotebook" class="radio-label">Notebook</label>
                         </div>
                         <div>
                             <input type="radio" id="itemComponents" name="donatedItems" value="components">
-                            <label for="itemComponents" class="checkbox-label">Peças e Componentes Avulsos</label>
+                            <label for="itemComponents" class="radio-label">Peças e Componentes Avulsos</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -101,7 +92,7 @@
                         </div>
                         <div>
                             <input type="radio" id="deliveryPickup" name="deliveryPreference" value="SOLICITAR_RETIRADA">
-                            <label for="deliveryPickup" class="checkbox-label">Gostaria de solicitar a retirada no meu endereço (sujeito a análise de viabilidade)</label>
+                            <label for="deliveryPickup" class="radio-label">Gostaria de solicitar a retirada no meu endereço (sujeito a análise de viabilidade)</label>
                         </div>
                     </div>
                 </fieldset>
@@ -119,77 +110,93 @@
         <p>&copy; 2025 Plataforma de Doação - Fatec Garça. Todos os direitos reservados.</p>
     </div>
 </footer>
-<script>
-    // Adiciona um "ouvinte" que espera toda a página HTML ser carregada antes de executar o script.
+<script src="js/main.js"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/auth.js"></script> <script>
     document.addEventListener('DOMContentLoaded', function() {
-
-        // --- Lógica para atualizar dinamicamente o campo de documento (CPF/CNPJ) ---
-        const radioCpf = document.getElementById('typeCpf');
-        const radioCnpj = document.getElementById('typeCnpj');
         const documentLabel = document.getElementById('documentLabel');
         const documentInput = document.getElementById('documentNumber');
-
-        // Função que muda o texto do label e o placeholder do input com base na seleção.
-        function updateDocumentField() {
-            if (radioCpf.checked) {
-                documentLabel.textContent = 'CPF:';
-                documentInput.placeholder = 'Digite seu CPF (apenas números)';
-            } else {
-                documentLabel.textContent = 'CNPJ:';
-                documentInput.placeholder = 'Digite seu CNPJ (apenas números)';
-            }
-        }
-        // Adiciona "ouvintes" para o evento de mudança nos botões de rádio.
-        radioCpf.addEventListener('change', updateDocumentField);
-        radioCnpj.addEventListener('change', updateDocumentField);
-        // Chama a função uma vez no início para definir o estado inicial correto.
-        updateDocumentField();
-
-        // --- Lógica para o envio do formulário ---
-        // Encontra o formulário de doação no HTML pelo seu ID.
+        const donorNameInput = document.getElementById('donorName');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
         const donationForm = document.getElementById('donationForm');
 
-        // Adiciona um "ouvinte" para o evento de 'submit' (envio) do formulário.
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+        let usuarioTipoDocumento = '';
+
+        if (loggedInUser && loggedInUser.id) {
+            fetch(`/api/users/${loggedInUser.id}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Falha ao carregar dados do usuário logado.');
+                })
+                .then(userData => {
+                    donorNameInput.value = userData.nome || '';
+                    emailInput.value = userData.email || '';
+                    phoneInput.value = userData.telefone || '';
+
+                    if (userData.tipoUsuario === 'DOADOR_PF') {
+                        documentLabel.textContent = 'CPF:';
+                        documentInput.placeholder = 'Confirme seu CPF (apenas números)';
+                        usuarioTipoDocumento = 'cpf';
+                    } else if (userData.tipoUsuario === 'DOADOR_PJ') {
+                        documentLabel.textContent = 'CNPJ:';
+                        documentInput.placeholder = 'Confirme seu CNPJ (apenas números)';
+                        usuarioTipoDocumento = 'cnpj';
+                    } else if (userData.tipoUsuario === 'ALUNO') {
+                        documentLabel.textContent = 'RA:';
+                        documentInput.placeholder = 'Confirme seu RA';
+                        usuarioTipoDocumento = 'aluno';
+                    } else {
+                        documentLabel.textContent = 'Documento:';
+                        documentInput.placeholder = 'Documento de identificação (opcional)';
+                        documentInput.removeAttribute('required');
+                        usuarioTipoDocumento = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao preencher dados do doador:', error);
+                    alert('Não foi possível carregar seus dados para preenchimento automático. Por favor, preencha manualmente.');
+                    localStorage.removeItem('loggedInUser');
+                });
+        } else {
+            // Se não estiver logado, pode-se exigir login ou deixar os campos preenchíveis
+            alert('Você precisa estar logado para fazer uma doação. Por favor, faça login.');
+            window.location.href = 'login.html'; // Redireciona para login se não logado
+        }
+
+
         donationForm.addEventListener('submit', async (event) => {
-            // Impede o comportamento padrão do formulário, que é recarregar a página.
             event.preventDefault();
 
-            // Coleta os valores de todos os campos do formulário.
-            const nome = document.getElementById('donorName').value;
-            const tipoDocumento = document.querySelector('input[name="documentType"]:checked').value;
             const numeroDocumento = document.getElementById('documentNumber').value;
-            const email = document.getElementById('email').value;
-            const telefone = document.getElementById('phone').value;
-            const selectedDonatedItem = document.querySelector('input[name="donatedItems"]:checked');
-            const tipoItem = selectedDonatedItem ? selectedDonatedItem.value : '';
+            const tipoItem = document.querySelector('input[name="donatedItems"]:checked').value;
             const descricaoItem = document.getElementById('itemDescription').value;
             const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value;
             const termsAccepted = document.getElementById('terms').checked;
 
-            // Validação: verifica se os termos foram aceitos.
             if (!termsAccepted) {
                 alert('Você deve concordar com os termos da doação.');
-                return; // Interrompe o envio do formulário.
+                return;
             }
-            // Validação: verifica se um tipo de item foi selecionado.
             if (!tipoItem) {
                 alert('Por favor, selecione o que você gostaria de doar.');
-                return; // Interrompe o envio do formulário.
+                return;
             }
 
-            // Monta o objeto com os dados da doação para ser enviado como JSON.
             const doacaoData = {
-                nome: nome,
-                tipoDocumento: tipoDocumento,
+                nome: donorNameInput.value,
+                tipoDocumento: usuarioTipoDocumento,
                 numeroDocumento: numeroDocumento,
-                email: email,
-                telefone: telefone,
+                email: emailInput.value,
+                telefone: phoneInput.value,
                 tipoItem: tipoItem,
                 descricaoItem: descricaoItem,
                 preferenciaEntrega: preferenciaEntrega
             };
 
-            // Tenta enviar os dados para a API do backend.
             try {
                 const response = await fetch('/api/donations', {
                     method: 'POST',
@@ -199,19 +206,21 @@
                     body: JSON.stringify(doacaoData)
                 });
 
-                // Se a resposta for bem-sucedida, executa o bloco if.
                 if (response.ok) {
                     const message = await response.text();
                     alert(message);
-                    // Limpa o formulário após o sucesso.
                     donationForm.reset();
                 } else {
-                    // Se houver um erro, pega a mensagem de erro do backend.
-                    const errorData = await response.text();
-                    alert('Erro ao registrar doação: ' + errorData);
+                    let errorMessage = 'Erro desconhecido.';
+                    try {
+                        const errorJson = await response.json();
+                        errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+                    } catch (jsonError) {
+                        errorMessage = await response.text();
+                    }
+                    alert('Erro ao registrar doação: ' + errorMessage);
                 }
             } catch (error) {
-                // Se ocorrer um erro de rede, exibe um alerta e loga o erro no console.
                 console.error('Erro na requisição de doação:', error);
                 alert('Ocorreu um erro ao enviar sua doação. Verifique a conexão com o servidor.');
             }

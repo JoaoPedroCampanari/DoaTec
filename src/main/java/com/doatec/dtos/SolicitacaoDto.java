@@ -5,9 +5,12 @@ public class SolicitacaoDto {
     private String email;
     private String senha;
     private String telefone;
-    private String ra;
-    private String justificativa;
-    private String preferenciaEquipamento;
+    private String ra; // Continua aqui para a entrada do usuário
+    private String justificativa; // NOVO CAMPO
+    private String preferenciaEquipamento; // NOVO CAMPO
+
+    public SolicitacaoDto() {
+    }
 
     public SolicitacaoDto(String nome, String email, String senha, String telefone, String ra, String justificativa, String preferenciaEquipamento) {
         this.nome = nome;
@@ -17,9 +20,6 @@ public class SolicitacaoDto {
         this.ra = ra;
         this.justificativa = justificativa;
         this.preferenciaEquipamento = preferenciaEquipamento;
-    }
-
-    public SolicitacaoDto() {
     }
 
     public String getNome() {

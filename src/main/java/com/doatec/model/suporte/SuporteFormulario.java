@@ -3,15 +3,14 @@ package com.doatec.model.suporte;
 import jakarta.persistence.*;
 import com.doatec.model.account.Pessoa;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "suporte_formulario")
 public class SuporteFormulario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
+    private Integer id; // Alterado de String para Integer
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id", nullable = false)
@@ -28,12 +27,11 @@ public class SuporteFormulario {
 
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
-
     public SuporteFormulario() {
     }
 
-    public SuporteFormulario(UUID id, Pessoa autor, String assunto, String mensagem, String status, LocalDateTime dataCriacao) {
-        this.id = id;
+    // Construtor sem ID
+    public SuporteFormulario(Pessoa autor, String assunto, String mensagem, String status, LocalDateTime dataCriacao) {
         this.autor = autor;
         this.assunto = assunto;
         this.mensagem = mensagem;
@@ -41,11 +39,11 @@ public class SuporteFormulario {
         this.dataCriacao = dataCriacao;
     }
 
-    public UUID getId() {
+    public Integer getId() { // Alterado de String para Integer
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Integer id) { // Alterado de String para Integer
         this.id = id;
     }
 

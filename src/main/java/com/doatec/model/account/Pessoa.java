@@ -2,22 +2,21 @@ package com.doatec.model.account;
 
 import jakarta.persistence.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "pessoa")
-@Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Pessoa {
+public class Pessoa {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
+    private Integer id; // Alterado de String para Integer
     private String nome;
     private String email;
     private String senha;
     private String endereco;
     private String telefone;
+
+    @Column(unique = true)
+    private String documento;
 
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
@@ -25,20 +24,22 @@ public abstract class Pessoa {
     public Pessoa() {
     }
 
-    public Pessoa(String nome, String email, String senha, String endereco, String telefone, TipoUsuario tipo) {
+    // Construtor sem ID, pois será auto-gerado
+    public Pessoa(String nome, String email, String senha, String endereco, String telefone, String documento, TipoUsuario tipo) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
         this.endereco = endereco;
         this.telefone = telefone;
+        this.documento = documento;
         this.tipo = tipo;
     }
 
-    public UUID getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -80,6 +81,14 @@ public abstract class Pessoa {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public void setDocumento(String documento) {
+        this.documento = documento;
     }
 
     public TipoUsuario getTipo() {

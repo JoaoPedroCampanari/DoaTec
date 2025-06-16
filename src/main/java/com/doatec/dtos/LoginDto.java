@@ -2,7 +2,6 @@ package com.doatec.dtos;
 
 public class LoginDto {
     private String email;
-
     private String senha;
 
     public LoginDto(String email, String senha) {

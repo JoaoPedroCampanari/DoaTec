@@ -1,1 +1,1 @@
-ALTER TABLE suporte_formulario ALTER COLUMN autor_id SET NOT NULL;
+ALTER TABLE suporte_formulario MODIFY COLUMN autor_id INT NOT NULL; -- Alterado de VARCHAR(36) para INT

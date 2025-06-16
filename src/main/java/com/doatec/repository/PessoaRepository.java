@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface PessoaRepository extends JpaRepository<Pessoa, UUID> {
+public interface PessoaRepository extends JpaRepository<Pessoa, Integer> { // Alterado de String para Integer
     Optional<Pessoa> findByEmail(String email);
+    Optional<Pessoa> findByDocumento(String documento);
 }

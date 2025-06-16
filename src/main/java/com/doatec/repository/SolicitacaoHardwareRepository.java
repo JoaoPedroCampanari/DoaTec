@@ -4,8 +4,6 @@ import com.doatec.model.solicitacao.SolicitacaoHardware;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.UUID;
-
 @Repository
-public interface SolicitacaoHardwareRepository extends JpaRepository<SolicitacaoHardware, UUID> {
+public interface SolicitacaoHardwareRepository extends JpaRepository<SolicitacaoHardware, Integer> { // Alterado de String para Integer
 }

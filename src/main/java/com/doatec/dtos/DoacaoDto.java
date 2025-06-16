@@ -5,19 +5,12 @@ import com.doatec.model.donation.PreferenciaEntrega;
 public class DoacaoDto {
 
     private String nome;
-
     private String tipoDocumento;
-
     private String numeroDocumento;
-
     private String email;
-
     private String telefone;
-
     private String tipoItem;
-
     private String descricaoItem;
-
     private PreferenciaEntrega preferenciaEntrega;
 
     public DoacaoDto() {

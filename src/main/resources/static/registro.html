@@ -24,16 +24,13 @@
 
         <div class="form-group user-type-selection">
             <div>
-                <input type="radio" id="typePf" name="userType" value="pf" checked>
-                <label for="typePf" class="radio-label">Pessoa Física</label>
+                <input type="radio" id="typePf" name="userType" value="DOADOR_PF" checked> <label for="typePf" class="radio-label">Pessoa Física</label>
             </div>
             <div>
-                <input type="radio" id="typePj" name="userType" value="pj">
-                <label for="typePj" class="radio-label">Pessoa Jurídica</label>
+                <input type="radio" id="typePj" name="userType" value="DOADOR_PJ"> <label for="typePj" class="radio-label">Pessoa Jurídica</label>
             </div>
             <div>
-                <input type="radio" id="typeAluno" name="userType" value="aluno">
-                <label for="typeAluno" class="radio-label">Aluno</label>
+                <input type="radio" id="typeAluno" name="userType" value="ALUNO"> <label for="typeAluno" class="radio-label">Aluno</label>
             </div>
         </div>
 
@@ -133,11 +130,11 @@
             document.getElementById('ra').value = '';
 
             // Mostra apenas o bloco de campos correspondente ao tipo de usuário selecionado.
-            if (selectedType === 'pf') {
+            if (selectedType === 'DOADOR_PF') { // ALTERADO AQUI
                 pfFields.style.display = 'block';
-            } else if (selectedType === 'pj') {
+            } else if (selectedType === 'DOADOR_PJ') { // ALTERADO AQUI
                 pjFields.style.display = 'block';
-            } else if (selectedType === 'aluno') {
+            } else if (selectedType === 'ALUNO') { // ALTERADO AQUI
                 alunoFields.style.display = 'block';
             }
         }
@@ -177,20 +174,21 @@
             let nome;
             let identidade;
 
-            if (selectedType === 'pf') {
+            // Ajusta a lógica de coleta de dados para os novos valores dos radios
+            if (selectedType === 'DOADOR_PF') {
                 nome = document.getElementById('fullNamePf').value;
                 identidade = document.getElementById('cpf').value;
-            } else if (selectedType === 'pj') {
+            } else if (selectedType === 'DOADOR_PJ') {
                 nome = document.getElementById('companyName').value;
                 identidade = document.getElementById('cnpj').value;
-            } else if (selectedType === 'aluno') {
+            } else if (selectedType === 'ALUNO') {
                 nome = document.getElementById('fullNameAluno').value;
                 identidade = document.getElementById('ra').value;
             }
 
             // Monta o objeto com os dados para enviar à API. As chaves devem corresponder ao DTO do backend.
             const registroData = {
-                tipoUsuario: selectedType,
+                tipoUsuario: selectedType, // Já está DOADOR_PF, DOADOR_PJ, ALUNO
                 nome: nome,
                 identidade: identidade,
                 email: regEmail,
@@ -224,7 +222,8 @@
         });
     });
 </script>
-
+<script src="js/main.js"></script>
+<script src="js/theme-switcher.js"></script>
 </body>
 
 </html>

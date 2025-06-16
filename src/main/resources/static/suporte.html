@@ -19,11 +19,12 @@
             <li><a href="suporte.html">Suporte</a></li>
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
-        <div class="menu-toggle">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
+        <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+        <button id="logoutButton" class="btn btn-secondary" style="margin-left: 10px;">Sair</button> <div class="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
     </nav>
 </header>
 
@@ -82,12 +83,10 @@
                         preencha o formulário abaixo.</p>
                     <div class="form-group">
                         <label for="supportName">Seu Nome:</label>
-                        <input type="text" id="supportName" name="supportName" required>
-                    </div>
+                        <input type="text" id="supportName" name="supportName" required disabled> </div>
                     <div class="form-group">
                         <label for="supportEmail">Seu Email:</label>
-                        <input type="email" id="supportEmail" name="supportEmail" required>
-                    </div>
+                        <input type="email" id="supportEmail" name="supportEmail" required disabled> </div>
                     <div class="form-group">
                         <label for="supportSubject">Assunto:</label>
                         <input type="text" id="supportSubject" name="supportSubject" required>
@@ -109,54 +108,69 @@
     </div>
 </footer>
 
-<script>
-    // Adiciona um "ouvinte" que espera toda a página HTML ser carregada antes de executar o script.
+<script src="js/main.js"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/auth.js"></script> <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Encontra o elemento do formulário no HTML pelo seu ID.
         const supportForm = document.getElementById('supportForm');
+        const supportNameInput = document.getElementById('supportName');
+        const supportEmailInput = document.getElementById('supportEmail');
 
-        // Verifica se o formulário de suporte existe nesta página antes de adicionar o "ouvinte".
-        // Isso é uma boa prática caso o script seja compartilhado entre várias páginas.
-        if (supportForm) {
-            // Adiciona um "ouvinte" para o evento de 'submit' (envio) do formulário.
-            supportForm.addEventListener('submit', async (event) => {
-                // Impede o comportamento padrão do formulário, que é recarregar a página.
-                event.preventDefault();
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
-                // Coleta os dados dos campos do formulário em um objeto JavaScript.
-                const formData = {
-                    nome: document.getElementById('supportName').value,
-                    email: document.getElementById('supportEmail').value,
-                    assunto: document.getElementById('supportSubject').value,
-                    mensagem: document.getElementById('supportMessage').value
-                };
-
-                // Tenta executar a requisição para a API do backend.
-                try {
-                    const response = await fetch('http://localhost:8080/api/suporte', {
-                        method: 'POST', // Define o método HTTP como POST.
-                        headers: { 'Content-Type': 'application/json' }, // Informa ao backend que os dados estão no formato JSON.
-                        body: JSON.stringify(formData) // Converte o objeto JavaScript em uma string JSON para envio.
-                    });
-
-                    // Pega a mensagem de texto da resposta do servidor.
-                    const message = await response.text();
-                    alert(message); // Exibe a mensagem de sucesso ou erro para o usuário.
-
-                    // Se a requisição foi bem-sucedida (status 2xx), limpa o formulário.
+        if (loggedInUser && loggedInUser.id) {
+            fetch(`/api/users/${loggedInUser.id}`)
+                .then(response => {
                     if (response.ok) {
-                        supportForm.reset();
+                        return response.json();
                     }
-
-                } catch (error) {
-                    // Se ocorrer um erro de rede (ex: servidor offline), exibe um alerta e loga o erro no console.
-                    console.error('Erro ao enviar formulário de suporte:', error);
-                    alert('Ocorreu um erro de conexão ao enviar sua mensagem. Verifique o console.');
-                }
-            });
+                    throw new Error('Falha ao carregar dados do usuário logado.');
+                })
+                .then(userData => {
+                    supportNameInput.value = userData.nome || '';
+                    supportEmailInput.value = userData.email || '';
+                })
+                .catch(error => {
+                    console.error('Erro ao preencher dados de suporte:', error);
+                    alert('Não foi possível carregar seus dados para o formulário de suporte. Por favor, preencha manualmente.');
+                    localStorage.removeItem('loggedInUser');
+                });
+        } else {
+            // Se não estiver logado, pode-se exigir login ou deixar os campos preenchíveis
+            alert('Você precisa estar logado para enviar um formulário de suporte. Por favor, faça login.');
+            window.location.href = 'login.html'; // Redireciona para login se não logado
         }
+
+        supportForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = {
+                nome: supportNameInput.value, // Pega do campo preenchido/desabilitado
+                email: supportEmailInput.value, // Pega do campo preenchido/desabilitado
+                assunto: document.getElementById('supportSubject').value,
+                mensagem: document.getElementById('supportMessage').value
+            };
+
+            try {
+                const response = await fetch('/api/suporte', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const message = await response.text();
+                alert(message);
+
+                if (response.ok) {
+                    supportForm.reset();
+                }
+
+            } catch (error) {
+                console.error('Erro ao enviar formulário de suporte:', error);
+                alert('Ocorreu um erro de conexão ao enviar sua mensagem. Verifique o console.');
+            }
+        });
     });
 </script>
 </body>
-
 </html>

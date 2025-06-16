@@ -335,3 +335,125 @@ body.login-page {
 .login-box .checkbox-label {
     font-size: 0.9rem;
 }
+
+/* --- ESTILOS ADICIONADOS PARA O BOTÃO DE TEMA E MODO ESCURO --- */
+
+/* --- Botão de Alternância de Tema --- */
+.btn-theme-toggle {
+    background: none;
+    border: 1px solid #f8f9fa;
+    color: #f8f9fa;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: 15px;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.btn-theme-toggle:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+
+/* --- Estilos do Modo Escuro --- */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .navbar {
+    background: #1e1e1e;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .nav-links a {
+    color: #e0e0e0;
+}
+
+body.dark-mode .nav-links a:hover,
+body.dark-mode .nav-links a.active {
+    color: #007bff;
+}
+
+body.dark-mode .application-section,
+body.dark-mode .login-box,
+body.dark-mode section.how-it-works {
+    background-color: #1e1e1e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .application-header h1 {
+    color: #007bff;
+}
+
+body.dark-mode .application-header p,
+body.dark-mode .form-group .radio-label,
+body.dark-mode .form-group .checkbox-label,
+body.dark-mode .form-text,
+body.dark-mode blockquote {
+    color: #b0b0b0;
+}
+
+body.dark-mode legend,
+body.dark-mode .login-box h1,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode strong {
+    color: #e0e0e0;
+}
+
+body.dark-mode .form-group label {
+    color: #cccccc;
+}
+
+body.dark-mode .form-group input[type="text"],
+body.dark-mode .form-group input[type="email"],
+body.dark-mode .form-group input[type="password"],
+body.dark-mode .form-group input[type="tel"],
+body.dark-mode .form-group input[type="file"],
+body.dark-mode .form-group textarea,
+body.dark-mode .form-group select {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+body.dark-mode .form-group input[type="text"]:focus,
+body.dark-mode .form-group input[type="email"]:focus,
+body.dark-mode .form-group input[type="password"]:focus,
+body.dark-mode .form-group input[type="tel"]:focus,
+body.dark-mode .form-group input[type="file"]:focus,
+body.dark-mode .form-group textarea:focus,
+body.dark-mode .form-group select:focus {
+    border-color: #007bff;
+    background-color: #333;
+}
+
+body.dark-mode footer {
+    background: #1e1e1e;
+    color: #888;
+}
+
+body.dark-mode .application-form fieldset {
+    border-color: #444;
+}
+
+/* Ajustes específicos */
+body.dark-mode .about-short p,
+body.dark-mode .how-it-works p,
+body.dark-mode .news-testimonials p,
+body.dark-mode p {
+    color: #b0b0b0;
+}
+
+body.dark-mode blockquote {
+    border-left: 5px solid #007bff;
+    background-color: #2c2c2c !important;
+}
+
+body.dark-mode hr {
+    border-color: #444 !important;
+}
