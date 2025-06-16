@@ -32,6 +32,10 @@ public class SolicitacaoService {
 
         Pessoa pessoaEncontrada = pessoaOptional.get();
 
+        if (!(pessoaEncontrada.getNome().equals(dto.getNome()))){
+            throw new RuntimeException("Nome incorreta!");
+        }
+
         if (!(pessoaEncontrada.getSenha().equals(dto.getSenha()))){
             throw new RuntimeException("Senha incorreta!");
         }

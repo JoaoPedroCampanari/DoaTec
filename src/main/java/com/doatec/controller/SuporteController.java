@@ -22,10 +22,10 @@ public class SuporteController {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Mensagem de suporte recebida! Responderemos em breve no email fornecido.");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao processar sua solicitação de suporte.");
+                    .body(e.getMessage());
         }
     }
 }

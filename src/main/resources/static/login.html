@@ -40,18 +40,18 @@
         const loginForm = document.getElementById('loginForm');
 
         loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
 
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value; // Nome do campo no HTML
+            const password = document.getElementById('password').value;
 
             const loginData = {
                 email: email,
-                senha: password // O nome do campo no seu LoginDto é 'senha'
+                senha: password
             };
 
             try {
-                const response = await fetch('/api/login', { // Endpoint do seu Spring Boot
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -59,14 +59,14 @@
                     body: JSON.stringify(loginData)
                 });
 
-                if (response.ok) { // Status 200 OK
+                if (response.ok) {
                     const message = await response.text();
                     alert(message);
-                    window.location.href = 'index.html'; // Redireciona para a página inicial (home)
-                } else if (response.status === 401) { // Status 401 Unauthorized
+                    window.location.href = 'index.html';
+                } else if (response.status === 401) {
                     const errorMessage = await response.text();
                     alert('Erro no login: ' + errorMessage);
-                } else { // Outros erros
+                } else {
                     const errorMessage = await response.text();
                     alert('Ocorreu um erro inesperado: ' + errorMessage);
                 }

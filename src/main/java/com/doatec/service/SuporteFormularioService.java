@@ -33,16 +33,21 @@ public class SuporteFormularioService {
         // 3. Pega o autor encontrado.
         Pessoa autor = autorOptional.get();
 
-        // 4. Cria a nova instância do ticket de suporte.
+        //4. Verifica se o nome condiz com o cadastrado
+        if (!dto.getNome().equals(autor.getNome())){
+            throw new RuntimeException("Nome inválido!");
+        }
+
+        // 5. Cria a nova instância do ticket de suporte.
         SuporteFormulario novoTicket = new SuporteFormulario();
 
-        // 5. Vincula o autor e preenche os outros dados.
+        // 6. Vincula o autor e preenche os outros dados.
         novoTicket.setAutor(autor);
         novoTicket.setAssunto(dto.getAssunto());
         novoTicket.setMensagem(dto.getMensagem());
         novoTicket.setStatus("ABERTO");
 
-        // 6. Salva o novo ticket no banco.
+        // 7. Salva o novo ticket no banco.
         return suporteRepository.save(novoTicket);
     }
 }

@@ -3,6 +3,8 @@ package com.doatec.service;
 
 import com.doatec.dtos.DoacaoDto;
 import com.doatec.model.account.Pessoa;
+import com.doatec.model.account.PessoaFisica;
+import com.doatec.model.account.PessoaJuridica;
 import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.ItemDoado;
 import com.doatec.model.donation.StatusDoacao;
@@ -33,7 +35,38 @@ public class DoacaoService {
         }
 
         Pessoa doador = doadorOptional.get();
+
+        if (dto.getTipoDocumento().equals("cpf")) {
+            // 1. Verifica se o doador encontrado é realmente uma PessoaFisica
+            if (!(doador instanceof PessoaFisica)) {
+                throw new RuntimeException("O usuário encontrado com este email não é uma Pessoa Física.");
+            }
+            // 2. Faz a conversão segura
+            PessoaFisica doadorPf = (PessoaFisica) doador;
+            // 3. Valida se o CPF do banco é igual ao CPF fornecido no formulário
+            if (!doadorPf.getCpf().equals(dto.getNumeroDocumento())) {
+                throw new RuntimeException("O CPF informado não corresponde ao CPF cadastrado para este email.");
+            }
+        } else if (dto.getTipoDocumento().equals("cnpj")) {
+            // 1. Verifica se o doador encontrado é realmente uma PessoaJuridica
+            if (!(doador instanceof PessoaJuridica)) {
+                throw new RuntimeException("O usuário encontrado com este email não é uma Pessoa Jurídica.");
+            }
+            // 2. Faz a conversão segura
+            PessoaJuridica doadorPj = (PessoaJuridica) doador;
+            // 3. Valida se o CNPJ do banco é igual ao CNPJ fornecido no formulário
+            if (!doadorPj.getCnpj().equals(dto.getNumeroDocumento())) {
+                throw new RuntimeException("O CNPJ informado não corresponde ao CNPJ cadastrado para este email.");
+            }
+        }
+
         Doacao novaDoacao = new Doacao();
+
+        if (!(doador.getNome().equals(dto.getNome()))){
+            throw new RuntimeException("Nome incorreta!");
+        }
+
+
         if (dto.getTelefone() != null){
             doador.setTelefone(dto.getTelefone());
         }

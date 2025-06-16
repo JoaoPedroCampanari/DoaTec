@@ -25,7 +25,7 @@ public class DoacaoController {
             Doacao novaDoacao = doacaoService.registrarDoacao(doacaoDto);
             return ResponseEntity.status(HttpStatus.CREATED).body("Doação registrada com sucesso! ID: " + novaDoacao.getId());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao registrar doação: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }
