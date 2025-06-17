@@ -89,7 +89,7 @@ public class PessoaService {
     }
 
     @Transactional
-    public Pessoa updatePessoaProfile(Integer id, PessoaUpdateDto dto) { // ID agora é Integer
+    public Pessoa updatePessoaProfile(Integer id, PessoaUpdateDto dto) {
         Pessoa pessoaExistente = pessoaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
 

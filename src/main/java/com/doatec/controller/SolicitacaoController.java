@@ -7,9 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controlador para gerenciar as solicitações de hardware dos alunos.
- */
 @RestController
 @RequestMapping("/api/solicitacoes")
 public class SolicitacaoController {
@@ -26,7 +23,7 @@ public class SolicitacaoController {
                     .status(HttpStatus.CREATED)
                     .body("Solicitação registrada com sucesso! Nossa equipe analisará seu pedido e entrará em contato.");
         } catch (RuntimeException e) {
-            // Se o serviço lançar um erro, retorna a mensagem de erro específica.
+            // Se o serviço lançar um erro, retorna a mensagem de erro.
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

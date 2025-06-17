@@ -5,8 +5,8 @@ VALUES (
            'senha123',
            'Rua da Fatec, 100',
            '(14) 99999-8888',
-           'ALUNO', -- Enum name no formato String
-           '1234567890123' -- RA do aluno
+           'ALUNO',
+           '1234567890123'
        );
 
 INSERT INTO pessoa (nome, email, senha, endereco, telefone, tipo, documento)
@@ -16,8 +16,8 @@ VALUES (
            '123456',
            'Rua das Doações, 123',
            '(14) 98765-4321',
-           'DOADOR_PF', -- Enum name no formato String
-           '123456789' -- CPF do doador
+           'DOADOR_PF',
+           '123456789'
        );
 
 INSERT INTO pessoa (nome, email, senha, endereco, telefone, tipo, documento)
@@ -27,6 +27,6 @@ VALUES (
            'senha789',
            'Avenida do Bem, 789',
            '(14) 3471-1234',
-           'DOADOR_PJ', -- Enum name no formato String
-           '11222333000144' -- CNPJ da empresa
+           'DOADOR_PJ',
+           '11222333000144'
        );
