@@ -336,27 +336,6 @@ body.login-page {
     font-size: 0.9rem;
 }
 
-/* --- ESTILOS ADICIONADOS PARA O BOTÃO DE TEMA E MODO ESCURO --- */
-
-/* --- Botão de Alternância de Tema --- */
-.btn-theme-toggle {
-    background: none;
-    border: 1px solid #f8f9fa;
-    color: #f8f9fa;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 5px;
-    margin-left: 15px;
-    transition: color 0.3s ease, background-color 0.3s ease;
-}
-
-.btn-theme-toggle:hover {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-
-
 /* --- Estilos do Modo Escuro --- */
 body.dark-mode {
     background-color: #121212;
@@ -377,11 +356,32 @@ body.dark-mode .nav-links a.active {
     color: #007bff;
 }
 
+/* Garante que seções como application-section, login-box e how-it-works tenham fundo escuro */
 body.dark-mode .application-section,
-body.dark-mode .login-box,
-body.dark-mode section.how-it-works {
+body.dark-mode .login-box { /* Mantenha estes para os outros elementos */
     background-color: #1e1e1e;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Fundo para a seção "Como Funciona" */
+body.dark-mode section.how-it-works { /* Agora é controlada por CSS */
+    background-color: #1e1e1e; /* Um tom escuro para o fundo da seção */
+    padding: 40px 0; /* Mantenha o padding */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Adicione sombra se desejar */
+}
+
+/* Fundo para a seção "Impacto e Depoimentos" */
+body.dark-mode section.news-testimonials {
+    background-color: #121212; /* Mesma cor do body para um fundo contínuo */
+    color: #e0e0e0;
+}
+
+/* Bloco que envolve a citação dentro da seção de depoimentos */
+body.dark-mode .news-testimonials div.container > div { /* Alvo o div que envolve o blockquote no index.html */
+    background: #2c2c2c; /* Fundo mais escuro para o bloco de feedback */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4); /* Sombra mais escura */
+    border-radius: 5px; /* Manter o border-radius */
+    /* REMOVIDO: border-left aqui, pois será aplicado no blockquote */
 }
 
 body.dark-mode .application-header h1 {
@@ -392,7 +392,7 @@ body.dark-mode .application-header p,
 body.dark-mode .form-group .radio-label,
 body.dark-mode .form-group .checkbox-label,
 body.dark-mode .form-text,
-body.dark-mode blockquote {
+body.dark-mode p { /* Garante cor de texto para parágrafos em geral */
     color: #b0b0b0;
 }
 
@@ -423,7 +423,6 @@ body.dark-mode .form-group select {
 
 body.dark-mode .form-group input[type="text"]:focus,
 body.dark-mode .form-group input[type="email"]:focus,
-body.dark-mode .form-group input[type="password"]:focus,
 body.dark-mode .form-group input[type="tel"]:focus,
 body.dark-mode .form-group input[type="file"]:focus,
 body.dark-mode .form-group textarea:focus,
@@ -441,21 +440,39 @@ body.dark-mode .application-form fieldset {
     border-color: #444;
 }
 
-
-body.dark-mode .about-short p,
-body.dark-mode .how-it-works p,
-body.dark-mode .news-testimonials p,
-body.dark-mode p {
-    color: #b0b0b0;
-}
-
+/* Estilos para o bloco de citação (blockquote) */
 body.dark-mode blockquote {
-    border-left: 5px solid #007bff;
-    background-color: #2c2c2c !important;
+    border-left: 5px solid #007bff; /* A borda azul agora é aplicada APENAS aqui */
+    background-color: transparent !important; /* Certifica que o background venha do pai */
+    color: #b0b0b0; /* Garante a cor do texto da citação */
 }
 
 body.dark-mode hr {
     border-color: #444 !important;
+}
+
+/* Ajustes para a página de perfil (seções de layout) */
+body.dark-mode .profile-readonly-section,
+body.dark-mode .profile-editable-form {
+    background-color: #2c2c2c;
+    border-color: #444;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+body.dark-mode .profile-readonly-section h2,
+body.dark-mode .profile-editable-form legend {
+    color: #007bff;
+    border-bottom-color: #444;
+}
+
+body.dark-mode .profile-readonly-section label,
+body.dark-mode .profile-readonly-section input[type="text"] {
+    color: #e0e0e0;
+}
+
+body.dark-mode .profile-readonly-section input[type="text"] {
+    background-color: #3a3a3a;
+    border-color: #555;
 }
 
 .navbar-right {

@@ -48,7 +48,15 @@ public class DoacaoService {
             if (!doador.getDocumento().equals(dto.getNumeroDocumento())) {
                 throw new RuntimeException("O CNPJ informado não corresponde ao CNPJ cadastrado para este email.");
             }
-        } else {
+        }else if (dto.getTipoDocumento().equals("aluno")) {
+            if (doador.getTipo() != TipoUsuario.ALUNO) {
+                throw new RuntimeException("O email " + dto.getEmail() + " pertence a um usuário que não é Aluno. Se deseja doar como aluno, seu tipo de cadastro deve ser 'ALUNO'.");
+            }
+            if (!doador.getDocumento().equals(dto.getNumeroDocumento())) {
+                throw new RuntimeException("O RA informado não corresponde ao RA cadastrado para este email.");
+            }
+        }
+        else {
             throw new RuntimeException("Tipo de documento inválido para a doação.");
         }
 
