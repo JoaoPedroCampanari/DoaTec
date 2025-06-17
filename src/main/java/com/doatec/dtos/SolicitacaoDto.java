@@ -5,9 +5,9 @@ public class SolicitacaoDto {
     private String email;
     private String senha;
     private String telefone;
-    private String ra; // Continua aqui para a entrada do usuário
-    private String justificativa; // NOVO CAMPO
-    private String preferenciaEquipamento; // NOVO CAMPO
+    private String ra;
+    private String justificativa;
+    private String preferenciaEquipamento;
 
     public SolicitacaoDto() {
     }

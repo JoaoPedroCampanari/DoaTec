@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 public class Pessoa {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
-    private Integer id; // Alterado de String para Integer
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private String nome;
     private String email;
     private String senha;
@@ -24,7 +24,7 @@ public class Pessoa {
     public Pessoa() {
     }
 
-    // Construtor sem ID, pois será auto-gerado
+
     public Pessoa(String nome, String email, String senha, String endereco, String telefone, String documento, TipoUsuario tipo) {
         this.nome = nome;
         this.email = email;

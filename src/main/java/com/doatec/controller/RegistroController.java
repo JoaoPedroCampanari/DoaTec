@@ -24,16 +24,16 @@ public class RegistroController {
     @PostMapping
     public ResponseEntity<String> registerUser(@RequestBody RegistroDto registroDto) {
         try {
-            // Tenta registrar a nova pessoa usando o serviço.
+            // Tenta registrar a nova pessoa.
             Pessoa novaPessoa = pessoaService.registrarPessoa(registroDto);
-            // Verifica se a criação da pessoa retornou um objeto válido.
+            // Verifica se a pessoa existe.
             if (novaPessoa != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao registrar usuário. Tipo de usuário inválido.");
             }
         } catch (Exception e) {
-            // Captura qualquer erro inesperado durante o processo.
+            // Captura qualquer erro inesperado.
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }

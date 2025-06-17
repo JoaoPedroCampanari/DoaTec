@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PessoaRepository extends JpaRepository<Pessoa, Integer> { // Alterado de String para Integer
+public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
     Optional<Pessoa> findByEmail(String email);
     Optional<Pessoa> findByDocumento(String documento);
 }

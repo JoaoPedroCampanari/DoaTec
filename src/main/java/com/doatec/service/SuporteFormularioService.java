@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
-// Removido import java.util.UUID; // Não precisamos mais gerar UUIDs
+
 
 @Service
 public class SuporteFormularioService {
@@ -35,8 +36,7 @@ public class SuporteFormularioService {
             throw new RuntimeException("Nome inválido!");
         }
 
-        // ID é gerado automaticamente pelo banco de dados
-        SuporteFormulario novoTicket = new SuporteFormulario(autor, dto.getAssunto(), dto.getMensagem(), "ABERTO", null);
+        SuporteFormulario novoTicket = new SuporteFormulario(autor, dto.getAssunto(), dto.getMensagem(), "ABERTO", LocalDateTime.now());
 
         return suporteRepository.save(novoTicket);
     }

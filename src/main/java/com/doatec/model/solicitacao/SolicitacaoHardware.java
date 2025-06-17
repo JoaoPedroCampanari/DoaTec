@@ -9,8 +9,8 @@ import java.time.LocalDate;
 public class SolicitacaoHardware {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
-    private Integer id; // Alterado de String para Integer
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "aluno_id", nullable = false)
@@ -27,7 +27,6 @@ public class SolicitacaoHardware {
 
     private String preferenciaEquipamento;
 
-    // Construtor sem ID
     public SolicitacaoHardware(Pessoa aluno, StatusSolicitacao status, LocalDate dataSolicitacao, String justificativa, String preferenciaEquipamento) {
         this.aluno = aluno;
         this.status = status;
@@ -39,18 +38,17 @@ public class SolicitacaoHardware {
     public SolicitacaoHardware() {
     }
 
-    // Construtor simples sem ID, status e data (defaults são definidos no construtor padrão ou setter)
     public SolicitacaoHardware(Pessoa aluno, String justificativa, String preferenciaEquipamento) {
         this.aluno = aluno;
         this.justificativa = justificativa;
         this.preferenciaEquipamento = preferenciaEquipamento;
     }
 
-    public Integer getId() { // Alterado de String para Integer
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) { // Alterado de String para Integer
+    public void setId(Integer id) {
         this.id = id;
     }
 

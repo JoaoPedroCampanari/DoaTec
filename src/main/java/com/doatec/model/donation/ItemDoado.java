@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 public class ItemDoado {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
-    private Integer id; // Alterado de String para Integer
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doacao_id", nullable = false)
@@ -23,18 +23,17 @@ public class ItemDoado {
     public ItemDoado() {
     }
 
-    // Construtor sem ID
     public ItemDoado(Doacao doacao, String tipoItem, String descricao) {
         this.doacao = doacao;
         this.tipoItem = tipoItem;
         this.descricao = descricao;
     }
 
-    public Integer getId() { // Alterado de String para Integer
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) { // Alterado de String para Integer
+    public void setId(Integer id) {
         this.id = id;
     }
 

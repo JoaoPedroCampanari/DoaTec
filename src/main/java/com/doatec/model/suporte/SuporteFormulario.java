@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 public class SuporteFormulario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
-    private Integer id; // Alterado de String para Integer
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id", nullable = false)
@@ -30,7 +30,6 @@ public class SuporteFormulario {
     public SuporteFormulario() {
     }
 
-    // Construtor sem ID
     public SuporteFormulario(Pessoa autor, String assunto, String mensagem, String status, LocalDateTime dataCriacao) {
         this.autor = autor;
         this.assunto = assunto;
@@ -39,11 +38,11 @@ public class SuporteFormulario {
         this.dataCriacao = dataCriacao;
     }
 
-    public Integer getId() { // Alterado de String para Integer
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) { // Alterado de String para Integer
+    public void setId(Integer id) {
         this.id = id;
     }
 

@@ -18,9 +18,8 @@ public class UserController {
     @Autowired
     private PessoaService pessoaService;
 
-    // Endpoint para buscar os dados do usuário logado (usando o ID armazenado no cliente)
     @GetMapping("/{id}")
-    public ResponseEntity<UserLoginResponseDto> getUserById(@PathVariable Integer id) { // Alterado de String para Integer
+    public ResponseEntity<UserLoginResponseDto> getUserById(@PathVariable Integer id) {
         Pessoa pessoa = pessoaService.findById(id);
         if (pessoa != null) {
             UserLoginResponseDto responseDto = new UserLoginResponseDto(

@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-// Removido import java.util.UUID; // Não precisamos mais gerar UUIDs
 
 @Service
 public class PessoaService {
@@ -20,7 +19,7 @@ public class PessoaService {
     private PessoaRepository pessoaRepository;
 
     @Transactional(readOnly = true)
-    public Pessoa findById(Integer id) { // Alterado de String para Integer
+    public Pessoa findById(Integer id) {
         return pessoaRepository.findById(id).orElse(null);
     }
 
@@ -30,7 +29,7 @@ public class PessoaService {
     }
 
     @Transactional
-    public void deleteById(Integer id) { // Alterado de String para Integer
+    public void deleteById(Integer id) {
         pessoaRepository.deleteById(id);
     }
 
@@ -75,7 +74,6 @@ public class PessoaService {
             throw new RuntimeException("Tipo de usuário inválido: " + registroDto.getTipoUsuario());
         }
 
-        // ID é gerado automaticamente pelo banco de dados, não precisa ser passado aqui
         Pessoa novaPessoa = new Pessoa(
                 registroDto.getNome(),
                 registroDto.getEmail(),

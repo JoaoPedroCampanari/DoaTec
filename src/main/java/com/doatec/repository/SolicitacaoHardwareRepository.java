@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SolicitacaoHardwareRepository extends JpaRepository<SolicitacaoHardware, Integer> { // Alterado de String para Integer
+public interface SolicitacaoHardwareRepository extends JpaRepository<SolicitacaoHardware, Integer> {
 }

@@ -11,8 +11,8 @@ import java.util.List;
 public class Doacao {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Gerado pelo banco de dados
-    private Integer id; // Alterado de String para Integer
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doador_id", nullable = false)
@@ -32,18 +32,17 @@ public class Doacao {
     public Doacao() {
     }
 
-    // Construtor sem ID
     public Doacao(Pessoa doador, StatusDoacao status, PreferenciaEntrega preferenciaEntrega) {
         this.doador = doador;
         this.status = status;
         this.preferenciaEntrega = preferenciaEntrega;
     }
 
-    public Integer getId() { // Alterado de String para Integer
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) { // Alterado de String para Integer
+    public void setId(Integer id) {
         this.id = id;
     }
 

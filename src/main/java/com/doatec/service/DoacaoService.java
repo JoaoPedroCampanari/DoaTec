@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-// Removido import java.util.UUID; // Não precisamos mais gerar UUIDs
+
 
 @Service
 public class DoacaoService {
@@ -61,7 +61,7 @@ public class DoacaoService {
             pessoaRepository.save(doador);
         }
 
-        // IDs são gerados automaticamente pelo banco de dados
+
         Doacao novaDoacao = new Doacao(doador, StatusDoacao.EM_ANALISE, dto.getPreferenciaEntrega());
 
         ItemDoado itemDoado = new ItemDoado(novaDoacao, dto.getTipoItem(), dto.getDescricaoItem());

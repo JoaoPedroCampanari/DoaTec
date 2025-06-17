@@ -7,12 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controlador para receber formulários de contato e suporte.
- */
+
 @RestController
 @RequestMapping("/api/suporte")
-@CrossOrigin(origins = "http://127.0.0.1:5500")
 public class SuporteController {
 
     @Autowired

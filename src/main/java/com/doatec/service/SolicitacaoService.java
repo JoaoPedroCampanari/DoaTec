@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-// Removido import java.util.UUID; // Não precisamos mais gerar UUIDs
 
 @Service
 public class SolicitacaoService {
@@ -47,7 +46,6 @@ public class SolicitacaoService {
             throw new RuntimeException("O RA " + dto.getRa() + " não é válido para este aluno.");
         }
 
-        // ID é gerado automaticamente pelo banco de dados
         SolicitacaoHardware novaSolicitacao = new SolicitacaoHardware(
                 pessoaEncontrada,
                 dto.getJustificativa(),

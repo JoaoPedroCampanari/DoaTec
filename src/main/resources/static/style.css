@@ -441,7 +441,7 @@ body.dark-mode .application-form fieldset {
     border-color: #444;
 }
 
-/* Ajustes específicos */
+
 body.dark-mode .about-short p,
 body.dark-mode .how-it-works p,
 body.dark-mode .news-testimonials p,
@@ -458,9 +458,8 @@ body.dark-mode hr {
     border-color: #444 !important;
 }
 
-/* Para agrupar e posicionar os elementos do lado direito da navbar */
 .navbar-right {
-    display: flex; /* Para que os itens internos (botões, menu-toggle) fiquem em linha */
-    align-items: center; /* Para alinhamento vertical dos itens */
-    margin-left: auto;   /* EMPURRA este grupo para a EXTREMA DIREITA da navbar */
+    display: flex;
+    align-items: center;
+    margin-left: auto;
 }
