@@ -463,3 +463,152 @@ body.dark-mode hr {
     align-items: center;
     margin-left: auto;
 }
+
+/* Estilos para a página de Perfil */
+
+/* Ajuste de largura para a página de perfil para permitir colunas */
+body.perfil-page .login-container {
+    max-width: 900px; /* Aumenta a largura máxima do container para o perfil */
+    width: 95%; /* Garante que não fique muito grande em telas muito amplas, mas expande em telas médias */
+}
+
+/* Remove a largura máxima do login-box, permitindo que os filhos flexíveis controlem a largura */
+body.perfil-page .login-box {
+    max-width: none; /* Remove a largura máxima rígida herdada do login-box padrão */
+    padding: 20px; /* Ajuste de padding para não ficar muito grudado */
+}
+
+/* Container principal para as seções de perfil (leitura e edição) */
+.profile-sections-container {
+    display: flex; /* Usa flexbox para colocar seções lado a lado */
+    flex-wrap: wrap; /* Permite que as seções quebrem para a próxima linha em telas pequenas */
+    gap: 30px; /* Espaço entre as seções */
+    margin-bottom: 20px; /* Reduz margem inferior se o layout for mais compacto */
+    justify-content: center; /* Centraliza as seções */
+}
+
+/* Seções individuais (readonly e o FORM editável) devem ser flex-items */
+.profile-readonly-section,
+.profile-editable-form { /* Aplicado ao FORM, não ao FIELDSET dentro do FORM */
+    flex: 1;
+    min-width: 300px; /* Largura mínima antes de quebrar a linha */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Estilos específicos para o fieldset dentro do form editável (remover borda/sombra duplicadas) */
+.profile-editable-form fieldset {
+    border: none; /* Remove a borda padrão do fieldset para não duplicar com a do form */
+    padding: 0;   /* Remove padding extra */
+    margin: 0;    /* Remove margin extra */
+    background-color: transparent; /* Garante que o fundo não duplique */
+    box-shadow: none; /* Remove sombra duplicada */
+}
+
+.profile-readonly-section h2,
+.profile-editable-form legend {
+    color: #007bff;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 0 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Mantém o grid para os campos dentro do form editável */
+.profile-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas de largura igual */
+    gap: 20px; /* Espaço entre os campos */
+}
+
+/* Campos que devem ocupar a largura total (1 coluna) */
+.profile-fields-grid .form-group.full-width {
+    grid-column: 1 / -1; /* Ocupa todas as colunas disponíveis no grid */
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 768px) {
+    .profile-sections-container {
+        flex-direction: column; /* Em telas menores, empilha as seções */
+        gap: 20px;
+    }
+    .profile-fields-grid {
+        grid-template-columns: 1fr; /* Em telas menores, os campos ficam em uma única coluna */
+    }
+    .profile-fields-grid .form-group.full-width {
+        grid-column: auto; /* Reseta para comportamento padrão de coluna */
+    }
+}
+
+/* Estilos para modo escuro */
+body.dark-mode .profile-readonly-section,
+body.dark-mode .profile-editable-form { /* Aplica ao FORM também */
+    background-color: #2c2c2c;
+    border-color: #444;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+body.dark-mode .profile-readonly-section h2,
+body.dark-mode .profile-editable-form legend {
+    color: #007bff;
+    border-bottom-color: #444;
+}
+
+body.dark-mode .profile-readonly-section label,
+body.dark-mode .profile-readonly-section input[type="text"] {
+    color: #e0e0e0;
+}
+
+body.dark-mode .profile-readonly-section input[type="text"] {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+/* Estilos para os botões na parte inferior da página de perfil */
+.profile-bottom-buttons {
+    display: flex;
+    justify-content: space-between; /* Espaça os botões para os cantos */
+    align-items: center;
+    margin-top: 20px; /* Adiciona um pouco de espaço acima */
+    gap: 15px; /* Espaço entre os botões */
+    flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
+    width: 100%; /* Ocupa a largura total do seu container pai (.login-box) */
+}
+
+/* Ajustes específicos para os botões dentro de .profile-bottom-buttons */
+.profile-bottom-buttons .btn {
+    /* Garante que ambos os botões tenham a mesma largura, dividindo o espaço igualmente */
+    width: calc(50% - 7.5px); /* 50% da largura do pai menos metade do gap (15px / 2 = 7.5px) */
+    box-sizing: border-box; /* Inclui padding e borda na largura total do elemento */
+    text-align: center; /* Centraliza o texto dentro do botão */
+
+    /* Garante uma altura mínima e alinhamento vertical do texto dentro do botão */
+    min-height: 45px; /* Define uma altura mínima para ambos, pode ajustar */
+    display: flex; /* Usa flexbox para alinhar o conteúdo (texto) dentro do botão */
+    justify-content: center; /* Centraliza horizontalmente o texto */
+    align-items: center; /* Centraliza verticalmente o texto */
+    padding: 12px 10px; /* Ajuste o padding se o texto estiver muito apertado com a largura definida */
+    margin: 0; /* Remove margens automáticas ou herdadas */
+    flex-grow: 1; /* Permite que cresçam para preencher o espaço, mas width calc() tem precedência */
+}
+
+/* Ajustes para telas menores, para que os botões voltem a empilhar */
+@media (max-width: 480px) { /* Exemplo: se a tela for menor que 480px, os botões empilham */
+    .profile-bottom-buttons {
+        flex-direction: column; /* Empilha os botões verticalmente */
+        align-items: stretch; /* Garante que ocupem a largura total disponível */
+    }
+    .profile-bottom-buttons .btn {
+        width: 100%; /* Fazem os botões ocuparem a largura total quando empilhados */
+        margin-bottom: 10px; /* Adiciona espaço entre eles quando empilhados */
+        font-size: 1rem; /* Ajusta o tamanho da fonte para telas menores, se necessário */
+    }
+    .profile-bottom-buttons .btn:last-child {
+        margin-bottom: 0; /* Remove a margem inferior do último botão empilhado */
+    }
+}

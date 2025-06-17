@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Plataforma de Doação</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page perfil-page">
+<div class="login-container">
+    <div class="login-box">
+        <div class="logo">
+            <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
+        </div>
+        <h1>Meu Perfil</h1>
+
+        <div class="profile-sections-container">
+            <section class="profile-readonly-section">
+                <h2>Dados de Registro</h2>
+                <div class="form-group">
+                    <label for="profileNome">Nome:</label>
+                    <input type="text" id="profileNome" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="profileTipo">Tipo de Usuário:</label>
+                    <input type="text" id="profileTipo" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="profileDocumento">Documento:</label>
+                    <input type="text" id="profileDocumento" disabled>
+                </div>
+            </section>
+
+            <form id="profileForm" class="application-form profile-editable-form">
+                <fieldset>
+                    <legend>Informações de Contato e Acesso</legend>
+                    <div class="profile-fields-grid">
+                        <div class="form-group">
+                            <label for="profileEmail">Email:</label>
+                            <input type="email" id="profileEmail">
+                        </div>
+                        <div class="form-group">
+                            <label for="profileTelefone">Telefone:</label>
+                            <input type="tel" id="profileTelefone">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="profileSenha">Nova Senha (deixe em branco para não alterar):</label>
+                            <input type="password" id="profileSenha">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="profileConfirmarSenha">Confirmar Nova Senha:</label>
+                            <input type="password" id="profileConfirmarSenha">
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="profileEndereco">Endereço:</label>
+                        <input type="text" id="profileEndereco">
+                    </div>
+                </fieldset>
+                <button type="submit" class="btn btn-primary btn-submit">Atualizar Perfil</button>
+            </form>
+        </div>
+
+        <hr style="margin: 20px 0;">
+
+        <div class="profile-bottom-buttons">
+            <a href="index.html" id="backToHomeButton" class="btn btn-secondary">Voltar à Home</a> <button id="logoutButton" class="btn btn-secondary">Sair da Conta</button> </div>
+    </div>
+</div>
+
+<script src="js/main.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const profileForm = document.getElementById('profileForm');
+        const profileNomeInput = document.getElementById('profileNome');
+        const profileTipoInput = document.getElementById('profileTipo');
+        const profileDocumentoInput = document.getElementById('profileDocumento');
+        const profileEmailInput = document.getElementById('profileEmail');
+        const profileSenhaInput = document.getElementById('profileSenha');
+        const profileConfirmarSenhaInput = document.getElementById('profileConfirmarSenha');
+        const profileEnderecoInput = document.getElementById('profileEndereco');
+        const profileTelefoneInput = document.getElementById('profileTelefone');
+        const logoutButton = document.getElementById('logoutButton');
+
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+        if (loggedInUser && loggedInUser.id) {
+            fetch(`/api/users/${loggedInUser.id}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Falha ao carregar dados do perfil.');
+                })
+                .then(userData => {
+                    profileNomeInput.value = userData.nome || '';
+                    profileTipoInput.value = userData.tipoUsuario || '';
+                    profileDocumentoInput.value = userData.documento || '';
+
+                    profileEmailInput.value = userData.email || '';
+                    profileEnderecoInput.value = userData.endereco || '';
+                    profileTelefoneInput.value = userData.telefone || '';
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar perfil:', error);
+                    alert('Não foi possível carregar os dados do seu perfil. Por favor, tente novamente.');
+                    localStorage.removeItem('loggedInUser');
+                    window.location.href = 'login.html';
+                });
+
+            profileForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const novaSenha = profileSenhaInput.value;
+                const confirmarSenha = profileConfirmarSenhaInput.value;
+
+                if (novaSenha && novaSenha !== confirmarSenha) {
+                    alert('A nova senha e a confirmação de senha não coincidem.');
+                    return;
+                }
+
+                const updateData = {
+                    email: profileEmailInput.value,
+                    senha: novaSenha,
+                    endereco: profileEnderecoInput.value,
+                    telefone: profileTelefoneInput.value
+                };
+
+                try {
+                    const response = await fetch(`/api/users/${loggedInUser.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updateData)
+                    });
+
+                    if (response.ok) {
+                        const message = await response.text();
+                        alert(message);
+                        window.location.reload();
+                    } else {
+                        let errorMessage;
+                        try {
+                            const errorJson = await response.json();
+                            errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+                        } catch (jsonError) {
+                            errorMessage = await response.text();
+                        }
+                        alert('Erro ao atualizar perfil: ' + errorMessage);
+                    }
+                } catch (error) {
+                    console.error('Erro na requisição de atualização:', error);
+                    alert('Ocorreu um erro de conexão ao atualizar seu perfil. Verifique o console.');
+                }
+            });
+
+            logoutButton.addEventListener('click', () => {
+                localStorage.removeItem('loggedInUser');
+                alert('Você foi desconectado.');
+                window.location.href = 'login.html';
+            });
+
+        } else {
+            alert('Você não está logado. Por favor, faça login para acessar seu perfil.');
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+</body>
+</html>

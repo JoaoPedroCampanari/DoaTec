@@ -1,6 +1,7 @@
 package com.doatec.service;
 
 import com.doatec.dtos.LoginDto;
+import com.doatec.dtos.PessoaUpdateDto;
 import com.doatec.dtos.RegistroDto;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.TipoUsuario;
@@ -85,5 +86,31 @@ public class PessoaService {
         );
 
         return pessoaRepository.save(novaPessoa);
+    }
+
+    @Transactional
+    public Pessoa updatePessoaProfile(Integer id, PessoaUpdateDto dto) { // ID agora é Integer
+        Pessoa pessoaExistente = pessoaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank() && !dto.getEmail().equals(pessoaExistente.getEmail())) {
+            if (pessoaRepository.findByEmail(dto.getEmail()).isPresent()) {
+                throw new RuntimeException("Novo email já está cadastrado para outro usuário.");
+            }
+            pessoaExistente.setEmail(dto.getEmail());
+        }
+
+        if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
+            pessoaExistente.setSenha(dto.getSenha());
+        }
+
+        if (dto.getEndereco() != null) {
+            pessoaExistente.setEndereco(dto.getEndereco());
+        }
+        if (dto.getTelefone() != null) {
+            pessoaExistente.setTelefone(dto.getTelefone());
+        }
+
+        return pessoaRepository.save(pessoaExistente);
     }
 }

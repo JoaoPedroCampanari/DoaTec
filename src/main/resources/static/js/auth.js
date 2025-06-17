@@ -1,26 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const logoutButton = document.getElementById('logoutButton');
+    const profileButton = document.getElementById('profileButton'); // Alterado para profileButton
 
-    // Verifica se o botão de logout existe nesta página
-    if (logoutButton) {
-        // Verifica se há um usuário logado no localStorage
+    if (profileButton) {
         const loggedInUser = localStorage.getItem('loggedInUser');
 
         if (loggedInUser) {
-            // Se houver um usuário logado, mostra o botão Sair.
-            logoutButton.style.display = 'block';
+            profileButton.style.display = 'block'; // Mostra o botão se estiver logado
         } else {
-            // Se não houver usuário logado, esconde o botão Sair.
-            logoutButton.style.display = 'none';
+            profileButton.style.display = 'none'; // Esconde o botão se não estiver logado
         }
 
-        // Adiciona um "ouvinte" de clique ao botão de sair
-        logoutButton.addEventListener('click', () => {
-            // Remove os dados do usuário do localStorage, "desconectando" a sessão simulada.
-            localStorage.removeItem('loggedInUser');
-            alert('Você foi desconectado. Até mais!');
-            // Redireciona o usuário para a página de login.
-            window.location.href = 'login.html';
+        profileButton.addEventListener('click', () => {
+            // Ao clicar em Perfil, redireciona para a página de perfil
+            window.location.href = 'perfil.html';
         });
     }
+
+    // A lógica de logout será movida para a página perfil.html
+    // Se você tiver outros botões de logout em outras páginas, precisará mantê-los.
 });
