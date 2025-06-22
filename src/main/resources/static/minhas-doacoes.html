@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Doações - Plataforma de Doação</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .donations-list {
+            margin-top: 20px;
+        }
+        .donation-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .donation-card h3 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .donation-card p {
+            margin-bottom: 5px;
+        }
+        .no-donations {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Início</a></li>
+            <li><a href="donate.html">Quero Doar</a></li>
+            <li><a href="aluno.html">Requisitar Computador</a></li>
+            <li><a href="minhas-doacoes.html">Minhas Doações</a></li>
+            <li><a href="suporte.html">Suporte</a></li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
+        </ul>
+        <div class="navbar-right">
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px;">Perfil</button>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <section class="application-section">
+        <div class="container">
+            <div class="application-header">
+                <h1>Minhas Doações</h1>
+                <p>Aqui está o histórico de todas as doações que você realizou na nossa plataforma. Agradecemos a sua contribuição!</p>
+            </div>
+
+            <div id="donationsContainer" class="donations-list">
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 Plataforma de Doação - Fatec Garça. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+<script src="js/theme-switcher.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const donationsContainer = document.getElementById('donationsContainer');
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+        if (!loggedInUser || !loggedInUser.id) {
+            alert('Você precisa estar logado para ver suas doações.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        fetch(`/api/users/${loggedInUser.id}/donations`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Falha ao buscar doações.');
+                }
+                return response.json();
+            })
+            .then(donations => {
+                if (donations.length === 0) {
+                    donationsContainer.innerHTML = '<p class="no-donations">Você ainda não fez nenhuma doação.</p>';
+                    return;
+                }
+
+                donations.forEach(donation => {
+                    const donationCard = document.createElement('div');
+                    donationCard.className = 'donation-card';
+
+                    let itemsHtml = '';
+                    if(donation.itens && donation.itens.length > 0) {
+                        // --- ALTERAÇÃO AQUI ---
+                        // Mapeia cada item para sua própria div com parágrafos separados
+                        itemsHtml = donation.itens.map(item => `
+                            <div style="padding-left: 15px; margin-top: 10px;">
+                                <p><strong>Item:</strong> ${item.tipoItem}</p>
+                                <p><strong>Descrição:</strong> ${item.descricao}</p>
+                            </div>
+                        `).join('');
+                    }
+
+                    donationCard.innerHTML = `
+                        <h3>Doação #${donation.id}</h3>
+                        <p><strong>Data da Doação:</strong> ${new Date(donation.dataDoacao).toLocaleDateString()}</p>
+                        <p><strong>Status:</strong> ${donation.status}</p>
+                        <p><strong>Preferência de Entrega:</strong> ${donation.preferenciaEntrega}</p>
+                        <div>
+                            <strong>Itens Doado(s):</strong>
+                            ${itemsHtml}
+                        </div>
+                    `;
+                    donationsContainer.appendChild(donationCard);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao buscar doações:', error);
+                donationsContainer.innerHTML = '<p class="no-donations" style="color: red;">Ocorreu um erro ao carregar suas doações.</p>';
+            });
+    });
+</script>
+</body>
+</html>

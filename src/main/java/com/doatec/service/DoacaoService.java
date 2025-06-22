@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -23,6 +24,11 @@ public class DoacaoService {
 
     @Autowired
     private PessoaRepository pessoaRepository;
+
+    @Transactional(readOnly = true)
+    public List<Doacao> findDoacoesByDoadorId(Integer doadorId) {
+        return doacaoRepository.findByDoadorId(doadorId);
+    }
 
     @Transactional
     public Doacao registrarDoacao(DoacaoDto dto) {

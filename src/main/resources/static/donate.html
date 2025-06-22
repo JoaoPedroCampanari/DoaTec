@@ -15,7 +15,8 @@
         <ul class="nav-links">
             <li><a href="index.html" class="active">Início</a></li>
             <li><a href="donate.html">Quero Doar</a></li>
-            <li><a href="aluno.html">Preciso de um Computador</a></li>
+            <li><a href="aluno.html">Requisitar Computador</a></li>
+            <li><a href="minhas-doacoes.html">Minhas Doações</a></li>
             <li><a href="suporte.html">Suporte</a></li>
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
@@ -77,11 +78,19 @@
                             <input type="radio" id="itemComponents" name="donatedItems" value="components">
                             <label for="itemComponents" class="radio-label">Peças e Componentes Avulsos</label>
                         </div>
+                        <div>
+                            <input type="radio" id="itemOutros" name="donatedItems" value="outros">
+                            <label for="itemOutros" class="radio-label">Outros</label>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="itemDescription">Descrição dos Itens:</label>
                         <textarea id="itemDescription" name="itemDescription" rows="5" required></textarea>
                         <small class="form-text">Por favor, liste os itens que deseja doar e, se possível, seu estado de conservação (ex: "Notebook Dell, funcionando, mas sem bateria", "2x pentes de memória RAM DDR3 4GB").</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="fotoDoacao">Foto da doação:</label>
+                        <input type="file" id="fotoDoacao">
                     </div>
                 </fieldset>
 
