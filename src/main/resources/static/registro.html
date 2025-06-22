@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - Plataforma de Doação</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/imask"></script>
     <style>
     </style>
 </head>
@@ -96,8 +97,24 @@
 </div>
 
 <script>
-    // Adiciona um "ouvinte" que espera toda a página HTML ser carregada antes de executar o script.
     document.addEventListener('DOMContentLoaded', () => {
+
+        // --- INÍCIO DA LÓGICA DAS MÁSCARAS ---
+
+        // 1. Define as opções de máscara para cada campo
+        const cpfMaskOptions = { mask: '000.000.000-00' };
+        const cnpjMaskOptions = { mask: '00.000.000/0000-00' };
+        // OBS: A máscara de RA pode variar. Usamos uma de 13 dígitos como exemplo.
+        // Se o formato for diferente, ajuste a máscara abaixo.
+        const raMaskOptions = { mask: '0000000000000' };
+
+        // 2. Aplica as máscaras aos elementos e guarda as instâncias
+        const cpfMask = IMask(document.getElementById('cpf'), cpfMaskOptions);
+        const cnpjMask = IMask(document.getElementById('cnpj'), cnpjMaskOptions);
+        const raMask = IMask(document.getElementById('ra'), raMaskOptions);
+
+        // --- FIM DA LÓGICA DAS MÁSCARAS ---
+
 
         // --- Lógica para alternar os campos do formulário com base no tipo de usuário ---
         const userTypeRadios = document.querySelectorAll('input[name="userType"]');
@@ -106,86 +123,75 @@
         const alunoFields = document.getElementById('alunoFields');
         const registerForm = document.getElementById('registerForm');
 
-        // Função para mostrar/ocultar os campos corretos.
         function updateUserForm() {
-            // Pega o valor do tipo de usuário selecionado.
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
 
-            // Esconde todos os blocos de campos específicos primeiro.
             pfFields.style.display = 'none';
             pjFields.style.display = 'none';
             alunoFields.style.display = 'none';
 
-            // Limpa os valores dos campos para evitar enviar dados de campos ocultos.
+            // Limpa os valores para evitar enviar dados de campos ocultos
+            cpfMask.value = '';
+            cnpjMask.value = '';
+            raMask.value = '';
             document.getElementById('fullNamePf').value = '';
-            document.getElementById('cpf').value = '';
             document.getElementById('companyName').value = '';
-            document.getElementById('cnpj').value = '';
             document.getElementById('fullNameAluno').value = '';
-            document.getElementById('ra').value = '';
 
-            // Mostra apenas o bloco de campos correspondente ao tipo de usuário selecionado.
-            if (selectedType === 'DOADOR_PF') { // ALTERADO AQUI
+            if (selectedType === 'DOADOR_PF') {
                 pfFields.style.display = 'block';
-            } else if (selectedType === 'DOADOR_PJ') { // ALTERADO AQUI
+            } else if (selectedType === 'DOADOR_PJ') {
                 pjFields.style.display = 'block';
-            } else if (selectedType === 'ALUNO') { // ALTERADO AQUI
+            } else if (selectedType === 'ALUNO') {
                 alunoFields.style.display = 'block';
             }
         }
-        // Adiciona um "ouvinte" para cada botão de rádio. A função updateUserForm será chamada sempre que uma opção for alterada.
         userTypeRadios.forEach(radio => {
             radio.addEventListener('change', updateUserForm);
         });
-        // Chama a função uma vez no início para garantir que o formulário seja exibido corretamente ao carregar a página.
         updateUserForm();
 
 
         // --- Lógica para o envio do formulário de registro ---
         registerForm.addEventListener('submit', async (event) => {
-            // Impede o comportamento padrão do formulário (recarregar a página).
             event.preventDefault();
 
-            // Coleta os valores dos campos comuns.
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
             const regEmail = document.getElementById('regEmail').value;
             const cep = document.getElementById('cep').value;
             const regPassword = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
-            // Validação no lado do cliente: verifica se as senhas coincidem.
             if (regPassword !== confirmPassword) {
                 alert('As senhas não coincidem!');
-                return; // Interrompe o envio.
+                return;
             }
 
-            // Coleta o nome e a identidade (CPF/CNPJ/RA) dos campos que estão visíveis.
             let nome;
             let identidade;
 
-            // Ajusta a lógica de coleta de dados para os novos valores dos radios
+            // --- ATUALIZAÇÃO IMPORTANTE AQUI ---
+            // 3. Pega o valor "limpo" (sem a máscara) para enviar ao backend
             if (selectedType === 'DOADOR_PF') {
                 nome = document.getElementById('fullNamePf').value;
-                identidade = document.getElementById('cpf').value;
+                identidade = cpfMask.unmaskedValue; // Usa o valor sem máscara
             } else if (selectedType === 'DOADOR_PJ') {
                 nome = document.getElementById('companyName').value;
-                identidade = document.getElementById('cnpj').value;
+                identidade = cnpjMask.unmaskedValue; // Usa o valor sem máscara
             } else if (selectedType === 'ALUNO') {
                 nome = document.getElementById('fullNameAluno').value;
-                identidade = document.getElementById('ra').value;
+                identidade = raMask.unmaskedValue; // Usa o valor sem máscara
             }
 
-            // Monta o objeto com os dados para enviar à API. As chaves devem corresponder ao DTO do backend.
             const registroData = {
-                tipoUsuario: selectedType, // Já está DOADOR_PF, DOADOR_PJ, ALUNO
+                tipoUsuario: selectedType,
                 nome: nome,
                 identidade: identidade,
                 email: regEmail,
-                endereco: cep, // O campo CEP do formulário é mapeado para 'endereco' no DTO.
+                endereco: cep,
                 senha: regPassword
             };
 
-            // Tenta enviar os dados para o backend.
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
@@ -193,18 +199,16 @@
                     body: JSON.stringify(registroData)
                 });
 
-                // Se o registro for bem-sucedido, redireciona para a página de login.
                 if (response.ok) {
                     const message = await response.text();
                     alert(message);
+
                     window.location.href = 'login.html';
                 } else {
-                    // Se houver um erro de validação no backend, exibe a mensagem de erro.
                     const errorData = await response.text();
                     alert('Erro no registro: ' + errorData);
                 }
             } catch (error) {
-                // Se houver um erro de rede, exibe uma mensagem de erro genérica.
                 console.error('Erro na requisição:', error);
                 alert('Ocorreu um erro ao tentar registrar. Verifique a conexão com o servidor.');
             }
