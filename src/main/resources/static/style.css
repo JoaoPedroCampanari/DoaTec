@@ -629,3 +629,134 @@ body.dark-mode .profile-readonly-section input[type="text"] {
         margin-bottom: 0; /* Remove a margem inferior do último botão empilhado */
     }
 }
+
+/* --- Estilos do Novo Dashboard --- */
+.dashboard-section {
+    padding: 40px 0;
+    background-color: #f8f9fa; /* Fundo neutro para a seção */
+}
+
+.dashboard-title {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 2rem;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: center;
+    align-items: stretch; /* Faz os cards terem a mesma altura */
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.stat-card {
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    flex-grow: 1;
+    min-width: 250px; /* Largura mínima antes de quebrar a linha */
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card .stat-number {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #007bff; /* Cor principal para o número */
+}
+
+.stat-card .stat-date {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.stat-card .stat-label {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+/* --- Adaptação para o Modo Escuro --- */
+body.dark-mode .dashboard-section {
+    background-color: #121212; /* Fundo principal escuro */
+}
+
+body.dark-mode .dashboard-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .stat-card {
+    background-color: #1e1e1e; /* Cor dos cards no modo escuro */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .stat-card .stat-label {
+    color: #b0b0b0;
+}
+
+/* --- Estilos da Página Minhas Doações --- */
+.donations-list {
+    margin-top: 20px;
+}
+
+.donation-card {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.donation-card h3 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.donation-card p,
+.donation-card div {
+    color: #333;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+.no-donations {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* --- Estilos da Página Minhas Doações (Modo Escuro) --- */
+body.dark-mode .donation-card {
+    background-color: #1e1e1e;
+    border-color: #444;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .donation-card p,
+body.dark-mode .donation-card div {
+    color: #b0b0b0;
+}
+
+body.dark-mode .no-donations {
+    color: #b0b0b0;
+}
+
+body.dark-mode .donation-card h3 {
+    color: #007bff; /* Garante que o título do card permaneça azul */
+}

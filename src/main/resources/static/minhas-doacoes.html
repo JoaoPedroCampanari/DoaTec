@@ -5,32 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Doações - Plataforma de Doação</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .donations-list {
-            margin-top: 20px;
-        }
-        .donation-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .donation-card h3 {
-            color: #007bff;
-            margin-bottom: 10px;
-        }
-        .donation-card p {
-            margin-bottom: 5px;
-        }
-        .no-donations {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2rem;
-            color: #666;
-        }
-    </style>
 </head>
 <body>
 
@@ -109,8 +83,6 @@
 
                     let itemsHtml = '';
                     if(donation.itens && donation.itens.length > 0) {
-                        // --- ALTERAÇÃO AQUI ---
-                        // Mapeia cada item para sua própria div com parágrafos separados
                         itemsHtml = donation.itens.map(item => `
                             <div style="padding-left: 15px; margin-top: 10px;">
                                 <p><strong>Item:</strong> ${item.tipoItem}</p>

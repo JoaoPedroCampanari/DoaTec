@@ -1,5 +1,6 @@
 package com.doatec.service;
 
+import com.doatec.dtos.DashboardStatsDto;
 import com.doatec.dtos.DoacaoDto;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.TipoUsuario;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,5 +85,15 @@ public class DoacaoService {
         novaDoacao.getItens().add(itemDoado);
 
         return doacaoRepository.save(novaDoacao);
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardStatsDto getDashboardStats() {
+        long total = doacaoRepository.count();
+        Optional<Doacao> lastDonationOpt = doacaoRepository.findTopByOrderByDataDoacaoDesc();
+
+        LocalDate lastDate = lastDonationOpt.map(Doacao::getDataDoacao).orElse(null);
+
+        return new DashboardStatsDto(total, lastDate);
     }
 }

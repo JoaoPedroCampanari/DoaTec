@@ -49,6 +49,22 @@
         </div>
     </section>
 
+    <<section class="dashboard-section">
+    <div class="container">
+        <h2 class="dashboard-title">Nosso Impacto em Números</h2>
+        <div class="stats-container">
+            <div class="stat-card">
+                <span id="totalDonations" class="stat-number">0</span>
+                <span class="stat-label">Doações Totais</span>
+            </div>
+            <div class="stat-card">
+                <span id="lastDonationDate" class="stat-date">-</span>
+                <span class="stat-label">Última Doação Recebida</span>
+            </div>
+        </div>
+    </div>
+</section>
+
     <section class="">
         <div class="container">
             <h2 style="text-align: center; margin-bottom: 30px;">Como Funciona</h2>
@@ -88,6 +104,7 @@
 
     <section class="news-testimonials">
         <div class="container">
+            <br>
             <h2 style="text-align: center; margin-bottom: 30px;">Impacto e Depoimentos</h2>
             <div style="padding: 20px; max-width: 800px; margin: auto;">
                 <blockquote style="font-style: italic; font-size: 1.1rem; color: #555;">
@@ -109,6 +126,35 @@
 <script src="js/main.js"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const totalDonationsSpan = document.getElementById('totalDonations');
+        const lastDonationDateSpan = document.getElementById('lastDonationDate');
+
+        fetch('/api/dashboard/stats')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar estatísticas.');
+                }
+                return response.json();
+            })
+            .then(stats => {
+                totalDonationsSpan.textContent = stats.totalDonations;
+
+                if (stats.lastDonationDate) {
+                    const date = new Date(stats.lastDonationDate + 'T00:00:00'); // Adiciona tempo para evitar problemas de fuso
+                    lastDonationDateSpan.textContent = date.toLocaleDateString('pt-BR');
+                } else {
+                    lastDonationDateSpan.textContent = 'Nenhuma doação registrada';
+                }
+            })
+            .catch(error => {
+                console.error('Erro no dashboard:', error);
+                totalDonationsSpan.textContent = 'N/A';
+                lastDonationDateSpan.textContent = 'Erro ao carregar';
+            });
+    });
+</script>
 </body>
 
 </html>
