@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Pedidos - Plataforma de Doação</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Início</a></li>
+            <li><a href="donate.html">Quero Doar</a></li>
+            <li id="minhasDoacoesNavItem"><a href="minhas-doacoes.html">Minhas Doações</a></li>
+            <li id="precisoComputadorNavItem"><a href="aluno.html">Preciso de um Computador</a></li>
+            <li id="meusPedidosNavItem"><a href="meus-pedidos.html">Meus Pedidos</a></li>
+            <li><a href="suporte.html">Suporte</a></li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
+        </ul>
+        <div class="navbar-right">
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px;">Perfil</button>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <section class="application-section">
+        <div class="container">
+            <div class="application-header">
+                <h1>Meus Pedidos de Equipamento</h1>
+                <p>Acompanhe aqui o status de todas as suas solicitações.</p>
+            </div>
+            <div id="pedidosContainer" class="donations-list">
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 Plataforma de Doação - Fatec Garça. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+<script src="js/theme-switcher.js"></script>
+<script src="js/auth.js"></script>
+
+<script src="js/nav-visibility.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const pedidosContainer = document.getElementById('pedidosContainer');
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+        if (!loggedInUser || !loggedInUser.id) {
+            alert('Você precisa estar logado para ver seus pedidos.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (loggedInUser.tipoUsuario !== 'ALUNO') {
+            pedidosContainer.innerHTML = '<p class="no-donations">Esta página é exclusiva para alunos.</p>';
+            return;
+        }
+
+        fetch(`/api/users/${loggedInUser.id}/solicitacoes`)
+            .then(response => {
+                if (!response.ok) throw new Error('Falha ao buscar seus pedidos.');
+                return response.json();
+            })
+            .then(pedidos => {
+                if (pedidos.length === 0) {
+                    pedidosContainer.innerHTML = '<p class="no-donations">Você ainda não fez nenhum pedido.</p>';
+                    return;
+                }
+                pedidos.forEach(pedido => {
+                    const pedidoCard = document.createElement('div');
+                    pedidoCard.className = 'donation-card';
+                    pedidoCard.innerHTML = `
+                        <h3>Pedido #${pedido.id}</h3>
+                        <p><strong>Data do Pedido:</strong> ${new Date(pedido.dataSolicitacao + 'T00:00:00').toLocaleDateString()}</p>
+                        <p><strong>Status:</strong> ${pedido.status}</p>
+                        <p><strong>Preferência:</strong> ${pedido.preferenciaEquipamento || 'Não especificada'}</p>
+                        <p><strong>Justificativa:</strong> ${pedido.justificativa}</p>
+                    `;
+                    pedidosContainer.appendChild(pedidoCard);
+                });
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                pedidosContainer.innerHTML = '<p class="no-donations" style="color: red;">Ocorreu um erro ao carregar seus pedidos.</p>';
+            });
+    });
+</script>
+</body>
+</html>

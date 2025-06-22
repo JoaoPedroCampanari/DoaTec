@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,6 +21,11 @@ public class SolicitacaoService {
 
     @Autowired
     private SolicitacaoHardwareRepository solicitacaoHardwareRepository;
+
+    @Transactional(readOnly = true)
+    public List<SolicitacaoHardware> findSolicitacoesByAlunoId(Integer alunoId) {
+        return solicitacaoHardwareRepository.findByAlunoId(alunoId);
+    }
 
     @Transactional
     public SolicitacaoHardware criarSolicitacao(SolicitacaoDto dto) {
@@ -54,4 +60,5 @@ public class SolicitacaoService {
 
         return solicitacaoHardwareRepository.save(novaSolicitacao);
     }
+
 }

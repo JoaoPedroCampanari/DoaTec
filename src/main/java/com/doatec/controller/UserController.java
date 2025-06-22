@@ -2,11 +2,14 @@ package com.doatec.controller;
 
 import com.doatec.dtos.DoacaoResponseDto;
 import com.doatec.dtos.PessoaUpdateDto;
+import com.doatec.dtos.SolicitacaoResponseDto;
 import com.doatec.dtos.UserLoginResponseDto;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.donation.Doacao;
+import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.service.DoacaoService;
 import com.doatec.service.PessoaService;
+import com.doatec.service.SolicitacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,9 @@ public class UserController {
 
     @Autowired
     private DoacaoService doacaoService;
+
+    @Autowired
+    private SolicitacaoService solicitacaoService;
 
     @GetMapping("/{id}")
     public ResponseEntity<UserLoginResponseDto> getUserById(@PathVariable Integer id) {
@@ -60,6 +66,15 @@ public class UserController {
         List<Doacao> doacoes = doacaoService.findDoacoesByDoadorId(id);
         List<DoacaoResponseDto> responseDtos = doacoes.stream()
                 .map(DoacaoResponseDto::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responseDtos);
+    }
+
+    @GetMapping("/{id}/solicitacoes")
+    public ResponseEntity<List<SolicitacaoResponseDto>> getUserSolicitacoes(@PathVariable Integer id) {
+        List<SolicitacaoHardware> solicitacoes = solicitacaoService.findSolicitacoesByAlunoId(id);
+        List<SolicitacaoResponseDto> responseDtos = solicitacoes.stream()
+                .map(SolicitacaoResponseDto::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responseDtos);
     }
