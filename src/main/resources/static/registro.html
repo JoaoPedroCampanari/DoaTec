@@ -89,11 +89,6 @@
                 <label for="confirmPassword">Confirme a Senha</label>
                 <input type="password" id="confirmPassword" name="confirmPassword" required>
             </div>
-            <div class="form-group">
-                <input type="checkbox" id="terms" name="terms" required>
-                <label for="terms" class="checkbox-label">Eu li e concordo com os <a href="#">Termos de
-                    Serviço</a>.</label>
-            </div>
             <button type="submit" class="btn btn-primary btn-submit">Registrar</button>
         </form>
         <p class="footer-link">Já tem uma conta? <a href="login.html">Faça o login</a></p>
@@ -157,16 +152,10 @@
             const cep = document.getElementById('cep').value;
             const regPassword = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const termsAccepted = document.getElementById('terms').checked;
 
             // Validação no lado do cliente: verifica se as senhas coincidem.
             if (regPassword !== confirmPassword) {
                 alert('As senhas não coincidem!');
-                return; // Interrompe o envio.
-            }
-            // Validação no lado do cliente: verifica se os termos foram aceitos.
-            if (!termsAccepted) {
-                alert('Você deve aceitar os Termos de Serviço.');
                 return; // Interrompe o envio.
             }
 
