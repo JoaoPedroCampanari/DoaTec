@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quero Doar - Plataforma de Doação</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/imask"></script>
 </head>
 
 <body>
@@ -126,7 +127,8 @@
 <script src="js/main.js"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js"></script>
-<script src="js/auth.js"></script> <script>
+<script src="js/auth.js"></script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         const documentLabel = document.getElementById('documentLabel');
         const documentInput = document.getElementById('documentNumber');
@@ -137,6 +139,7 @@
 
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
         let usuarioTipoDocumento = '';
+        let documentMask; // Variável para guardar a instância da máscara
 
         if (loggedInUser && loggedInUser.id) {
             fetch(`/api/users/${loggedInUser.id}`)
@@ -151,41 +154,52 @@
                     emailInput.value = userData.email || '';
                     phoneInput.value = userData.telefone || '';
 
+                    let maskOptions; // Opções da máscara a serem aplicadas
+
                     if (userData.tipoUsuario === 'DOADOR_PF') {
                         documentLabel.textContent = 'CPF:';
-                        documentInput.placeholder = 'Confirme seu CPF (apenas números)';
+                        documentInput.placeholder = 'Confirme seu CPF';
                         usuarioTipoDocumento = 'cpf';
+                        maskOptions = { mask: '000.000.000-00' };
                     } else if (userData.tipoUsuario === 'DOADOR_PJ') {
                         documentLabel.textContent = 'CNPJ:';
-                        documentInput.placeholder = 'Confirme seu CNPJ (apenas números)';
+                        documentInput.placeholder = 'Confirme seu CNPJ';
                         usuarioTipoDocumento = 'cnpj';
+                        maskOptions = { mask: '00.000.000/0000-00' };
                     } else if (userData.tipoUsuario === 'ALUNO') {
                         documentLabel.textContent = 'RA:';
                         documentInput.placeholder = 'Confirme seu RA';
                         usuarioTipoDocumento = 'aluno';
+                        maskOptions = { mask: '0000000000000' }; // Máscara de exemplo para RA
                     } else {
                         documentLabel.textContent = 'Documento:';
-                        documentInput.placeholder = 'Documento de identificação (opcional)';
+                        documentInput.placeholder = 'Documento de identificação';
                         documentInput.removeAttribute('required');
                         usuarioTipoDocumento = '';
+                    }
+
+                    // Aplica a máscara se as opções foram definidas
+                    if (maskOptions) {
+                        documentMask = IMask(documentInput, maskOptions);
                     }
                 })
                 .catch(error => {
                     console.error('Erro ao preencher dados do doador:', error);
-                    alert('Não foi possível carregar seus dados para preenchimento automático. Por favor, preencha manualmente.');
+                    alert('Não foi possível carregar seus dados para preenchimento automático.');
                     localStorage.removeItem('loggedInUser');
                 });
         } else {
-            // Se não estiver logado, pode-se exigir login ou deixar os campos preenchíveis
             alert('Você precisa estar logado para fazer uma doação. Por favor, faça login.');
-            window.location.href = 'login.html'; // Redireciona para login se não logado
+            window.location.href = 'login.html';
         }
 
 
         donationForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const numeroDocumento = document.getElementById('documentNumber').value;
+            // Pega o valor "limpo" da máscara, se ela existir
+            const numeroDocumento = documentMask ? documentMask.unmaskedValue : documentInput.value;
+
             const tipoItem = document.querySelector('input[name="donatedItems"]:checked').value;
             const descricaoItem = document.getElementById('itemDescription').value;
             const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value;
@@ -203,7 +217,7 @@
             const doacaoData = {
                 nome: donorNameInput.value,
                 tipoDocumento: usuarioTipoDocumento,
-                numeroDocumento: numeroDocumento,
+                numeroDocumento: numeroDocumento, // Envia o valor sem máscara
                 email: emailInput.value,
                 telefone: phoneInput.value,
                 tipoItem: tipoItem,
