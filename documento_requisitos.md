@@ -89,7 +89,7 @@ flowchart TB
     Usuario -->|herda| Aluno
     Usuario -->|herda| Funcionario
 
-    subgraph Sistema["Sistema de Doação e Recondicionamento"]
+    subgraph Sistema
         CU1["Criar conta de doador"]
         CU2["Oferecer doação"]
         CU3["Ver o que já doou"]
