@@ -1,12 +1,11 @@
 package com.doatec.service;
 
-import com.doatec.dtos.DashboardStatsDto;
-import com.doatec.dtos.DoacaoDto;
+import com.doatec.dto.request.DoacaoRequest;
+import com.doatec.dto.response.DashboardStatsResponse;
+import com.doatec.mapper.DoacaoMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.TipoUsuario;
 import com.doatec.model.donation.Doacao;
-import com.doatec.model.donation.ItemDoado;
-import com.doatec.model.donation.StatusDoacao;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.PessoaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,67 +32,61 @@ public class DoacaoService {
     }
 
     @Transactional
-    public Doacao registrarDoacao(DoacaoDto dto) {
-        Optional<Pessoa> doadorOptional = pessoaRepository.findByEmail(dto.getEmail());
+    public Doacao registrarDoacao(DoacaoRequest dto) {
+        Optional<Pessoa> doadorOptional = pessoaRepository.findByEmail(dto.email());
 
         if (doadorOptional.isEmpty()) {
-            throw new RuntimeException("Doador com email " + dto.getEmail() + " não está cadastrado. Por favor, registre-se primeiro.");
+            throw new RuntimeException("Doador com email " + dto.email() + " não está cadastrado. Por favor, registre-se primeiro.");
         }
 
         Pessoa doador = doadorOptional.get();
 
-        if (dto.getTipoDocumento().equals("cpf")) {
+        if (dto.tipoDocumento().equals("cpf")) {
             if (doador.getTipo() != TipoUsuario.DOADOR_PF) {
-                throw new RuntimeException("O email " + dto.getEmail() + " pertence a um usuário que não é Pessoa Física.");
+                throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Física.");
             }
-            if (!doador.getDocumento().equals(dto.getNumeroDocumento())) {
+            if (!doador.getDocumento().equals(dto.numeroDocumento())) {
                 throw new RuntimeException("O CPF informado não corresponde ao CPF cadastrado para este email.");
             }
-        } else if (dto.getTipoDocumento().equals("cnpj")) {
+        } else if (dto.tipoDocumento().equals("cnpj")) {
             if (doador.getTipo() != TipoUsuario.DOADOR_PJ) {
-                throw new RuntimeException("O email " + dto.getEmail() + " pertence a um usuário que não é Pessoa Jurídica.");
+                throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Jurídica.");
             }
-            if (!doador.getDocumento().equals(dto.getNumeroDocumento())) {
+            if (!doador.getDocumento().equals(dto.numeroDocumento())) {
                 throw new RuntimeException("O CNPJ informado não corresponde ao CNPJ cadastrado para este email.");
             }
-        }else if (dto.getTipoDocumento().equals("aluno")) {
+        } else if (dto.tipoDocumento().equals("aluno")) {
             if (doador.getTipo() != TipoUsuario.ALUNO) {
-                throw new RuntimeException("O email " + dto.getEmail() + " pertence a um usuário que não é Aluno. Se deseja doar como aluno, seu tipo de cadastro deve ser 'ALUNO'.");
+                throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Aluno. Se deseja doar como aluno, seu tipo de cadastro deve ser 'ALUNO'.");
             }
-            if (!doador.getDocumento().equals(dto.getNumeroDocumento())) {
+            if (!doador.getDocumento().equals(dto.numeroDocumento())) {
                 throw new RuntimeException("O RA informado não corresponde ao RA cadastrado para este email.");
             }
-        }
-        else {
+        } else {
             throw new RuntimeException("Tipo de documento inválido para a doação.");
         }
 
-        if (!doador.getNome().equals(dto.getNome())){
+        if (!doador.getNome().equals(dto.nome())) {
             throw new RuntimeException("Nome incorreto!");
         }
 
-        if (dto.getTelefone() != null && !dto.getTelefone().isBlank()){
-            doador.setTelefone(dto.getTelefone());
+        if (dto.telefone() != null && !dto.telefone().isBlank()) {
+            doador.setTelefone(dto.telefone());
             pessoaRepository.save(doador);
         }
 
-
-        Doacao novaDoacao = new Doacao(doador, StatusDoacao.EM_ANALISE, dto.getPreferenciaEntrega());
-
-        ItemDoado itemDoado = new ItemDoado(novaDoacao, dto.getTipoItem(), dto.getDescricaoItem());
-
-        novaDoacao.getItens().add(itemDoado);
+        Doacao novaDoacao = DoacaoMapper.toDoacao(dto, doador);
 
         return doacaoRepository.save(novaDoacao);
     }
 
     @Transactional(readOnly = true)
-    public DashboardStatsDto getDashboardStats() {
+    public DashboardStatsResponse getDashboardStats() {
         long total = doacaoRepository.count();
         Optional<Doacao> lastDonationOpt = doacaoRepository.findTopByOrderByDataDoacaoDesc();
 
         LocalDate lastDate = lastDonationOpt.map(Doacao::getDataDoacao).orElse(null);
 
-        return new DashboardStatsDto(total, lastDate);
+        return new DashboardStatsResponse(total, lastDate);
     }
 }

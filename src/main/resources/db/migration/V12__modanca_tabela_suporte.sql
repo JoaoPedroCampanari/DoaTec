@@ -1,1 +1,0 @@
-ALTER TABLE suporte_formulario MODIFY COLUMN autor_id INT NOT NULL;

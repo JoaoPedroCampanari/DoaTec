@@ -1,6 +1,6 @@
 package com.doatec.controller;
 
-import com.doatec.dtos.DashboardStatsDto;
+import com.doatec.dto.response.DashboardStatsResponse;
 import com.doatec.service.DoacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +16,8 @@ public class DashboardController {
     private DoacaoService doacaoService;
 
     @GetMapping("/stats")
-    public ResponseEntity<DashboardStatsDto> getStats() {
-        DashboardStatsDto stats = doacaoService.getDashboardStats();
+    public ResponseEntity<DashboardStatsResponse> getStats() {
+        DashboardStatsResponse stats = doacaoService.getDashboardStats();
         return ResponseEntity.ok(stats);
     }
 }

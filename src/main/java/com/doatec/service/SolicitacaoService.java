@@ -1,6 +1,7 @@
 package com.doatec.service;
 
-import com.doatec.dtos.SolicitacaoDto;
+import com.doatec.dto.request.SolicitacaoRequest;
+import com.doatec.mapper.SolicitacaoMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.TipoUsuario;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class SolicitacaoService {
@@ -28,35 +28,26 @@ public class SolicitacaoService {
     }
 
     @Transactional
-    public SolicitacaoHardware criarSolicitacao(SolicitacaoDto dto) {
+    public SolicitacaoHardware criarSolicitacao(SolicitacaoRequest dto) {
 
-        Optional<Pessoa> pessoaOptional = pessoaRepository.findByEmail(dto.getEmail());
-
-        if (pessoaOptional.isEmpty()) {
-            throw new RuntimeException("Usuário com email " + dto.getEmail() + " não está cadastrado.");
-        }
-
-        Pessoa pessoaEncontrada = pessoaOptional.get();
+        Pessoa pessoaEncontrada = pessoaRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new RuntimeException("Usuário com email " + dto.email() + " não está cadastrado."));
 
         if (pessoaEncontrada.getTipo() != TipoUsuario.ALUNO) {
-            throw new RuntimeException("O email " + dto.getEmail() + " pertence a um usuário que não é aluno.");
+            throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é aluno.");
         }
 
-        if (!pessoaEncontrada.getNome().equals(dto.getNome())) {
+        if (!pessoaEncontrada.getNome().equals(dto.nome())) {
             throw new RuntimeException("Nome incorreto!");
         }
-        if (!pessoaEncontrada.getSenha().equals(dto.getSenha())) {
+        if (!pessoaEncontrada.getSenha().equals(dto.senha())) {
             throw new RuntimeException("Senha incorreta!");
         }
-        if (!pessoaEncontrada.getDocumento().equals(dto.getRa())) {
-            throw new RuntimeException("O RA " + dto.getRa() + " não é válido para este aluno.");
+        if (!pessoaEncontrada.getDocumento().equals(dto.ra())) {
+            throw new RuntimeException("O RA " + dto.ra() + " não é válido para este aluno.");
         }
 
-        SolicitacaoHardware novaSolicitacao = new SolicitacaoHardware(
-                pessoaEncontrada,
-                dto.getJustificativa(),
-                dto.getPreferenciaEquipamento()
-        );
+        SolicitacaoHardware novaSolicitacao = SolicitacaoMapper.toSolicitacao(dto, pessoaEncontrada);
 
         return solicitacaoHardwareRepository.save(novaSolicitacao);
     }

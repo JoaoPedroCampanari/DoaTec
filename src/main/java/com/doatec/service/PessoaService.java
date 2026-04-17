@@ -1,8 +1,9 @@
 package com.doatec.service;
 
-import com.doatec.dtos.LoginDto;
-import com.doatec.dtos.PessoaUpdateDto;
-import com.doatec.dtos.RegistroDto;
+import com.doatec.dto.request.LoginRequest;
+import com.doatec.dto.request.PessoaUpdateRequest;
+import com.doatec.dto.request.RegistroRequest;
+import com.doatec.mapper.PessoaMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.TipoUsuario;
 import com.doatec.repository.PessoaRepository;
@@ -34,15 +35,15 @@ public class PessoaService {
         pessoaRepository.deleteById(id);
     }
 
-    public Pessoa autenticar(LoginDto loginDto) {
-        Optional<Pessoa> pessoaOptional = pessoaRepository.findByEmail(loginDto.getEmail());
+    public Pessoa autenticar(LoginRequest loginRequest) {
+        Optional<Pessoa> pessoaOptional = pessoaRepository.findByEmail(loginRequest.email());
 
         if (pessoaOptional.isEmpty()) {
             return null;
         }
 
         Pessoa pessoa = pessoaOptional.get();
-        if (pessoa.getSenha().equals(loginDto.getSenha())) {
+        if (pessoa.getSenha().equals(loginRequest.senha())) {
             return pessoa;
         } else {
             return null;
@@ -50,65 +51,57 @@ public class PessoaService {
     }
 
     @Transactional
-    public Pessoa registrarPessoa(RegistroDto registroDto){
-        if (pessoaRepository.findByEmail(registroDto.getEmail()).isPresent()) {
+    public Pessoa registrarPessoa(RegistroRequest registroRequest) {
+        if (pessoaRepository.findByEmail(registroRequest.email()).isPresent()) {
             throw new RuntimeException("O email informado já está cadastrado.");
         }
 
-        if (registroDto.getIdentidade() != null && !registroDto.getIdentidade().isBlank()) {
-            Optional<Pessoa> pessoaComDocumento = pessoaRepository.findByDocumento(registroDto.getIdentidade());
+        if (registroRequest.identidade() != null && !registroRequest.identidade().isBlank()) {
+            Optional<Pessoa> pessoaComDocumento = pessoaRepository.findByDocumento(registroRequest.identidade());
             if (pessoaComDocumento.isPresent()) {
-                throw new RuntimeException("O documento " + registroDto.getIdentidade() + " já está cadastrado.");
+                throw new RuntimeException("O documento " + registroRequest.identidade() + " já está cadastrado.");
             }
         } else {
-            if (registroDto.getTipoUsuario().equals("DOADOR_PF") ||
-                    registroDto.getTipoUsuario().equals("DOADOR_PJ") ||
-                    registroDto.getTipoUsuario().equals("ALUNO")) {
+            if (registroRequest.tipoUsuario().equals("DOADOR_PF") ||
+                    registroRequest.tipoUsuario().equals("DOADOR_PJ") ||
+                    registroRequest.tipoUsuario().equals("ALUNO")) {
                 throw new RuntimeException("O documento de identificação é obrigatório para este tipo de usuário.");
             }
         }
 
         TipoUsuario tipoUsuarioEnum;
         try {
-            tipoUsuarioEnum = TipoUsuario.valueOf(registroDto.getTipoUsuario().toUpperCase());
+            tipoUsuarioEnum = TipoUsuario.valueOf(registroRequest.tipoUsuario().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Tipo de usuário inválido: " + registroDto.getTipoUsuario());
+            throw new RuntimeException("Tipo de usuário inválido: " + registroRequest.tipoUsuario());
         }
 
-        Pessoa novaPessoa = new Pessoa(
-                registroDto.getNome(),
-                registroDto.getEmail(),
-                registroDto.getSenha(),
-                registroDto.getEndereco(),
-                "",
-                registroDto.getIdentidade(),
-                tipoUsuarioEnum
-        );
+        Pessoa novaPessoa = PessoaMapper.toPessoa(registroRequest);
 
         return pessoaRepository.save(novaPessoa);
     }
 
     @Transactional
-    public Pessoa updatePessoaProfile(Integer id, PessoaUpdateDto dto) {
+    public Pessoa updatePessoaProfile(Integer id, PessoaUpdateRequest dto) {
         Pessoa pessoaExistente = pessoaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
 
-        if (dto.getEmail() != null && !dto.getEmail().isBlank() && !dto.getEmail().equals(pessoaExistente.getEmail())) {
-            if (pessoaRepository.findByEmail(dto.getEmail()).isPresent()) {
+        if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(pessoaExistente.getEmail())) {
+            if (pessoaRepository.findByEmail(dto.email()).isPresent()) {
                 throw new RuntimeException("Novo email já está cadastrado para outro usuário.");
             }
-            pessoaExistente.setEmail(dto.getEmail());
+            pessoaExistente.setEmail(dto.email());
         }
 
-        if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
-            pessoaExistente.setSenha(dto.getSenha());
+        if (dto.senha() != null && !dto.senha().isBlank()) {
+            pessoaExistente.setSenha(dto.senha());
         }
 
-        if (dto.getEndereco() != null) {
-            pessoaExistente.setEndereco(dto.getEndereco());
+        if (dto.endereco() != null) {
+            pessoaExistente.setEndereco(dto.endereco());
         }
-        if (dto.getTelefone() != null) {
-            pessoaExistente.setTelefone(dto.getTelefone());
+        if (dto.telefone() != null) {
+            pessoaExistente.setTelefone(dto.telefone());
         }
 
         return pessoaRepository.save(pessoaExistente);

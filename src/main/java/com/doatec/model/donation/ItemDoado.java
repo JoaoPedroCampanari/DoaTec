@@ -1,9 +1,15 @@
 package com.doatec.model.donation;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "item_doado")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"doacao"})
 public class ItemDoado {
 
     @Id
@@ -19,45 +25,4 @@ public class ItemDoado {
 
     @Column(nullable = false)
     private String descricao;
-
-    public ItemDoado() {
-    }
-
-    public ItemDoado(Doacao doacao, String tipoItem, String descricao) {
-        this.doacao = doacao;
-        this.tipoItem = tipoItem;
-        this.descricao = descricao;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Doacao getDoacao() {
-        return doacao;
-    }
-
-    public void setDoacao(Doacao doacao) {
-        this.doacao = doacao;
-    }
-
-    public String getTipoItem() {
-        return tipoItem;
-    }
-
-    public void setTipoItem(String tipoItem) {
-        this.tipoItem = tipoItem;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
 }

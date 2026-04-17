@@ -336,7 +336,7 @@ body.login-page {
     font-size: 0.9rem;
 }
 
-/* --- Estilos do Modo Escuro --- */
+
 body.dark-mode {
     background-color: #121212;
     color: #e0e0e0;
@@ -356,32 +356,32 @@ body.dark-mode .nav-links a.active {
     color: #007bff;
 }
 
-/* Garante que seções como application-section, login-box e how-it-works tenham fundo escuro */
+
 body.dark-mode .application-section,
-body.dark-mode .login-box { /* Mantenha estes para os outros elementos */
+body.dark-mode .login-box {
     background-color: #1e1e1e;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-/* Fundo para a seção "Como Funciona" */
-body.dark-mode section.how-it-works { /* Agora é controlada por CSS */
-    background-color: #1e1e1e; /* Um tom escuro para o fundo da seção */
-    padding: 40px 0; /* Mantenha o padding */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Adicione sombra se desejar */
+
+body.dark-mode section.how-it-works {
+    background-color: #1e1e1e;
+    padding: 40px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-/* Fundo para a seção "Impacto e Depoimentos" */
+
 body.dark-mode section.news-testimonials {
-    background-color: #121212; /* Mesma cor do body para um fundo contínuo */
+    background-color: #121212;
     color: #e0e0e0;
 }
 
-/* Bloco que envolve a citação dentro da seção de depoimentos */
-body.dark-mode .news-testimonials div.container > div { /* Alvo o div que envolve o blockquote no index.html */
-    background: #2c2c2c; /* Fundo mais escuro para o bloco de feedback */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.4); /* Sombra mais escura */
-    border-radius: 5px; /* Manter o border-radius */
-    /* REMOVIDO: border-left aqui, pois será aplicado no blockquote */
+
+body.dark-mode .news-testimonials div.container > div {
+    background: #2c2c2c;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    border-radius: 5px;
+
 }
 
 body.dark-mode .application-header h1 {
@@ -392,7 +392,7 @@ body.dark-mode .application-header p,
 body.dark-mode .form-group .radio-label,
 body.dark-mode .form-group .checkbox-label,
 body.dark-mode .form-text,
-body.dark-mode p { /* Garante cor de texto para parágrafos em geral */
+body.dark-mode p {
     color: #b0b0b0;
 }
 
@@ -440,18 +440,18 @@ body.dark-mode .application-form fieldset {
     border-color: #444;
 }
 
-/* Estilos para o bloco de citação (blockquote) */
+
 body.dark-mode blockquote {
-    border-left: 5px solid #007bff; /* A borda azul agora é aplicada APENAS aqui */
-    background-color: transparent !important; /* Certifica que o background venha do pai */
-    color: #b0b0b0; /* Garante a cor do texto da citação */
+    border-left: 5px solid #007bff;
+    background-color: transparent !important;
+    color: #b0b0b0;
 }
 
 body.dark-mode hr {
     border-color: #444 !important;
 }
 
-/* Ajustes para a página de perfil (seções de layout) */
+
 body.dark-mode .profile-readonly-section,
 body.dark-mode .profile-editable-form {
     background-color: #2c2c2c;
@@ -481,34 +481,31 @@ body.dark-mode .profile-readonly-section input[type="text"] {
     margin-left: auto;
 }
 
-/* Estilos para a página de Perfil */
-
-/* Ajuste de largura para a página de perfil para permitir colunas */
 body.perfil-page .login-container {
-    max-width: 900px; /* Aumenta a largura máxima do container para o perfil */
-    width: 95%; /* Garante que não fique muito grande em telas muito amplas, mas expande em telas médias */
+    max-width: 900px;
+    width: 95%;
 }
 
-/* Remove a largura máxima do login-box, permitindo que os filhos flexíveis controlem a largura */
+
 body.perfil-page .login-box {
-    max-width: none; /* Remove a largura máxima rígida herdada do login-box padrão */
-    padding: 20px; /* Ajuste de padding para não ficar muito grudado */
+    max-width: none;
+    padding: 20px;
 }
 
-/* Container principal para as seções de perfil (leitura e edição) */
+
 .profile-sections-container {
-    display: flex; /* Usa flexbox para colocar seções lado a lado */
-    flex-wrap: wrap; /* Permite que as seções quebrem para a próxima linha em telas pequenas */
-    gap: 30px; /* Espaço entre as seções */
-    margin-bottom: 20px; /* Reduz margem inferior se o layout for mais compacto */
-    justify-content: center; /* Centraliza as seções */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 20px;
+    justify-content: center;
 }
 
-/* Seções individuais (readonly e o FORM editável) devem ser flex-items */
+
 .profile-readonly-section,
-.profile-editable-form { /* Aplicado ao FORM, não ao FIELDSET dentro do FORM */
+.profile-editable-form {
     flex: 1;
-    min-width: 300px; /* Largura mínima antes de quebrar a linha */
+    min-width: 300px;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -516,13 +513,13 @@ body.perfil-page .login-box {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* Estilos específicos para o fieldset dentro do form editável (remover borda/sombra duplicadas) */
+
 .profile-editable-form fieldset {
-    border: none; /* Remove a borda padrão do fieldset para não duplicar com a do form */
-    padding: 0;   /* Remove padding extra */
-    margin: 0;    /* Remove margin extra */
-    background-color: transparent; /* Garante que o fundo não duplique */
-    box-shadow: none; /* Remove sombra duplicada */
+    border: none;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .profile-readonly-section h2,
@@ -536,35 +533,35 @@ body.perfil-page .login-box {
     padding-bottom: 10px;
 }
 
-/* Mantém o grid para os campos dentro do form editável */
+
 .profile-fields-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Duas colunas de largura igual */
-    gap: 20px; /* Espaço entre os campos */
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
 }
 
-/* Campos que devem ocupar a largura total (1 coluna) */
+
 .profile-fields-grid .form-group.full-width {
-    grid-column: 1 / -1; /* Ocupa todas as colunas disponíveis no grid */
+    grid-column: 1 / -1;
 }
 
-/* Ajustes para telas menores */
+
 @media (max-width: 768px) {
     .profile-sections-container {
-        flex-direction: column; /* Em telas menores, empilha as seções */
+        flex-direction: column;
         gap: 20px;
     }
     .profile-fields-grid {
-        grid-template-columns: 1fr; /* Em telas menores, os campos ficam em uma única coluna */
+        grid-template-columns: 1fr;
     }
     .profile-fields-grid .form-group.full-width {
-        grid-column: auto; /* Reseta para comportamento padrão de coluna */
+        grid-column: auto;
     }
 }
 
-/* Estilos para modo escuro */
+
 body.dark-mode .profile-readonly-section,
-body.dark-mode .profile-editable-form { /* Aplica ao FORM também */
+body.dark-mode .profile-editable-form {
     background-color: #2c2c2c;
     border-color: #444;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -586,54 +583,52 @@ body.dark-mode .profile-readonly-section input[type="text"] {
     border-color: #555;
 }
 
-/* Estilos para os botões na parte inferior da página de perfil */
+
 .profile-bottom-buttons {
     display: flex;
-    justify-content: space-between; /* Espaça os botões para os cantos */
+    justify-content: space-between;
     align-items: center;
-    margin-top: 20px; /* Adiciona um pouco de espaço acima */
-    gap: 15px; /* Espaço entre os botões */
-    flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
-    width: 100%; /* Ocupa a largura total do seu container pai (.login-box) */
+    margin-top: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
-/* Ajustes específicos para os botões dentro de .profile-bottom-buttons */
+
 .profile-bottom-buttons .btn {
-    /* Garante que ambos os botões tenham a mesma largura, dividindo o espaço igualmente */
-    width: calc(50% - 7.5px); /* 50% da largura do pai menos metade do gap (15px / 2 = 7.5px) */
-    box-sizing: border-box; /* Inclui padding e borda na largura total do elemento */
-    text-align: center; /* Centraliza o texto dentro do botão */
+    width: calc(50% - 7.5px);
+    box-sizing: border-box;
+    text-align: center;
 
-    /* Garante uma altura mínima e alinhamento vertical do texto dentro do botão */
-    min-height: 45px; /* Define uma altura mínima para ambos, pode ajustar */
-    display: flex; /* Usa flexbox para alinhar o conteúdo (texto) dentro do botão */
-    justify-content: center; /* Centraliza horizontalmente o texto */
-    align-items: center; /* Centraliza verticalmente o texto */
-    padding: 12px 10px; /* Ajuste o padding se o texto estiver muito apertado com a largura definida */
-    margin: 0; /* Remove margens automáticas ou herdadas */
-    flex-grow: 1; /* Permite que cresçam para preencher o espaço, mas width calc() tem precedência */
+
+    min-height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 10px;
+    margin: 0;
+    flex-grow: 1;
 }
 
-/* Ajustes para telas menores, para que os botões voltem a empilhar */
-@media (max-width: 480px) { /* Exemplo: se a tela for menor que 480px, os botões empilham */
+
+@media (max-width: 480px) {
     .profile-bottom-buttons {
-        flex-direction: column; /* Empilha os botões verticalmente */
-        align-items: stretch; /* Garante que ocupem a largura total disponível */
+        flex-direction: column;
+        align-items: stretch;
     }
     .profile-bottom-buttons .btn {
-        width: 100%; /* Fazem os botões ocuparem a largura total quando empilhados */
-        margin-bottom: 10px; /* Adiciona espaço entre eles quando empilhados */
-        font-size: 1rem; /* Ajusta o tamanho da fonte para telas menores, se necessário */
+        width: 100%;
+        margin-bottom: 10px;
+        font-size: 1rem;
     }
     .profile-bottom-buttons .btn:last-child {
-        margin-bottom: 0; /* Remove a margem inferior do último botão empilhado */
+        margin-bottom: 0;
     }
 }
 
-/* --- Estilos do Novo Dashboard --- */
 .dashboard-section {
     padding: 40px 0;
-    background-color: #f8f9fa; /* Fundo neutro para a seção */
+    background-color: #f8f9fa;
 }
 
 .dashboard-title {
@@ -646,7 +641,7 @@ body.dark-mode .profile-readonly-section input[type="text"] {
 .stats-container {
     display: flex;
     justify-content: center;
-    align-items: stretch; /* Faz os cards terem a mesma altura */
+    align-items: stretch;
     flex-wrap: wrap;
     gap: 30px;
 }
@@ -658,7 +653,7 @@ body.dark-mode .profile-readonly-section input[type="text"] {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     text-align: center;
     flex-grow: 1;
-    min-width: 250px; /* Largura mínima antes de quebrar a linha */
+    min-width: 250px;
     max-width: 300px;
     display: flex;
     flex-direction: column;
@@ -674,7 +669,7 @@ body.dark-mode .profile-readonly-section input[type="text"] {
 .stat-card .stat-number {
     font-size: 3.5rem;
     font-weight: 700;
-    color: #007bff; /* Cor principal para o número */
+    color: #007bff;
 }
 
 .stat-card .stat-date {
@@ -689,9 +684,9 @@ body.dark-mode .profile-readonly-section input[type="text"] {
     margin-top: 8px;
 }
 
-/* --- Adaptação para o Modo Escuro --- */
+
 body.dark-mode .dashboard-section {
-    background-color: #121212; /* Fundo principal escuro */
+    background-color: #121212;
 }
 
 body.dark-mode .dashboard-title {
@@ -699,7 +694,7 @@ body.dark-mode .dashboard-title {
 }
 
 body.dark-mode .stat-card {
-    background-color: #1e1e1e; /* Cor dos cards no modo escuro */
+    background-color: #1e1e1e;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -707,7 +702,7 @@ body.dark-mode .stat-card .stat-label {
     color: #b0b0b0;
 }
 
-/* --- Estilos da Página Minhas Doações --- */
+
 .donations-list {
     margin-top: 20px;
 }
@@ -741,7 +736,7 @@ body.dark-mode .stat-card .stat-label {
     color: #666;
 }
 
-/* --- Estilos da Página Minhas Doações (Modo Escuro) --- */
+
 body.dark-mode .donation-card {
     background-color: #1e1e1e;
     border-color: #444;
@@ -758,5 +753,5 @@ body.dark-mode .no-donations {
 }
 
 body.dark-mode .donation-card h3 {
-    color: #007bff; /* Garante que o título do card permaneça azul */
+    color: #007bff;
 }

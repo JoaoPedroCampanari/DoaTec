@@ -2,10 +2,17 @@ package com.doatec.model.suporte;
 
 import jakarta.persistence.*;
 import com.doatec.model.account.Pessoa;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "suporte_formulario")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"autor"})
 public class SuporteFormulario {
 
     @Id
@@ -25,64 +32,6 @@ public class SuporteFormulario {
     @Column(nullable = false)
     private String status;
 
+    @Builder.Default
     private LocalDateTime dataCriacao = LocalDateTime.now();
-
-    public SuporteFormulario() {
-    }
-
-    public SuporteFormulario(Pessoa autor, String assunto, String mensagem, String status, LocalDateTime dataCriacao) {
-        this.autor = autor;
-        this.assunto = assunto;
-        this.mensagem = mensagem;
-        this.status = status;
-        this.dataCriacao = dataCriacao;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Pessoa getAutor() {
-        return autor;
-    }
-
-    public void setAutor(Pessoa autor) {
-        this.autor = autor;
-    }
-
-    public String getAssunto() {
-        return assunto;
-    }
-
-    public void setAssunto(String assunto) {
-        this.assunto = assunto;
-    }
-
-    public String getMensagem() {
-        return mensagem;
-    }
-
-    public void setMensagem(String mensagem) {
-        this.mensagem = mensagem;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getDataCriacao() {
-        return dataCriacao;
-    }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
-    }
 }
