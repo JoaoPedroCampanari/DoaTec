@@ -53,7 +53,6 @@
             const result = await Auth.login(email, password);
 
             if (result.success) {
-                alert('Login bem-sucedido! Redirecionando para a home.');
                 window.location.href = 'index.html';
             } else {
                 alert('Erro no login: ' + result.error);

@@ -2,22 +2,34 @@ package com.doatec.model.account;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidade base abstrata para representar pessoas no sistema.
+ * Utiliza herança JPA com estratégia JOINED para separar tipos específicos:
+ * - Aluno: beneficiários que solicitam equipamentos
+ * - DoadorPF: doadores pessoa física
+ * - DoadorPJ: doadores pessoa jurídica (empresas)
+ *
+ * Usa @SuperBuilder para suportar herança com Builder pattern.
+ */
 @Entity
 @Table(name = "pessoa")
-@Data
+@Inheritance(strategy = InheritanceType.JOINED)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @EqualsAndHashCode(exclude = {"senha"})
 @ToString(exclude = {"senha"})
 @SQLDelete(sql = "UPDATE pessoa SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class Pessoa {
+public abstract class Pessoa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,14 +45,8 @@ public class Pessoa {
     private String senha;
 
     private String endereco;
+
     private String telefone;
-
-    @Column(unique = true)
-    private String documento;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoPessoa tipoPessoa;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -69,6 +75,18 @@ public class Pessoa {
     }
 
     /**
+     * Retorna o documento de identificação da pessoa.
+     * Implementado pelas subclasses: RA para Aluno, CPF para DoadorPF, CNPJ para DoadorPJ.
+     */
+    public abstract String getDocumento();
+
+    /**
+     * Retorna o tipo de pessoa como string.
+     * Usado para serialização e lógica de negócio.
+     */
+    public abstract String getTipoPessoa();
+
+    /**
      * Verifica se a pessoa tem uma role específica.
      */
     public boolean hasRole(Role role) {
@@ -86,6 +104,13 @@ public class Pessoa {
      * Verifica se a pessoa é doador (PF ou PJ).
      */
     public boolean isDoador() {
-        return this.tipoPessoa == TipoPessoa.DOADOR_PF || this.tipoPessoa == TipoPessoa.DOADOR_PJ;
+        return this instanceof DoadorPF || this instanceof DoadorPJ;
+    }
+
+    /**
+     * Verifica se a pessoa é aluno (beneficiário).
+     */
+    public boolean isAluno() {
+        return this instanceof Aluno;
     }
 }

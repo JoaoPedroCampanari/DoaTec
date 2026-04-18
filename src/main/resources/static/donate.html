@@ -23,6 +23,18 @@
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
         <div class="navbar-right">
+            <!-- Notificações -->
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px;">Perfil</button>
             <div class="menu-toggle">
@@ -125,9 +137,10 @@
     </div>
 </footer>
 <script src="js/main.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/notifications.js"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js"></script>
-<script src="js/auth.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
         const documentLabel = document.getElementById('documentLabel');
@@ -157,17 +170,17 @@
 
                     let maskOptions; // Opções da máscara a serem aplicadas
 
-                    if (userData.tipoUsuario === 'DOADOR_PF') {
+                    if (userData.tipoPessoa === 'DOADOR_PF') {
                         documentLabel.textContent = 'CPF:';
                         documentInput.placeholder = 'Confirme seu CPF';
                         usuarioTipoDocumento = 'cpf';
                         maskOptions = { mask: '000.000.000-00' };
-                    } else if (userData.tipoUsuario === 'DOADOR_PJ') {
+                    } else if (userData.tipoPessoa === 'DOADOR_PJ') {
                         documentLabel.textContent = 'CNPJ:';
                         documentInput.placeholder = 'Confirme seu CNPJ';
                         usuarioTipoDocumento = 'cnpj';
                         maskOptions = { mask: '00.000.000/0000-00' };
-                    } else if (userData.tipoUsuario === 'ALUNO') {
+                    } else if (userData.tipoPessoa === 'ALUNO') {
                         documentLabel.textContent = 'RA:';
                         documentInput.placeholder = 'Confirme seu RA';
                         usuarioTipoDocumento = 'aluno';

@@ -1,5 +1,6 @@
 package com.doatec.model.donation;
 
+import com.doatec.model.inventory.Equipamento;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"doacao"})
+@ToString(exclude = {"doacao", "equipamentoGerado"})
 public class ItemDoado {
 
     @Id
@@ -25,4 +26,12 @@ public class ItemDoado {
 
     @Column(nullable = false)
     private String descricao;
+
+    /**
+     * Equipamento gerado a partir deste item quando a doação é aprovada.
+     * Relacionamento OneToOne opcional.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "equipamento_gerado_id")
+    private Equipamento equipamentoGerado;
 }

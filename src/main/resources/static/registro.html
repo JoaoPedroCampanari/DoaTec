@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Plataforma de Doação</title>
+    <title>Registro - DoaTec</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/imask"></script>
-    <style>
-    </style>
 </head>
 
 <body class="login-page">
@@ -40,18 +38,22 @@
             <div id="pfFields">
                 <div class="form-group">
                     <label for="fullNamePf" id="nameLabel">Nome Completo</label>
-                    <input type="text" id="fullNamePf" name="fullNamePf">
+                    <input type="text" id="fullNamePf" name="fullNamePf" required>
                 </div>
                 <div class="form-group">
                     <label for="cpf">CPF</label>
-                    <input type="text" id="cpf" name="cpf">
+                    <input type="text" id="cpf" name="cpf" required>
                 </div>
             </div>
 
             <div id="pjFields" style="display: none;">
                 <div class="form-group">
-                    <label for="companyName">Nome da Empresa</label>
+                    <label for="companyName">Nome da Empresa (Razão Social)</label>
                     <input type="text" id="companyName" name="companyName">
+                </div>
+                <div class="form-group">
+                    <label for="representativeName">Nome do Representante</label>
+                    <input type="text" id="representativeName" name="representativeName">
                 </div>
                 <div class="form-group">
                     <label for="cnpj">CNPJ</label>
@@ -78,6 +80,11 @@
             </div>
 
             <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
                 <label for="cep">CEP</label>
                 <input type="text" id="cep" name="cep" required>
             </div>
@@ -99,24 +106,18 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- INÍCIO DA LÓGICA DAS MÁSCARAS ---
-
-        // 1. Define as opções de máscara para cada campo
+        // --- MÁSCARAS ---
         const cpfMaskOptions = { mask: '000.000.000-00' };
         const cnpjMaskOptions = { mask: '00.000.000/0000-00' };
-        // OBS: A máscara de RA pode variar. Usamos uma de 13 dígitos como exemplo.
-        // Se o formato for diferente, ajuste a máscara abaixo.
         const raMaskOptions = { mask: '0000000000000' };
+        const telefoneMaskOptions = { mask: '(00) 00000-0000' };
 
-        // 2. Aplica as máscaras aos elementos e guarda as instâncias
         const cpfMask = IMask(document.getElementById('cpf'), cpfMaskOptions);
         const cnpjMask = IMask(document.getElementById('cnpj'), cnpjMaskOptions);
         const raMask = IMask(document.getElementById('ra'), raMaskOptions);
+        const telefoneMask = IMask(document.getElementById('telefone'), telefoneMaskOptions);
 
-        // --- FIM DA LÓGICA DAS MÁSCARAS ---
-
-
-        // --- Lógica para alternar os campos do formulário com base no tipo de usuário ---
+        // --- ALTERNA CAMPOS DO FORMULÁRIO ---
         const userTypeRadios = document.querySelectorAll('input[name="userType"]');
         const pfFields = document.getElementById('pfFields');
         const pjFields = document.getElementById('pjFields');
@@ -126,88 +127,137 @@
         function updateUserForm() {
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
 
+            // Remove required de todos os campos específicos
+            document.getElementById('fullNamePf').removeAttribute('required');
+            document.getElementById('cpf').removeAttribute('required');
+            document.getElementById('companyName').removeAttribute('required');
+            document.getElementById('representativeName').removeAttribute('required');
+            document.getElementById('cnpj').removeAttribute('required');
+            document.getElementById('fullNameAluno').removeAttribute('required');
+            document.getElementById('ra').removeAttribute('required');
+
             pfFields.style.display = 'none';
             pjFields.style.display = 'none';
             alunoFields.style.display = 'none';
 
-            // Limpa os valores para evitar enviar dados de campos ocultos
+            // Limpa valores
             cpfMask.value = '';
             cnpjMask.value = '';
             raMask.value = '';
             document.getElementById('fullNamePf').value = '';
             document.getElementById('companyName').value = '';
+            document.getElementById('representativeName').value = '';
             document.getElementById('fullNameAluno').value = '';
 
             if (selectedType === 'DOADOR_PF') {
                 pfFields.style.display = 'block';
+                document.getElementById('fullNamePf').setAttribute('required', 'required');
+                document.getElementById('cpf').setAttribute('required', 'required');
             } else if (selectedType === 'DOADOR_PJ') {
                 pjFields.style.display = 'block';
+                document.getElementById('companyName').setAttribute('required', 'required');
+                document.getElementById('representativeName').setAttribute('required', 'required');
+                document.getElementById('cnpj').setAttribute('required', 'required');
             } else if (selectedType === 'ALUNO') {
                 alunoFields.style.display = 'block';
+                document.getElementById('fullNameAluno').setAttribute('required', 'required');
+                document.getElementById('ra').setAttribute('required', 'required');
             }
         }
+
         userTypeRadios.forEach(radio => {
             radio.addEventListener('change', updateUserForm);
         });
         updateUserForm();
 
-
-        // --- Lógica para o envio do formulário de registro ---
+        // --- ENVIO DO FORMULÁRIO PARA ENDPOINTS ESPECIALIZADOS ---
         registerForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
-            const regEmail = document.getElementById('regEmail').value;
-            const cep = document.getElementById('cep').value;
-            const regPassword = document.getElementById('regPassword').value;
+            const email = document.getElementById('regEmail').value;
+            const telefone = document.getElementById('telefone').value;
+            const endereco = document.getElementById('cep').value;
+            const senha = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
-            if (regPassword !== confirmPassword) {
+            if (senha !== confirmPassword) {
                 alert('As senhas não coincidem!');
                 return;
             }
 
-            let nome;
-            let identidade;
+            let endpoint;
+            let body;
 
-            // --- ATUALIZAÇÃO IMPORTANTE AQUI ---
-            // 3. Pega o valor "limpo" (sem a máscara) para enviar ao backend
+            // Monta o body conforme o tipo de usuário e seleciona o endpoint
             if (selectedType === 'DOADOR_PF') {
-                nome = document.getElementById('fullNamePf').value;
-                identidade = cpfMask.unmaskedValue; // Usa o valor sem máscara
+                endpoint = '/api/register/doador-pf';
+                body = {
+                    nome: document.getElementById('fullNamePf').value,
+                    email: email,
+                    cpf: cpfMask.unmaskedValue,
+                    telefone: telefone,
+                    endereco: endereco,
+                    senha: senha
+                };
             } else if (selectedType === 'DOADOR_PJ') {
-                nome = document.getElementById('companyName').value;
-                identidade = cnpjMask.unmaskedValue; // Usa o valor sem máscara
+                endpoint = '/api/register/doador-pj';
+                body = {
+                    razaoSocial: document.getElementById('companyName').value,
+                    nomeRepresentante: document.getElementById('representativeName').value,
+                    email: email,
+                    cnpj: cnpjMask.unmaskedValue,
+                    telefone: telefone,
+                    endereco: endereco,
+                    senha: senha
+                };
             } else if (selectedType === 'ALUNO') {
-                nome = document.getElementById('fullNameAluno').value;
-                identidade = raMask.unmaskedValue; // Usa o valor sem máscara
+                endpoint = '/api/register/aluno';
+                body = {
+                    nome: document.getElementById('fullNameAluno').value,
+                    email: email,
+                    ra: raMask.unmaskedValue,
+                    telefone: telefone,
+                    endereco: endereco,
+                    senha: senha
+                };
             }
 
-            const registroData = {
-                tipoUsuario: selectedType,
-                nome: nome,
-                identidade: identidade,
-                email: regEmail,
-                endereco: cep,
-                senha: regPassword
-            };
-
             try {
-                const response = await fetch('/api/register', {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(registroData)
+                    body: JSON.stringify(body)
                 });
 
                 if (response.ok) {
-                    const message = await response.text();
-                    alert(message);
-
+                    const data = await response.json();
                     window.location.href = 'login.html';
                 } else {
-                    const errorData = await response.text();
-                    alert('Erro no registro: ' + errorData);
+                    // Tenta extrair mensagem de erro do JSON
+                    let errorMsg = 'Erro no registro';
+                    try {
+                        const errorData = await response.json();
+                        console.log('Erro recebido:', errorData);
+
+                        if (errorData.details && errorData.details.length > 0) {
+                            // Erros de validação do Bean Validation
+                            errorMsg = errorData.details.join('\n');
+                        } else if (errorData.message) {
+                            errorMsg = errorData.message;
+                        } else if (errorData.error) {
+                            errorMsg = errorData.error;
+                        }
+                    } catch (jsonError) {
+                        // Se não for JSON, tenta pegar texto
+                        const errorText = await response.text();
+                        console.log('Erro texto:', errorText);
+                        if (errorText) {
+                            errorMsg = errorText;
+                        }
+                    }
+                    alert(errorMsg);
                 }
             } catch (error) {
                 console.error('Erro na requisição:', error);
@@ -216,7 +266,6 @@
         });
     });
 </script>
-<script src="js/main.js"></script>
 <script src="js/theme-switcher.js"></script>
 </body>
 

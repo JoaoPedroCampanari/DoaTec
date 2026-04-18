@@ -22,6 +22,18 @@
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
         <div class="navbar-right">
+            <!-- Notificações -->
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px;">Perfil</button>
             <div class="menu-toggle">
@@ -120,9 +132,10 @@
 </footer>
 
 <script src="js/main.js"></script>
-<script src="js/nav-visibility.js"></script>
-<script src="js/theme-switcher.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/nav-visibility.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
         const supportForm = document.getElementById('supportForm');

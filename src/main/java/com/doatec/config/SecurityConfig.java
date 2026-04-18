@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -42,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/sobre.html", "/suporte.html").permitAll()
 
                         // 3. APIs PÚBLICAS
-                        .requestMatchers("/api/login", "/api/register", "/api/dashboard/stats").permitAll()
+                        .requestMatchers("/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/dashboard/stats").permitAll()
 
                         // 4. H2 CONSOLE
                         .requestMatchers("/h2-console/**").permitAll()
@@ -52,7 +54,7 @@ public class SecurityConfig {
 
                         // 6. PROTEÇÃO DE APIs (Exige Role Específica)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte/**", "/api/users/**", "/api/dashboard/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte/**", "/api/users/**", "/api/dashboard/**", "/api/notificacoes/**").hasAnyRole("USER", "ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -122,5 +124,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
     }
 }

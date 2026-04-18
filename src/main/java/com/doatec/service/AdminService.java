@@ -7,6 +7,7 @@ import com.doatec.dto.response.DoacaoResponse;
 import com.doatec.dto.response.SolicitacaoResponse;
 import com.doatec.dto.response.SuporteResponse;
 import com.doatec.dto.response.UsuarioAdminResponse;
+import com.doatec.exception.BusinessException;
 import com.doatec.mapper.DoacaoMapper;
 import com.doatec.mapper.PessoaMapper;
 import com.doatec.mapper.SolicitacaoMapper;
@@ -17,7 +18,10 @@ import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.Role;
 import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.Doacao;
+import com.doatec.model.donation.ItemDoado;
 import com.doatec.model.donation.StatusDoacao;
+import com.doatec.model.inventory.EstadoConservacao;
+import com.doatec.model.notification.TipoNotificacao;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.model.solicitacao.StatusSolicitacao;
 import com.doatec.model.suporte.StatusSuporte;
@@ -52,6 +56,12 @@ public class AdminService {
 
     @Autowired
     private LogAcaoRepository logAcaoRepository;
+
+    @Autowired
+    private InventarioService inventarioService;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
 
     // ==================== DASHBOARD ====================
 
@@ -96,7 +106,7 @@ public class AdminService {
     @Transactional
     public DoacaoResponse aprovarDoacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         Doacao doacao = doacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Doação não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
@@ -109,6 +119,22 @@ public class AdminService {
 
         Doacao doacaoAtualizada = doacaoRepository.save(doacao);
 
+        // Criar equipamentos no inventário para cada item doado
+        for (ItemDoado item : doacao.getItens()) {
+            EstadoConservacao estado = inferirEstadoConservacao(request);
+            inventarioService.criarEquipamento(item, estado);
+        }
+
+        // Notificar o doador
+        notificacaoService.criarNotificacao(
+                doacao.getDoador().getId(),
+                "Doação Aprovada",
+                "Sua doação #" + doacao.getId() + " foi aprovada! Obrigado por contribuir com o DoaTec.",
+                TipoNotificacao.DOACAO_APROVADA,
+                doacao.getId(),
+                "DOACAO"
+        );
+
         registrarLog(admin, AcaoTipo.APROVAR_DOACAO, "Doacao", id, "Doação aprovada");
 
         return DoacaoMapper.toResponse(doacaoAtualizada);
@@ -117,7 +143,7 @@ public class AdminService {
     @Transactional
     public DoacaoResponse rejeitarDoacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         Doacao doacao = doacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Doação não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
@@ -129,6 +155,20 @@ public class AdminService {
         }
 
         Doacao doacaoAtualizada = doacaoRepository.save(doacao);
+
+        // Notificar o doador
+        String mensagem = "Infelizmente sua doação #" + doacao.getId() + " foi rejeitada.";
+        if (request != null && request.observacao() != null) {
+            mensagem += " Motivo: " + request.observacao();
+        }
+        notificacaoService.criarNotificacao(
+                doacao.getDoador().getId(),
+                "Doação Rejeitada",
+                mensagem,
+                TipoNotificacao.DOACAO_REJEITADA,
+                doacao.getId(),
+                "DOACAO"
+        );
 
         registrarLog(admin, AcaoTipo.REJEITAR_DOACAO, "Doacao", id, "Doação rejeitada");
 
@@ -151,7 +191,7 @@ public class AdminService {
     @Transactional
     public SolicitacaoResponse aprovarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitação não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
@@ -164,6 +204,16 @@ public class AdminService {
 
         SolicitacaoHardware solicitacaoAtualizada = solicitacaoRepository.save(solicitacao);
 
+        // Notificar o aluno
+        notificacaoService.criarNotificacao(
+                solicitacao.getAluno().getId(),
+                "Solicitação Aprovada",
+                "Sua solicitação #" + solicitacao.getId() + " foi aprovada! Aguarde a disponibilidade de um equipamento compatível.",
+                TipoNotificacao.SOLICITACAO_APROVADA,
+                solicitacao.getId(),
+                "SOLICITACAO"
+        );
+
         registrarLog(admin, AcaoTipo.APROVAR_SOLICITACAO, "SolicitacaoHardware", id, "Solicitação aprovada");
 
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
@@ -172,7 +222,7 @@ public class AdminService {
     @Transactional
     public SolicitacaoResponse rejeitarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitação não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
@@ -184,6 +234,20 @@ public class AdminService {
         }
 
         SolicitacaoHardware solicitacaoAtualizada = solicitacaoRepository.save(solicitacao);
+
+        // Notificar o aluno
+        String mensagem = "Infelizmente sua solicitação #" + solicitacao.getId() + " foi rejeitada.";
+        if (request != null && request.observacao() != null) {
+            mensagem += " Motivo: " + request.observacao();
+        }
+        notificacaoService.criarNotificacao(
+                solicitacao.getAluno().getId(),
+                "Solicitação Rejeitada",
+                mensagem,
+                TipoNotificacao.SOLICITACAO_REJEITADA,
+                solicitacao.getId(),
+                "SOLICITACAO"
+        );
 
         registrarLog(admin, AcaoTipo.REJEITAR_SOLICITACAO, "SolicitacaoHardware", id, "Solicitação rejeitada");
 
@@ -206,7 +270,7 @@ public class AdminService {
     @Transactional
     public SuporteResponse responderTicket(Integer id, Integer adminId, RespostaSuporteRequest request) {
         SuporteFormulario ticket = suporteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket não encontrado com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Ticket não encontrado com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
@@ -225,7 +289,7 @@ public class AdminService {
     @Transactional
     public SuporteResponse atualizarStatusTicket(Integer id, StatusSuporte novoStatus) {
         SuporteFormulario ticket = suporteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket não encontrado com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Ticket não encontrado com ID: " + id));
 
         ticket.setStatus(novoStatus);
 
@@ -245,7 +309,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarUsuariosPorTipoPessoa(TipoPessoa tipoPessoa) {
-        return pessoaRepository.findByTipoPessoa(tipoPessoa).stream()
+        return pessoaRepository.findByTipo(tipoPessoa.getClasse()).stream()
                 .map(PessoaMapper::toAdminResponse)
                 .collect(Collectors.toList());
     }
@@ -262,7 +326,7 @@ public class AdminService {
         Pessoa admin = validarAdmin(adminId);
 
         Pessoa pessoa = pessoaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
         pessoa.setAtivo(ativo);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
@@ -278,7 +342,7 @@ public class AdminService {
         Pessoa admin = validarAdmin(adminId);
 
         Pessoa pessoa = pessoaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
         pessoa.setRole(novaRole);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
@@ -290,10 +354,10 @@ public class AdminService {
 
     private Pessoa validarAdmin(Integer adminId) {
         Pessoa admin = pessoaRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin não encontrado com ID: " + adminId));
+                .orElseThrow(() -> new BusinessException("Admin não encontrado com ID: " + adminId));
 
         if (admin.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Apenas administradores podem realizar esta operação.");
+            throw new BusinessException("Apenas administradores podem realizar esta operação.");
         }
 
         return admin;
@@ -310,5 +374,15 @@ public class AdminService {
                 .build();
 
         logAcaoRepository.save(log);
+    }
+
+    /**
+     * Infere o estado de conservação do item baseado no request.
+     * Por enquanto usa um valor padrão, mas pode ser expandido.
+     */
+    private EstadoConservacao inferirEstadoConservacao(AvaliacaoRequest request) {
+        // Por enquanto, usa BOM como padrão.
+        // No futuro, o request pode incluir campos para avaliar cada item.
+        return EstadoConservacao.BOM;
     }
 }

@@ -3,21 +3,34 @@ package com.doatec.model.account;
 /**
  * Define o tipo/perfil da pessoa no sistema.
  * Representa QUEM é a pessoa, não o que ela pode fazer.
+ *
+ * Após a implementação da herança JPA, este enum é mantido
+ * principalmente para referência e queries por tipo.
  */
 public enum TipoPessoa {
 
-    DOADOR_PF("Doador Pessoa Física"),
-    DOADOR_PJ("Doador Pessoa Jurídica"),
-    ALUNO("Aluno");
+    DOADOR_PF("Doador Pessoa Física", DoadorPF.class),
+    DOADOR_PJ("Doador Pessoa Jurídica", DoadorPJ.class),
+    ALUNO("Aluno", Aluno.class);
 
     private final String descricao;
+    private final Class<? extends Pessoa> classe;
 
-    TipoPessoa(String descricao) {
+    TipoPessoa(String descricao, Class<? extends Pessoa> classe) {
         this.descricao = descricao;
+        this.classe = classe;
     }
 
     public String getDescricao() {
         return descricao;
+    }
+
+    /**
+     * Retorna a classe JPA correspondente ao tipo de pessoa.
+     * Útil para queries com TYPE() do JPA.
+     */
+    public Class<? extends Pessoa> getClasse() {
+        return classe;
     }
 
     /**

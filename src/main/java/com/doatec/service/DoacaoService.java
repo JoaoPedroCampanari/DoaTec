@@ -3,9 +3,11 @@ package com.doatec.service;
 import com.doatec.dto.request.DoacaoRequest;
 import com.doatec.dto.response.DashboardStatsResponse;
 import com.doatec.dto.response.DoacaoResponse;
+import com.doatec.exception.BusinessException;
 import com.doatec.mapper.DoacaoMapper;
+import com.doatec.model.account.DoadorPF;
+import com.doatec.model.account.DoadorPJ;
 import com.doatec.model.account.Pessoa;
-import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.Doacao;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.PessoaRepository;
@@ -40,39 +42,40 @@ public class DoacaoService {
         Optional<Pessoa> doadorOptional = pessoaRepository.findByEmail(dto.email());
 
         if (doadorOptional.isEmpty()) {
-            throw new RuntimeException("Doador com email " + dto.email() + " não está cadastrado. Por favor, registre-se primeiro.");
+            throw new BusinessException("Doador com email " + dto.email() + " não está cadastrado. Por favor, registre-se primeiro.");
         }
 
         Pessoa doador = doadorOptional.get();
 
-        // Validar tipo de documento contra tipo de pessoa
+        // Validar tipo de documento contra tipo de pessoa usando instanceof
         if (dto.tipoDocumento().equalsIgnoreCase("cpf")) {
-            if (doador.getTipoPessoa() != TipoPessoa.DOADOR_PF) {
-                throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Física.");
+            if (!(doador instanceof DoadorPF)) {
+                throw new BusinessException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Física.");
             }
             if (!doador.getDocumento().equals(dto.numeroDocumento())) {
-                throw new RuntimeException("O CPF informado não corresponde ao CPF cadastrado para este email.");
+                throw new BusinessException("O CPF informado não corresponde ao CPF cadastrado para este email.");
             }
         } else if (dto.tipoDocumento().equalsIgnoreCase("cnpj")) {
-            if (doador.getTipoPessoa() != TipoPessoa.DOADOR_PJ) {
-                throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Jurídica.");
+            if (!(doador instanceof DoadorPJ)) {
+                throw new BusinessException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Jurídica.");
             }
             if (!doador.getDocumento().equals(dto.numeroDocumento())) {
-                throw new RuntimeException("O CNPJ informado não corresponde ao CNPJ cadastrado para este email.");
+                throw new BusinessException("O CNPJ informado não corresponde ao CNPJ cadastrado para este email.");
             }
         } else if (dto.tipoDocumento().equalsIgnoreCase("aluno") || dto.tipoDocumento().equalsIgnoreCase("ra")) {
-            if (doador.getTipoPessoa() != TipoPessoa.ALUNO) {
-                throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Aluno. Se deseja doar como aluno, seu tipo de cadastro deve ser 'ALUNO'.");
+            // Alunos também podem doar
+            if (!doador.isAluno()) {
+                throw new BusinessException("O email " + dto.email() + " pertence a um usuário que não é Aluno.");
             }
             if (!doador.getDocumento().equals(dto.numeroDocumento())) {
-                throw new RuntimeException("O RA informado não corresponde ao RA cadastrado para este email.");
+                throw new BusinessException("O RA informado não corresponde ao RA cadastrado para este email.");
             }
         } else {
-            throw new RuntimeException("Tipo de documento inválido para a doação. Use: 'cpf', 'cnpj' ou 'aluno'.");
+            throw new BusinessException("Tipo de documento inválido para a doação. Use: 'cpf', 'cnpj' ou 'aluno'.");
         }
 
         if (!doador.getNome().equals(dto.nome())) {
-            throw new RuntimeException("Nome incorreto!");
+            throw new BusinessException("Nome incorreto!");
         }
 
         if (dto.telefone() != null && !dto.telefone().isBlank()) {

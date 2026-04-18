@@ -1,14 +1,11 @@
 package com.doatec.service;
 
-import com.doatec.dto.request.LoginRequest;
-import com.doatec.dto.request.PessoaUpdateRequest;
-import com.doatec.dto.request.RegistroRequest;
+import com.doatec.dto.request.*;
 import com.doatec.dto.response.UsuarioAdminResponse;
+import com.doatec.exception.BusinessException;
 import com.doatec.mapper.PessoaMapper;
-import com.doatec.model.account.Pessoa;
-import com.doatec.model.account.Role;
-import com.doatec.model.account.TipoPessoa;
-import com.doatec.repository.PessoaRepository;
+import com.doatec.model.account.*;
+import com.doatec.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +20,15 @@ public class PessoaService {
 
     @Autowired
     private PessoaRepository pessoaRepository;
+
+    @Autowired
+    private AlunoRepository alunoRepository;
+
+    @Autowired
+    private DoadorPFRepository doadorPFRepository;
+
+    @Autowired
+    private DoadorPJRepository doadorPJRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -62,21 +68,92 @@ public class PessoaService {
         }
     }
 
+    // ==================== MÉTODOS ESPECIALIZADOS DE REGISTRO ====================
+
+    /**
+     * Registra um novo aluno.
+     */
+    @Transactional
+    public Aluno registrarAluno(AlunoRegistroRequest request) {
+        // Validar se email já existe
+        if (pessoaRepository.findByEmail(request.email()).isPresent()) {
+            throw new BusinessException("O email informado já está cadastrado.");
+        }
+
+        // Validar se RA já existe
+        if (alunoRepository.existsByRa(request.ra())) {
+            throw new BusinessException("O RA informado já está cadastrado.");
+        }
+
+        Aluno novoAluno = PessoaMapper.toAluno(request);
+        novoAluno.setSenha(passwordEncoder.encode(request.senha()));
+
+        return alunoRepository.save(novoAluno);
+    }
+
+    /**
+     * Registra um novo doador pessoa física.
+     */
+    @Transactional
+    public DoadorPF registrarDoadorPF(DoadorPFRegistroRequest request) {
+        // Validar se email já existe
+        if (pessoaRepository.findByEmail(request.email()).isPresent()) {
+            throw new BusinessException("O email informado já está cadastrado.");
+        }
+
+        // Validar se CPF já existe
+        if (doadorPFRepository.existsByCpf(request.cpf())) {
+            throw new BusinessException("O CPF informado já está cadastrado.");
+        }
+
+        DoadorPF novoDoador = PessoaMapper.toDoadorPF(request);
+        novoDoador.setSenha(passwordEncoder.encode(request.senha()));
+
+        return doadorPFRepository.save(novoDoador);
+    }
+
+    /**
+     * Registra um novo doador pessoa jurídica.
+     */
+    @Transactional
+    public DoadorPJ registrarDoadorPJ(DoadorPJRegistroRequest request) {
+        // Validar se email já existe
+        if (pessoaRepository.findByEmail(request.email()).isPresent()) {
+            throw new BusinessException("O email informado já está cadastrado.");
+        }
+
+        // Validar se CNPJ já existe
+        if (doadorPJRepository.existsByCnpj(request.cnpj())) {
+            throw new BusinessException("O CNPJ informado já está cadastrado.");
+        }
+
+        DoadorPJ novoDoador = PessoaMapper.toDoadorPJ(request);
+        novoDoador.setSenha(passwordEncoder.encode(request.senha()));
+
+        return doadorPJRepository.save(novoDoador);
+    }
+
+    /**
+     * Endpoint legado para registro genérico.
+     * Mantido para compatibilidade com o frontend atual.
+     * @deprecated Usar métodos especializados: registrarAluno, registrarDoadorPF, registrarDoadorPJ
+     */
+    @Deprecated
     @Transactional
     public Pessoa registrarPessoa(RegistroRequest registroRequest) {
         // Validar se email já existe
         if (pessoaRepository.findByEmail(registroRequest.email()).isPresent()) {
-            throw new RuntimeException("O email informado já está cadastrado.");
+            throw new BusinessException("O email informado já está cadastrado.");
         }
 
         // Validar se documento já existe
         if (registroRequest.documento() != null && !registroRequest.documento().isBlank()) {
             Optional<Pessoa> pessoaComDocumento = pessoaRepository.findByDocumento(registroRequest.documento());
             if (pessoaComDocumento.isPresent()) {
-                throw new RuntimeException("O documento " + registroRequest.documento() + " já está cadastrado.");
+                throw new BusinessException("O documento " + registroRequest.documento() + " já está cadastrado.");
             }
         } else {
-            throw new RuntimeException("O documento de identificação é obrigatório.");
+            throw new BusinessException("O documento de identificação é obrigatório.");
         }
 
         // Validar tipo de pessoa
@@ -84,7 +161,7 @@ public class PessoaService {
         try {
             tipoPessoa = TipoPessoa.valueOf(registroRequest.tipoPessoa().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Tipo de pessoa inválido: " + registroRequest.tipoPessoa() +
+            throw new BusinessException("Tipo de pessoa inválido: " + registroRequest.tipoPessoa() +
                     ". Valores válidos: DOADOR_PF, DOADOR_PJ, ALUNO");
         }
 
@@ -97,11 +174,11 @@ public class PessoaService {
     @Transactional
     public Pessoa updatePessoaProfile(Integer id, PessoaUpdateRequest dto) {
         Pessoa pessoaExistente = pessoaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
         if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(pessoaExistente.getEmail())) {
             if (pessoaRepository.findByEmail(dto.email()).isPresent()) {
-                throw new RuntimeException("Novo email já está cadastrado para outro usuário.");
+                throw new BusinessException("Novo email já está cadastrado para outro usuário.");
             }
             pessoaExistente.setEmail(dto.email());
         }
@@ -129,9 +206,18 @@ public class PessoaService {
 
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarUsuariosPorTipoPessoa(TipoPessoa tipoPessoa) {
-        return pessoaRepository.findByTipoPessoa(tipoPessoa).stream()
-                .map(PessoaMapper::toAdminResponse)
-                .collect(Collectors.toList());
+        // Usar query com TYPE() para filtrar por subclasse
+        return switch (tipoPessoa) {
+            case ALUNO -> alunoRepository.findAll().stream()
+                    .map(PessoaMapper::toAdminResponse)
+                    .collect(Collectors.toList());
+            case DOADOR_PF -> doadorPFRepository.findAll().stream()
+                    .map(PessoaMapper::toAdminResponse)
+                    .collect(Collectors.toList());
+            case DOADOR_PJ -> doadorPJRepository.findAll().stream()
+                    .map(PessoaMapper::toAdminResponse)
+                    .collect(Collectors.toList());
+        };
     }
 
     @Transactional(readOnly = true)
@@ -144,14 +230,14 @@ public class PessoaService {
     @Transactional
     public UsuarioAdminResponse alterarStatusUsuario(Integer id, Boolean ativo, Integer adminId) {
         Pessoa admin = pessoaRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin não encontrado"));
+                .orElseThrow(() -> new BusinessException("Admin não encontrado"));
 
         if (admin.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Apenas administradores podem alterar status de usuários.");
+            throw new BusinessException("Apenas administradores podem alterar status de usuários.");
         }
 
         Pessoa pessoa = pessoaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
         pessoa.setAtivo(ativo);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
@@ -162,14 +248,14 @@ public class PessoaService {
     @Transactional
     public UsuarioAdminResponse alterarRoleUsuario(Integer id, Role novaRole, Integer adminId) {
         Pessoa admin = pessoaRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin não encontrado"));
+                .orElseThrow(() -> new BusinessException("Admin não encontrado"));
 
         if (admin.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Apenas administradores podem alterar roles de usuários.");
+            throw new BusinessException("Apenas administradores podem alterar roles de usuários.");
         }
 
         Pessoa pessoa = pessoaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada com ID: " + id));
+                .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
         pessoa.setRole(novaRole);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);

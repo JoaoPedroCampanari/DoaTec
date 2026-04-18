@@ -19,6 +19,10 @@ public record UsuarioAdminResponse(
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
+    /**
+     * Cria UsuarioAdminResponse a partir da entidade Pessoa.
+     * Usa os métodos polimórficos getDocumento() e getTipoPessoa().
+     */
     public static UsuarioAdminResponse from(Pessoa pessoa) {
         return UsuarioAdminResponse.builder()
                 .id(pessoa.getId())
@@ -27,7 +31,7 @@ public record UsuarioAdminResponse(
                 .documento(pessoa.getDocumento())
                 .telefone(pessoa.getTelefone())
                 .endereco(pessoa.getEndereco())
-                .tipoPessoa(pessoa.getTipoPessoa().name())
+                .tipoPessoa(pessoa.getTipoPessoa())
                 .role(pessoa.getRole().name())
                 .ativo(pessoa.getAtivo())
                 .createdAt(pessoa.getCreatedAt())

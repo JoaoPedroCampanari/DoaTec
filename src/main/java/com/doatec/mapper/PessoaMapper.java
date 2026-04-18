@@ -1,27 +1,126 @@
 package com.doatec.mapper;
 
-import com.doatec.dto.request.PessoaUpdateRequest;
-import com.doatec.dto.request.RegistroRequest;
+import com.doatec.dto.request.*;
 import com.doatec.dto.response.UsuarioAdminResponse;
 import com.doatec.dto.response.UserLoginResponse;
-import com.doatec.model.account.Pessoa;
-import com.doatec.model.account.Role;
-import com.doatec.model.account.TipoPessoa;
+import com.doatec.model.account.*;
 import lombok.experimental.UtilityClass;
 
+/**
+ * Mapper para conversão entre DTOs e entidades de Pessoa.
+ * Suporta herança JPA com subclasses Aluno, DoadorPF e DoadorPJ.
+ */
 @UtilityClass
 public class PessoaMapper {
 
+    /**
+     * Converte RegistroRequest genérico para Pessoa.
+     * Determina a subclasse baseada no tipoPessoa.
+     * @deprecated Usar métodos específicos: toAluno, toDoadorPF, toDoadorPJ
+     */
+    @Deprecated
     public static Pessoa toPessoa(RegistroRequest request) {
         TipoPessoa tipoPessoa = TipoPessoa.valueOf(request.tipoPessoa().toUpperCase());
 
-        return Pessoa.builder()
+        return switch (tipoPessoa) {
+            case ALUNO -> toAluno(request);
+            case DOADOR_PF -> toDoadorPF(request);
+            case DOADOR_PJ -> toDoadorPJ(request);
+        };
+    }
+
+    /**
+     * Converte RegistroRequest para Aluno (endpoint legado).
+     */
+    private static Aluno toAluno(RegistroRequest request) {
+        return Aluno.builder()
                 .nome(request.nome())
                 .email(request.email())
                 .senha(request.senha())
-                .documento(request.documento())
-                .tipoPessoa(tipoPessoa)
-                .role(Role.USER) // Novo usuário sempre começa com role USER
+                .ra(request.documento())
+                .role(Role.USER)
+                .endereco(request.endereco() != null ? request.endereco() : "")
+                .telefone(request.telefone() != null ? request.telefone() : "")
+                .ativo(true)
+                .build();
+    }
+
+    /**
+     * Converte RegistroRequest para DoadorPF (endpoint legado).
+     */
+    private static DoadorPF toDoadorPF(RegistroRequest request) {
+        return DoadorPF.builder()
+                .nome(request.nome())
+                .email(request.email())
+                .senha(request.senha())
+                .cpf(request.documento())
+                .role(Role.USER)
+                .endereco(request.endereco() != null ? request.endereco() : "")
+                .telefone(request.telefone() != null ? request.telefone() : "")
+                .ativo(true)
+                .build();
+    }
+
+    /**
+     * Converte RegistroRequest para DoadorPJ (endpoint legado).
+     */
+    private static DoadorPJ toDoadorPJ(RegistroRequest request) {
+        return DoadorPJ.builder()
+                .nome(request.nome()) // nome representante
+                .email(request.email())
+                .senha(request.senha())
+                .cnpj(request.documento())
+                .razaoSocial(request.nome()) // Para o legado, usa nome como razão social
+                .role(Role.USER)
+                .endereco(request.endereco() != null ? request.endereco() : "")
+                .telefone(request.telefone() != null ? request.telefone() : "")
+                .ativo(true)
+                .build();
+    }
+
+    /**
+     * Converte AlunoRegistroRequest para Aluno.
+     */
+    public static Aluno toAluno(AlunoRegistroRequest request) {
+        return Aluno.builder()
+                .nome(request.nome())
+                .email(request.email())
+                .senha(request.senha())
+                .ra(request.ra())
+                .role(Role.USER)
+                .endereco(request.endereco() != null ? request.endereco() : "")
+                .telefone(request.telefone() != null ? request.telefone() : "")
+                .ativo(true)
+                .build();
+    }
+
+    /**
+     * Converte DoadorPFRegistroRequest para DoadorPF.
+     */
+    public static DoadorPF toDoadorPF(DoadorPFRegistroRequest request) {
+        return DoadorPF.builder()
+                .nome(request.nome())
+                .email(request.email())
+                .senha(request.senha())
+                .cpf(request.cpf())
+                .role(Role.USER)
+                .endereco(request.endereco() != null ? request.endereco() : "")
+                .telefone(request.telefone() != null ? request.telefone() : "")
+                .ativo(true)
+                .build();
+    }
+
+    /**
+     * Converte DoadorPJRegistroRequest para DoadorPJ.
+     */
+    public static DoadorPJ toDoadorPJ(DoadorPJRegistroRequest request) {
+        return DoadorPJ.builder()
+                .nome(request.nomeRepresentante())
+                .email(request.email())
+                .senha(request.senha())
+                .cnpj(request.cnpj())
+                .razaoSocial(request.razaoSocial())
+                .role(Role.USER)
                 .endereco(request.endereco() != null ? request.endereco() : "")
                 .telefone(request.telefone() != null ? request.telefone() : "")
                 .ativo(true)
@@ -35,6 +134,10 @@ public class PessoaMapper {
         if (request.telefone() != null) pessoa.setTelefone(request.telefone());
     }
 
+    /**
+     * Converte Pessoa para UserLoginResponse.
+     * Usa métodos polimórficos getDocumento() e getTipoPessoa() das subclasses.
+     */
     public static UserLoginResponse toResponse(Pessoa pessoa) {
         return UserLoginResponse.from(
                 pessoa.getId(),

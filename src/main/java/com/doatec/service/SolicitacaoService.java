@@ -2,9 +2,10 @@ package com.doatec.service;
 
 import com.doatec.dto.request.SolicitacaoRequest;
 import com.doatec.dto.response.SolicitacaoResponse;
+import com.doatec.exception.BusinessException;
 import com.doatec.mapper.SolicitacaoMapper;
+import com.doatec.model.account.Aluno;
 import com.doatec.model.account.Pessoa;
-import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SolicitacaoHardwareRepository;
@@ -39,22 +40,23 @@ public class SolicitacaoService {
     public SolicitacaoHardware criarSolicitacao(SolicitacaoRequest dto) {
 
         Pessoa pessoaEncontrada = pessoaRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new RuntimeException("Usuário com email " + dto.email() + " não está cadastrado."));
+                .orElseThrow(() -> new BusinessException("Usuário com email " + dto.email() + " não está cadastrado."));
 
-        if (pessoaEncontrada.getTipoPessoa() != TipoPessoa.ALUNO) {
-            throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é aluno. Apenas alunos podem fazer solicitações de hardware.");
+        // Validar se é aluno usando instanceof
+        if (!(pessoaEncontrada instanceof Aluno)) {
+            throw new BusinessException("O email " + dto.email() + " pertence a um usuário que não é aluno. Apenas alunos podem fazer solicitações de hardware.");
         }
 
         if (!pessoaEncontrada.getNome().equals(dto.nome())) {
-            throw new RuntimeException("Nome incorreto!");
+            throw new BusinessException("Nome incorreto!");
         }
 
         if (!passwordEncoder.matches(dto.senha(), pessoaEncontrada.getSenha())) {
-            throw new RuntimeException("Senha incorreta!");
+            throw new BusinessException("Senha incorreta!");
         }
 
         if (!pessoaEncontrada.getDocumento().equals(dto.ra())) {
-            throw new RuntimeException("O RA " + dto.ra() + " não é válido para este aluno.");
+            throw new BusinessException("O RA " + dto.ra() + " não é válido para este aluno.");
         }
 
         SolicitacaoHardware novaSolicitacao = SolicitacaoMapper.toSolicitacao(dto, pessoaEncontrada);
