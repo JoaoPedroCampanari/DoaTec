@@ -3,6 +3,7 @@ package com.doatec.dto.request;
 import com.doatec.validation.ValidRA;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 /**
@@ -19,6 +20,7 @@ public record AlunoRegistroRequest(
     String email,
 
     @NotBlank(message = "O campo senha é obrigatório")
+    @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     String senha,
 
     @NotBlank(message = "O campo RA é obrigatório")

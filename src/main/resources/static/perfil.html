@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - Plataforma de Doação</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/imask"></script>
 </head>
 <body class="login-page perfil-page">
 <div class="login-container">
@@ -45,16 +46,16 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="profileSenha">Nova Senha (deixe em branco para não alterar):</label>
-                            <input type="password" id="profileSenha">
+                            <input type="password" id="profileSenha" minlength="6">
                         </div>
                         <div class="form-group full-width">
                             <label for="profileConfirmarSenha">Confirmar Nova Senha:</label>
-                            <input type="password" id="profileConfirmarSenha">
+                            <input type="password" id="profileConfirmarSenha" minlength="6">
                         </div>
                     </div>
                     <div class="form-group full-width">
-                        <label for="profileEndereco">Endereço (cep):</label>
-                        <input type="text" id="profileEndereco">
+                        <label for="profileEndereco">CEP:</label>
+                        <input type="text" id="profileEndereco" placeholder="00000-000">
                     </div>
                 </fieldset>
                 <button type="submit" class="btn btn-primary btn-submit">Atualizar Perfil</button>
@@ -84,6 +85,9 @@
         const profileTelefoneInput = document.getElementById('profileTelefone');
         const logoutButton = document.getElementById('logoutButton');
 
+        // Máscara de CEP
+        const cepMask = IMask(profileEnderecoInput, { mask: '00000-000' });
+
         // Verifica sessão com o backend
         const loggedInUser = await Auth.checkSession();
 
@@ -101,7 +105,8 @@
                     profileDocumentoInput.value = userData.documento || '';
 
                     profileEmailInput.value = userData.email || '';
-                    profileEnderecoInput.value = userData.endereco || '';
+                    // Define o valor da máscara (o IMask formata automaticamente)
+                    cepMask.value = userData.endereco || '';
                     profileTelefoneInput.value = userData.telefone || '';
                 })
                 .catch(error => {
@@ -121,10 +126,15 @@
                     return;
                 }
 
+                if (novaSenha && novaSenha.length < 6) {
+                    alert('A senha deve ter no mínimo 6 caracteres.');
+                    return;
+                }
+
                 const updateData = {
                     email: profileEmailInput.value,
-                    senha: novaSenha,
-                    endereco: profileEnderecoInput.value,
+                    senha: novaSenha || null,
+                    endereco: cepMask.unmaskedValue,
                     telefone: profileTelefoneInput.value
                 };
 

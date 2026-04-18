@@ -71,7 +71,7 @@
                         <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" disabled> </div>
                     <div class="form-group">
                         <label for="ra">RA (Registro do Aluno):</label>
-                        <input type="text" id="ra" required>
+                        <input type="text" id="ra" required disabled>
                     </div>
                 </fieldset>
 
@@ -132,22 +132,14 @@
                     nomeInput.value = userData.nome || '';
                     emailInput.value = userData.email || '';
                     telefoneInput.value = userData.telefone || '';
+                    raInput.value = userData.documento || '';
 
-                    if (userData.tipoPessoa === 'ALUNO') {
-                        raInput.value = userData.documento || '';
-                        raInput.removeAttribute('disabled'); // Garante que o campo RA está habilitado para alunos
-                    } else {
-                        // Se não for aluno, desabilita e limpa o campo RA
-                        raInput.value = '';
-                        raInput.placeholder = 'Apenas para Alunos cadastrados';
-                        raInput.disabled = true;
-                        raInput.removeAttribute('required'); // Remove required se não for aluno
-                    }
-
+                    // Campo RA é readonly - não permite edição
+                    // Apenas alunos podem acessar esta página, o RA é preenchido automaticamente
                 })
                 .catch(error => {
                     console.error('Erro ao preencher dados do aluno:', error);
-                    alert('Não foi possível carregar seus dados para preenchimento automático. Por favor, preencha manualmente.');
+                    alert('Não foi possível carregar seus dados para preenchimento automático. Por favor, faça login novamente.');
                     Auth.logout();
                 });
         } else {
