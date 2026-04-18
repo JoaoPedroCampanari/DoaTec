@@ -56,13 +56,14 @@
             <!-- ETAPA 1: Dados de Acesso -->
             <div class="form-step" data-step="1">
                 <div class="form-group">
-                    <label for="regEmail">Email</label>
+                    <label for="regEmail">Email *</label>
                     <input type="email" id="regEmail" name="email" required>
+                    <small id="emailFeedback" class="email-feedback"></small>
                 </div>
                 <div class="form-group">
                     <label for="regPassword">Crie uma Senha</label>
                     <input type="password" id="regPassword" name="password" minlength="6" required>
-                    <small class="form-text">Mínimo de 6 caracteres</small>
+                    <small class="form-text">Minimo de 6 caracteres</small>
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">Confirme a Senha</label>
@@ -182,6 +183,66 @@
         const nextBtn = document.getElementById('nextBtn');
         const submitBtn = document.getElementById('submitBtn');
 
+        // Elementos de validacao de email
+        const emailInput = document.getElementById('regEmail');
+        const emailFeedback = document.getElementById('emailFeedback');
+        const passwordInput = document.getElementById('regPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+
+        // Regex de validacao de email estrita
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Estado de validacao
+        let emailValido = false;
+
+        // ==================== VALIDACAO DE EMAIL EM TEMPO REAL ====================
+        function validateEmail(email) {
+            return EMAIL_REGEX.test(email);
+        }
+
+        function atualizarEstadoBotaoProximo() {
+            if (currentStep === 1) {
+                const senha = passwordInput.value;
+                const confirma = confirmPasswordInput.value;
+                const senhasValidas = senha.length >= 6 && senha === confirma;
+
+                nextBtn.disabled = !emailValido || !senhasValidas;
+            }
+        }
+
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+
+            if (email === '') {
+                // Campo vazio - remove estilos
+                this.classList.remove('is-valid', 'is-invalid');
+                emailFeedback.textContent = '';
+                emailFeedback.classList.remove('valid', 'invalid');
+                emailValido = false;
+            } else if (validateEmail(email)) {
+                // Email valido
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+                emailFeedback.textContent = '';
+                emailFeedback.classList.remove('invalid');
+                emailValido = true;
+            } else {
+                // Email invalido
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+                emailFeedback.textContent = 'Insira um e-mail valido';
+                emailFeedback.classList.remove('valid');
+                emailFeedback.classList.add('invalid');
+                emailValido = false;
+            }
+
+            atualizarEstadoBotaoProximo();
+        });
+
+        // Event listeners para campos de senha (atualizam botao)
+        passwordInput.addEventListener('input', atualizarEstadoBotaoProximo);
+        confirmPasswordInput.addEventListener('input', atualizarEstadoBotaoProximo);
+
         // ==================== STEPPER - NAVEGACAO ====================
         function showStep(step) {
             // Esconde todas as etapas
@@ -201,6 +262,9 @@
             prevBtn.style.display = step === 1 ? 'none' : 'block';
             nextBtn.style.display = step === totalSteps ? 'none' : 'block';
             submitBtn.style.display = step === totalSteps ? 'block' : 'none';
+
+            // Atualiza estado do botao ao mudar de etapa
+            atualizarEstadoBotaoProximo();
         }
 
         function validateStep(step) {
@@ -209,7 +273,7 @@
             let valid = true;
 
             inputs.forEach(input => {
-                // Remove marcao de erro anterior
+                // Remove marcacao de erro anterior
                 input.classList.remove('viacep-error');
 
                 if (!input.value.trim()) {
@@ -220,14 +284,22 @@
 
             // Valida especificos
             if (step === 1) {
-                const senha = document.getElementById('regPassword').value;
-                const confirma = document.getElementById('confirmPassword').value;
+                // Validar email com regex estrita
+                const email = emailInput.value.trim();
+                if (!validateEmail(email)) {
+                    // Ja tratado pelo event listener
+                    emailInput.focus();
+                    return false;
+                }
+
+                const senha = passwordInput.value;
+                const confirma = confirmPasswordInput.value;
                 if (senha !== confirma) {
-                    alert('As senhas não coincidem!');
+                    alert('As senhas nao coincidem!');
                     return false;
                 }
                 if (senha.length < 6) {
-                    alert('A senha deve ter no mínimo 6 caracteres.');
+                    alert('A senha deve ter no minimo 6 digitos.');
                     return false;
                 }
             }
@@ -237,7 +309,7 @@
                 const cep = document.getElementById('cep');
                 const cepLimpo = cep.value.replace(/\D/g, '');
                 if (cepLimpo.length !== 8) {
-                    alert('CEP inválido. Digite um CEP com 8 dígitos.');
+                    alert('CEP invalido.');
                     cep.focus();
                     return false;
                 }
@@ -248,24 +320,24 @@
                 const estado = document.getElementById('estado');
 
                 if (!logradouro.value.trim()) {
-                    alert('Por favor, preencha o logradouro (use o CEP para busca automática).');
+                    alert('Logradouro invalido.');
                     return false;
                 }
                 if (!numero.value.trim()) {
-                    alert('Por favor, informe o número do endereço.');
+                    alert('Numero do endereco e obrigatorio.');
                     numero.focus();
                     return false;
                 }
                 if (!bairro.value.trim()) {
-                    alert('Por favor, preencha o bairro (use o CEP para busca automática).');
+                    alert('Bairro invalido.');
                     return false;
                 }
                 if (!cidade.value.trim()) {
-                    alert('Por favor, preencha a cidade (use o CEP para busca automática).');
+                    alert('Cidade invalida.');
                     return false;
                 }
                 if (!estado.value.trim()) {
-                    alert('Por favor, preencha o estado (use o CEP para busca automática).');
+                    alert('Estado invalido.');
                     return false;
                 }
             }
@@ -519,6 +591,10 @@
 
         // Inicializa na etapa 1
         showStep(1);
+
+        // Estado inicial do botao Proximo (desabilitado ate email e senhas validos)
+        nextBtn.disabled = true;
+        atualizarEstadoBotaoProximo();
     });
 </script>
 <script src="js/theme-switcher.js"></script>

@@ -3,27 +3,28 @@ package com.doatec.dto.request;
 import com.doatec.validation.ValidRA;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 /**
  * DTO para registro de novos alunos.
- * Alunos são beneficiários que solicitam equipamentos.
+ * Alunos sao beneficiarios que solicitam equipamentos.
  */
 @Builder
 public record AlunoRegistroRequest(
-    @NotBlank(message = "O campo nome é obrigatório")
+    @NotBlank(message = "O campo nome e obrigatorio")
     String nome,
 
-    @NotBlank(message = "O campo email é obrigatório")
-    @Email(message = "O campo email deve ter um formato válido")
+    @NotBlank(message = "O campo email e obrigatorio")
+    @Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", message = "Insira um e-mail valido")
     String email,
 
-    @NotBlank(message = "O campo senha é obrigatório")
-    @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
+    @NotBlank(message = "O campo senha e obrigatorio")
+    @Size(min = 6, message = "A senha deve ter no minimo 6 digitos")
     String senha,
 
-    @NotBlank(message = "O campo RA é obrigatório")
+    @NotBlank(message = "O campo RA e obrigatorio")
     @ValidRA
     String ra,
 
@@ -36,5 +37,4 @@ public record AlunoRegistroRequest(
     String cidade,
     String estado
 ) {
-    // Validação customizada no service para endereço
 }

@@ -1132,3 +1132,59 @@ body.dark-mode .step.completed .step-label {
 body.dark-mode .viacep-auto {
     background-color: #2c2c2c;
 }
+
+/* ==================== VALIDAÇÃO DE CAMPOS ==================== */
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.is-valid {
+    border-color: #28a745 !important;
+}
+
+.is-valid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.email-feedback {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85rem;
+    min-height: 1.2em;
+}
+
+.email-feedback.invalid {
+    color: #dc3545;
+}
+
+.email-feedback.valid {
+    color: #28a745;
+}
+
+/* Botão desabilitado */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #6c757d;
+}
+
+/* Dark mode para validação */
+body.dark-mode .is-invalid {
+    border-color: #dc3545 !important;
+}
+
+body.dark-mode .is-valid {
+    border-color: #28a745 !important;
+}
+
+body.dark-mode .email-feedback.invalid {
+    color: #dc3545;
+}
+
+body.dark-mode .email-feedback.valid {
+    color: #28a745;
+}
