@@ -29,5 +29,12 @@ public record AlunoRegistroRequest(
 
     String telefone,
 
-    String endereco
-) {}
+    String cep,
+    String logradouro,
+    String numero,
+    String bairro,
+    String cidade,
+    String estado
+) {
+    // Validação customizada no service para endereço
+}

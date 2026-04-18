@@ -6,6 +6,11 @@ import lombok.Builder;
 public record PessoaUpdateRequest(
     String email,
     String senha,
-    String endereco,
+    String endereco, // CEP
+    String logradouro,
+    String numero,
+    String bairro,
+    String cidade,
+    String estado,
     String telefone
 ) {}

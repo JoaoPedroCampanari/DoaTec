@@ -88,7 +88,12 @@ public class PessoaMapper {
                 .senha(request.senha())
                 .ra(request.ra())
                 .role(Role.USER)
-                .endereco(request.endereco() != null ? request.endereco() : "")
+                .endereco(request.cep() != null ? request.cep() : "")
+                .logradouro(request.logradouro())
+                .numero(request.numero())
+                .bairro(request.bairro())
+                .cidade(request.cidade())
+                .estado(request.estado())
                 .telefone(request.telefone() != null ? request.telefone() : "")
                 .ativo(true)
                 .build();
@@ -104,7 +109,12 @@ public class PessoaMapper {
                 .senha(request.senha())
                 .cpf(request.cpf())
                 .role(Role.USER)
-                .endereco(request.endereco() != null ? request.endereco() : "")
+                .endereco(request.cep() != null ? request.cep() : "")
+                .logradouro(request.logradouro())
+                .numero(request.numero())
+                .bairro(request.bairro())
+                .cidade(request.cidade())
+                .estado(request.estado())
                 .telefone(request.telefone() != null ? request.telefone() : "")
                 .ativo(true)
                 .build();
@@ -121,7 +131,12 @@ public class PessoaMapper {
                 .cnpj(request.cnpj())
                 .razaoSocial(request.razaoSocial())
                 .role(Role.USER)
-                .endereco(request.endereco() != null ? request.endereco() : "")
+                .endereco(request.cep() != null ? request.cep() : "")
+                .logradouro(request.logradouro())
+                .numero(request.numero())
+                .bairro(request.bairro())
+                .cidade(request.cidade())
+                .estado(request.estado())
                 .telefone(request.telefone() != null ? request.telefone() : "")
                 .ativo(true)
                 .build();
@@ -136,10 +151,10 @@ public class PessoaMapper {
 
     /**
      * Converte Pessoa para UserLoginResponse.
-     * Usa métodos polimórficos getDocumento() e getTipoPessoa() das subclasses.
+     * Usa metodos polimorficos getDocumento() e getTipoPessoa() das subclasses.
      */
     public static UserLoginResponse toResponse(Pessoa pessoa) {
-        return UserLoginResponse.from(
+        return UserLoginResponse.fromWithAddress(
                 pessoa.getId(),
                 pessoa.getNome(),
                 pessoa.getEmail(),
@@ -147,7 +162,13 @@ public class PessoaMapper {
                 pessoa.getTipoPessoa(),
                 pessoa.getRole(),
                 pessoa.getDocumento(),
-                pessoa.getAtivo()
+                pessoa.getAtivo(),
+                pessoa.getEndereco(),
+                pessoa.getLogradouro(),
+                pessoa.getNumero(),
+                pessoa.getBairro(),
+                pessoa.getCidade(),
+                pessoa.getEstado()
         );
     }
 

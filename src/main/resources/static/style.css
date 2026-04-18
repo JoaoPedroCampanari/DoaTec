@@ -974,3 +974,161 @@ body.dark-mode .notification-message {
 body.dark-mode .notification-empty {
     color: #888;
 }
+
+/* ==================== STEPPER (Formulário em Etapas) ==================== */
+.stepper-container {
+    margin-bottom: 30px;
+}
+
+.stepper-progress {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.stepper-progress::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #ddd;
+    z-index: 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ddd;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.step-label {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+}
+
+.step.active .step-number {
+    background: #007bff;
+    color: #fff;
+}
+
+.step.active .step-label {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.step.completed .step-number {
+    background: #28a745;
+    color: #fff;
+}
+
+.step.completed .step-label {
+    color: #28a745;
+}
+
+/* Form Steps Animation */
+.form-step {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Navigation */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    gap: 15px;
+}
+
+.form-navigation .btn {
+    flex: 1;
+    max-width: 150px;
+}
+
+/* ViaCEP Styles */
+.viacep-loading {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23007bff' stroke-width='3' stroke-dasharray='31.4 31.4' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+}
+
+.viacep-auto {
+    background-color: #f8f9fa;
+}
+
+.viacep-error {
+    border-color: #dc3545 !important;
+}
+
+.edit-address-btn {
+    font-size: 0.75rem;
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 5px;
+}
+
+.edit-address-btn:hover {
+    color: #0056b3;
+}
+
+/* Dark mode for stepper */
+body.dark-mode .step-number {
+    background: #444;
+    color: #aaa;
+}
+
+body.dark-mode .step-label {
+    color: #aaa;
+}
+
+body.dark-mode .stepper-progress::before {
+    background: #444;
+}
+
+body.dark-mode .step.active .step-number {
+    background: #007bff;
+    color: #fff;
+}
+
+body.dark-mode .step.active .step-label {
+    color: #007bff;
+}
+
+body.dark-mode .step.completed .step-number {
+    background: #28a745;
+    color: #fff;
+}
+
+body.dark-mode .step.completed .step-label {
+    color: #28a745;
+}
+
+body.dark-mode .viacep-auto {
+    background-color: #2c2c2c;
+}

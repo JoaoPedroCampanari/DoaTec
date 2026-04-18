@@ -44,7 +44,17 @@ public abstract class Pessoa {
     @Column(nullable = false)
     private String senha;
 
-    private String endereco;
+    private String endereco; // CEP
+
+    private String logradouro;
+
+    private String numero;
+
+    private String bairro;
+
+    private String cidade;
+
+    private String estado;
 
     private String telefone;
 

@@ -71,6 +71,30 @@ public class PessoaService {
     // ==================== MÉTODOS ESPECIALIZADOS DE REGISTRO ====================
 
     /**
+     * Valida campos obrigatorios de endereco.
+     */
+    private void validarEndereco(String cep, String logradouro, String numero, String bairro, String cidade, String estado) {
+        if (cep == null || cep.isBlank()) {
+            throw new BusinessException("O CEP é obrigatório.");
+        }
+        if (logradouro == null || logradouro.isBlank()) {
+            throw new BusinessException("O logradouro é obrigatório.");
+        }
+        if (numero == null || numero.isBlank()) {
+            throw new BusinessException("O número do endereço é obrigatório.");
+        }
+        if (bairro == null || bairro.isBlank()) {
+            throw new BusinessException("O bairro é obrigatório.");
+        }
+        if (cidade == null || cidade.isBlank()) {
+            throw new BusinessException("A cidade é obrigatória.");
+        }
+        if (estado == null || estado.isBlank()) {
+            throw new BusinessException("O estado é obrigatório.");
+        }
+    }
+
+    /**
      * Registra um novo aluno.
      */
     @Transactional
@@ -84,6 +108,9 @@ public class PessoaService {
         if (alunoRepository.existsByRa(request.ra())) {
             throw new BusinessException("O RA informado já está cadastrado.");
         }
+
+        // Validar endereco
+        validarEndereco(request.cep(), request.logradouro(), request.numero(), request.bairro(), request.cidade(), request.estado());
 
         Aluno novoAluno = PessoaMapper.toAluno(request);
         novoAluno.setSenha(passwordEncoder.encode(request.senha()));
@@ -106,6 +133,9 @@ public class PessoaService {
             throw new BusinessException("O CPF informado já está cadastrado.");
         }
 
+        // Validar endereco
+        validarEndereco(request.cep(), request.logradouro(), request.numero(), request.bairro(), request.cidade(), request.estado());
+
         DoadorPF novoDoador = PessoaMapper.toDoadorPF(request);
         novoDoador.setSenha(passwordEncoder.encode(request.senha()));
 
@@ -126,6 +156,9 @@ public class PessoaService {
         if (doadorPJRepository.existsByCnpj(request.cnpj())) {
             throw new BusinessException("O CNPJ informado já está cadastrado.");
         }
+
+        // Validar endereco
+        validarEndereco(request.cep(), request.logradouro(), request.numero(), request.bairro(), request.cidade(), request.estado());
 
         DoadorPJ novoDoador = PessoaMapper.toDoadorPJ(request);
         novoDoador.setSenha(passwordEncoder.encode(request.senha()));
@@ -189,6 +222,21 @@ public class PessoaService {
 
         if (dto.endereco() != null) {
             pessoaExistente.setEndereco(dto.endereco());
+        }
+        if (dto.logradouro() != null) {
+            pessoaExistente.setLogradouro(dto.logradouro());
+        }
+        if (dto.numero() != null) {
+            pessoaExistente.setNumero(dto.numero());
+        }
+        if (dto.bairro() != null) {
+            pessoaExistente.setBairro(dto.bairro());
+        }
+        if (dto.cidade() != null) {
+            pessoaExistente.setCidade(dto.cidade());
+        }
+        if (dto.estado() != null) {
+            pessoaExistente.setEstado(dto.estado());
         }
         if (dto.telefone() != null) {
             pessoaExistente.setTelefone(dto.telefone());

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil - Plataforma de Doação</title>
+    <title>Meu Perfil - Plataforma de Doacao</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/imask"></script>
 </head>
@@ -34,7 +34,7 @@
 
             <form id="profileForm" class="application-form profile-editable-form">
                 <fieldset>
-                    <legend>Informações de Contato e Acesso</legend>
+                    <legend>Informacoes de Contato e Acesso</legend>
                     <div class="profile-fields-grid">
                         <div class="form-group">
                             <label for="profileEmail">Email:</label>
@@ -45,7 +45,7 @@
                             <input type="tel" id="profileTelefone">
                         </div>
                         <div class="form-group full-width">
-                            <label for="profileSenha">Nova Senha (deixe em branco para não alterar):</label>
+                            <label for="profileSenha">Nova Senha (deixe em branco para nao alterar):</label>
                             <input type="password" id="profileSenha" minlength="6">
                         </div>
                         <div class="form-group full-width">
@@ -53,9 +53,35 @@
                             <input type="password" id="profileConfirmarSenha" minlength="6">
                         </div>
                     </div>
-                    <div class="form-group full-width">
-                        <label for="profileEndereco">CEP:</label>
-                        <input type="text" id="profileEndereco" placeholder="00000-000">
+                </fieldset>
+                <fieldset>
+                    <legend>Endereco</legend>
+                    <div class="form-group">
+                        <label for="profileCep">CEP:</label>
+                        <input type="text" id="profileCep" placeholder="00000-000">
+                        <small class="form-text">Digite o CEP para preencher automaticamente</small>
+                    </div>
+                    <div class="profile-fields-grid">
+                        <div class="form-group full-width">
+                            <label for="profileLogradouro">Logradouro:</label>
+                            <input type="text" id="profileLogradouro" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="profileNumero">Numero:</label>
+                            <input type="text" id="profileNumero">
+                        </div>
+                        <div class="form-group">
+                            <label for="profileBairro">Bairro:</label>
+                            <input type="text" id="profileBairro" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="profileCidade">Cidade:</label>
+                            <input type="text" id="profileCidade" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="profileEstado">Estado:</label>
+                            <input type="text" id="profileEstado" maxlength="2" readonly>
+                        </div>
                     </div>
                 </fieldset>
                 <button type="submit" class="btn btn-primary btn-submit">Atualizar Perfil</button>
@@ -65,7 +91,9 @@
         <hr style="margin: 20px 0;">
 
         <div class="profile-bottom-buttons">
-            <a href="index.html" id="backToHomeButton" class="btn btn-secondary">Voltar à Home</a> <button id="logoutButton" class="btn btn-secondary">Sair da Conta</button> </div>
+            <a href="index.html" id="backToHomeButton" class="btn btn-secondary">Voltar a Home</a>
+            <button id="logoutButton" class="btn btn-secondary">Sair da Conta</button>
+        </div>
     </div>
 </div>
 
@@ -81,14 +109,20 @@
         const profileEmailInput = document.getElementById('profileEmail');
         const profileSenhaInput = document.getElementById('profileSenha');
         const profileConfirmarSenhaInput = document.getElementById('profileConfirmarSenha');
-        const profileEnderecoInput = document.getElementById('profileEndereco');
+        const profileCepInput = document.getElementById('profileCep');
+        const profileLogradouroInput = document.getElementById('profileLogradouro');
+        const profileNumeroInput = document.getElementById('profileNumero');
+        const profileBairroInput = document.getElementById('profileBairro');
+        const profileCidadeInput = document.getElementById('profileCidade');
+        const profileEstadoInput = document.getElementById('profileEstado');
         const profileTelefoneInput = document.getElementById('profileTelefone');
         const logoutButton = document.getElementById('logoutButton');
 
-        // Máscara de CEP
-        const cepMask = IMask(profileEnderecoInput, { mask: '00000-000' });
+        // Mascaras
+        const cepMask = IMask(profileCepInput, { mask: '00000-000' });
+        const telefoneMask = IMask(profileTelefoneInput, { mask: '(00) 00000-0000' });
 
-        // Verifica sessão com o backend
+        // Verifica sessao com o backend
         const loggedInUser = await Auth.checkSession();
 
         if (loggedInUser && loggedInUser.id) {
@@ -105,15 +139,76 @@
                     profileDocumentoInput.value = userData.documento || '';
 
                     profileEmailInput.value = userData.email || '';
-                    // Define o valor da máscara (o IMask formata automaticamente)
-                    cepMask.value = userData.endereco || '';
-                    profileTelefoneInput.value = userData.telefone || '';
+                    cepMask.value = userData.cep || '';
+                    profileLogradouroInput.value = userData.logradouro || '';
+                    profileNumeroInput.value = userData.numero || '';
+                    profileBairroInput.value = userData.bairro || '';
+                    profileCidadeInput.value = userData.cidade || '';
+                    profileEstadoInput.value = userData.estado || '';
+                    telefoneMask.value = userData.telefone || '';
+
+                    // Marca campos preenchidos via CEP
+                    if (userData.logradouro || userData.bairro || userData.cidade) {
+                        ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
+                            const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
+                            if (el) el.classList.add('viacep-auto');
+                        });
+                    }
                 })
                 .catch(error => {
                     console.error('Erro ao carregar perfil:', error);
-                    alert('Não foi possível carregar os dados do seu perfil. Por favor, tente novamente.');
+                    alert('Nao foi possivel carregar os dados do seu perfil. Por favor, tente novamente.');
                     window.location.href = 'login.html';
                 });
+
+            // Busca CEP ViaCEP
+            profileCepInput.addEventListener('blur', async function() {
+                const cep = cepMask.unmaskedValue;
+
+                if (cep.length === 8) {
+                    this.classList.add('viacep-loading');
+
+                    try {
+                        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                        const data = await response.json();
+
+                        this.classList.remove('viacep-loading');
+
+                        if (data.erro) {
+                            alert('CEP nao encontrado');
+                            // Libera campos para edicao manual
+                            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
+                                const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
+                                if (el) {
+                                    el.removeAttribute('readonly');
+                                    el.classList.remove('viacep-auto');
+                                }
+                            });
+                        } else {
+                            profileLogradouroInput.value = data.logradouro || '';
+                            profileBairroInput.value = data.bairro || '';
+                            profileCidadeInput.value = data.localidade || '';
+                            profileEstadoInput.value = data.uf || '';
+
+                            // Marca como preenchido automaticamente
+                            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
+                                const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
+                                if (el) {
+                                    el.setAttribute('readonly', 'readonly');
+                                    el.classList.add('viacep-auto');
+                                }
+                            });
+
+                            if (data.logradouro) {
+                                profileNumeroInput.focus();
+                            }
+                        }
+                    } catch (err) {
+                        this.classList.remove('viacep-loading');
+                        alert('Erro ao buscar CEP. Verifique sua conexao.');
+                    }
+                }
+            });
 
             profileForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -122,12 +217,12 @@
                 const confirmarSenha = profileConfirmarSenhaInput.value;
 
                 if (novaSenha && novaSenha !== confirmarSenha) {
-                    alert('A nova senha e a confirmação de senha não coincidem.');
+                    alert('A nova senha e a confirmacao de senha nao coincidem.');
                     return;
                 }
 
                 if (novaSenha && novaSenha.length < 6) {
-                    alert('A senha deve ter no mínimo 6 caracteres.');
+                    alert('A senha deve ter no minimo 6 caracteres.');
                     return;
                 }
 
@@ -135,7 +230,12 @@
                     email: profileEmailInput.value,
                     senha: novaSenha || null,
                     endereco: cepMask.unmaskedValue,
-                    telefone: profileTelefoneInput.value
+                    logradouro: profileLogradouroInput.value,
+                    numero: profileNumeroInput.value,
+                    bairro: profileBairroInput.value,
+                    cidade: profileCidadeInput.value,
+                    estado: profileEstadoInput.value,
+                    telefone: telefoneMask.unmaskedValue
                 };
 
                 try {
@@ -161,19 +261,18 @@
                         alert('Erro ao atualizar perfil: ' + errorMessage);
                     }
                 } catch (error) {
-                    console.error('Erro na requisição de atualização:', error);
-                    alert('Ocorreu um erro de conexão ao atualizar seu perfil. Verifique o console.');
+                    console.error('Erro na requisicao de atualizacao:', error);
+                    alert('Ocorreu um erro de conexao ao atualizar seu perfil.');
                 }
             });
 
-            // Logout usando o Auth módulo
+            // Logout
             logoutButton.addEventListener('click', async () => {
                 await Auth.logout();
                 window.location.href = 'login.html';
             });
 
         } else {
-            // Redireciona para login sem popup
             window.location.href = 'login.html';
         }
     });
