@@ -1,5 +1,11 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+document.addEventListener('DOMContentLoaded', async () => {
+    // Verifica sessão com backend (se Auth estiver disponível)
+    let loggedInUser = null;
+    if (window.Auth) {
+        loggedInUser = await Auth.checkSession();
+    } else {
+        loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    }
 
     // Mapeia todos os itens de navegação condicionais
     const navItems = {
@@ -7,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
         meusPedidos: document.getElementById('meusPedidosNavItem'),
         precisoComputador: document.getElementById('precisoComputadorNavItem')
     };
+
+    const profileButton = document.getElementById('profileButton');
 
     // Esconde todos por padrão para evitar que pisquem na tela
     for (const key in navItems) {
@@ -31,6 +39,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navItems.precisoComputador) {
                 navItems.precisoComputador.style.display = 'block';
             }
+        }
+
+        // Botão de perfil: "Perfil" -> perfil.html
+        if (profileButton) {
+            profileButton.textContent = 'Perfil';
+            profileButton.onclick = () => {
+                window.location.href = 'perfil.html';
+            };
+        }
+    } else {
+        // Usuário deslogado: botão de "Login" -> login.html
+        if (profileButton) {
+            profileButton.textContent = 'Entrar';
+            profileButton.onclick = () => {
+                window.location.href = 'login.html';
+            };
         }
     }
 });

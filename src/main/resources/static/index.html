@@ -11,7 +11,7 @@
 <body>
 <header>
     <nav class="navbar">
-        <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li><a href="donate.html">Quero Doar</a></li>
@@ -133,7 +133,7 @@
         const totalDonationsSpan = document.getElementById('totalDonations');
         const lastDonationDateSpan = document.getElementById('lastDonationDate');
 
-        fetch('/api/dashboard/stats')
+        fetch('/api/dashboard/stats', { credentials: 'include' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Erro ao buscar estatísticas.');

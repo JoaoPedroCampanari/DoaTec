@@ -10,7 +10,7 @@
 
 <header>
     <nav class="navbar">
-        <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li><a href="donate.html">Quero Doar</a></li>
@@ -96,17 +96,18 @@
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js"></script>
 <script src="js/auth.js"></script> <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         const form = document.getElementById('alunoRequestForm');
         const nomeInput = document.getElementById('nome');
         const emailInput = document.getElementById('email');
         const telefoneInput = document.getElementById('telefone');
         const raInput = document.getElementById('ra');
 
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+        // Verifica sessão com backend
+        const loggedInUser = await Auth.checkSession();
 
         if (loggedInUser && loggedInUser.id) {
-            fetch(`/api/users/${loggedInUser.id}`)
+            fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -133,12 +134,11 @@
                 .catch(error => {
                     console.error('Erro ao preencher dados do aluno:', error);
                     alert('Não foi possível carregar seus dados para preenchimento automático. Por favor, preencha manualmente.');
-                    localStorage.removeItem('loggedInUser');
+                    Auth.logout();
                 });
         } else {
-            // Se não estiver logado, pode-se exigir login ou deixar os campos preenchíveis
-            alert('Você precisa estar logado como aluno para fazer uma solicitação. Por favor, faça login.');
-            window.location.href = 'login.html'; // Redireciona para login se não logado
+            // Redireciona para login sem popup
+            window.location.href = 'login.html';
         }
 
         form.addEventListener('submit', async (event) => {
@@ -155,8 +155,9 @@
             };
 
             try {
-                const response = await fetch('http://localhost:8080/api/solicitacoes', {
+                const response = await fetch('/api/solicitacoes', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestData)
                 });

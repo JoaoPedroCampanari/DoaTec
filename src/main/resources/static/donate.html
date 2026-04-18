@@ -12,7 +12,7 @@
 <body>
 <header>
     <nav class="navbar">
-        <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li><a href="donate.html">Quero Doar</a></li>
@@ -129,7 +129,7 @@
 <script src="js/nav-visibility.js"></script>
 <script src="js/auth.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         const documentLabel = document.getElementById('documentLabel');
         const documentInput = document.getElementById('documentNumber');
         const donorNameInput = document.getElementById('donorName');
@@ -137,12 +137,13 @@
         const phoneInput = document.getElementById('phone');
         const donationForm = document.getElementById('donationForm');
 
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+        // Verifica sessão com backend
+        const loggedInUser = await Auth.checkSession();
         let usuarioTipoDocumento = '';
         let documentMask; // Variável para guardar a instância da máscara
 
         if (loggedInUser && loggedInUser.id) {
-            fetch(`/api/users/${loggedInUser.id}`)
+            fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -186,10 +187,10 @@
                 .catch(error => {
                     console.error('Erro ao preencher dados do doador:', error);
                     alert('Não foi possível carregar seus dados para preenchimento automático.');
-                    localStorage.removeItem('loggedInUser');
+                    Auth.logout();
                 });
         } else {
-            alert('Você precisa estar logado para fazer uma doação. Por favor, faça login.');
+            // Redireciona para login sem popup
             window.location.href = 'login.html';
         }
 
@@ -228,6 +229,7 @@
             try {
                 const response = await fetch('/api/donations', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },

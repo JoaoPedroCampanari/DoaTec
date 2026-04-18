@@ -72,7 +72,7 @@
 <script src="js/theme-switcher.js"></script>
 <script src="js/auth.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         const profileForm = document.getElementById('profileForm');
         const profileNomeInput = document.getElementById('profileNome');
         const profileTipoInput = document.getElementById('profileTipo');
@@ -84,10 +84,11 @@
         const profileTelefoneInput = document.getElementById('profileTelefone');
         const logoutButton = document.getElementById('logoutButton');
 
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+        // Verifica sessão com o backend
+        const loggedInUser = await Auth.checkSession();
 
         if (loggedInUser && loggedInUser.id) {
-            fetch(`/api/users/${loggedInUser.id}`)
+            fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -106,7 +107,6 @@
                 .catch(error => {
                     console.error('Erro ao carregar perfil:', error);
                     alert('Não foi possível carregar os dados do seu perfil. Por favor, tente novamente.');
-                    localStorage.removeItem('loggedInUser');
                     window.location.href = 'login.html';
                 });
 
@@ -131,6 +131,7 @@
                 try {
                     const response = await fetch(`/api/users/${loggedInUser.id}`, {
                         method: 'PUT',
+                        credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updateData)
                     });
@@ -155,14 +156,14 @@
                 }
             });
 
-            logoutButton.addEventListener('click', () => {
-                localStorage.removeItem('loggedInUser');
-                alert('Você foi desconectado.');
+            // Logout usando o Auth módulo
+            logoutButton.addEventListener('click', async () => {
+                await Auth.logout();
                 window.location.href = 'login.html';
             });
 
         } else {
-            alert('Você não está logado. Por favor, faça login para acessar seu perfil.');
+            // Redireciona para login sem popup
             window.location.href = 'login.html';
         }
     });

@@ -1,6 +1,7 @@
 package com.doatec.dto.response;
 
-import com.doatec.model.account.TipoUsuario;
+import com.doatec.model.account.Role;
+import com.doatec.model.account.TipoPessoa;
 import lombok.Builder;
 
 @Builder
@@ -9,18 +10,22 @@ public record UserLoginResponse(
     String nome,
     String email,
     String telefone,
-    String tipoUsuario,
-    String documento
+    String tipoPessoa,
+    String role,
+    String documento,
+    Boolean ativo
 ) {
     public static UserLoginResponse from(Integer id, String nome, String email,
-            String telefone, TipoUsuario tipoUsuario, String documento) {
+            String telefone, TipoPessoa tipoPessoa, Role role, String documento, Boolean ativo) {
         return UserLoginResponse.builder()
                 .id(id)
                 .nome(nome)
                 .email(email)
                 .telefone(telefone)
-                .tipoUsuario(tipoUsuario.name())
+                .tipoPessoa(tipoPessoa.name())
+                .role(role.name())
                 .documento(documento)
+                .ativo(ativo)
                 .build();
     }
 }

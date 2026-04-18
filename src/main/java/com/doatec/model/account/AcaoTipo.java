@@ -1,0 +1,11 @@
+package com.doatec.model.account;
+
+public enum AcaoTipo {
+    APROVAR_DOACAO,
+    REJEITAR_DOACAO,
+    APROVAR_SOLICITACAO,
+    REJEITAR_SOLICITACAO,
+    RESPONDER_SUPORTE,
+    DESATIVAR_USUARIO,
+    REATIVAR_USUARIO
+}

@@ -1,6 +1,9 @@
 package com.doatec.controller;
 
 import com.doatec.dto.request.SuporteFormularioRequest;
+import com.doatec.dto.response.SuporteResponse;
+import com.doatec.mapper.SuporteMapper;
+import com.doatec.model.suporte.SuporteFormulario;
 import com.doatec.service.SuporteFormularioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +23,13 @@ public class SuporteController {
     private SuporteFormularioService suporteService;
 
     @PostMapping
-    public ResponseEntity<String> receberFormulario(@Valid @RequestBody SuporteFormularioRequest dto) {
+    public ResponseEntity<SuporteResponse> receberFormulario(@Valid @RequestBody SuporteFormularioRequest dto) {
         try {
-            suporteService.criarTicket(dto);
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body("Mensagem de suporte recebida! Responderemos em breve no email fornecido.");
+            SuporteFormulario ticket = suporteService.criarTicket(dto);
+            SuporteResponse response = SuporteMapper.toResponse(ticket);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

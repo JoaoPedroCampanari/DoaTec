@@ -3,8 +3,11 @@ package com.doatec.model.donation;
 import jakarta.persistence.*;
 import com.doatec.model.account.Pessoa;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +19,8 @@ import java.util.List;
 @Builder
 @EqualsAndHashCode(exclude = {"itens"})
 @ToString(exclude = {"doador", "itens"})
+@SQLDelete(sql = "UPDATE doacao SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Doacao {
 
     @Id
@@ -39,4 +44,15 @@ public class Doacao {
 
     @Enumerated(EnumType.STRING)
     private PreferenciaEntrega preferenciaEntrega;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_avaliador_id")
+    private Pessoa adminAvaliador;
+
+    private LocalDateTime dataAvaliacao;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacaoAdmin;
+
+    private LocalDateTime deletedAt;
 }

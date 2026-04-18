@@ -11,7 +11,7 @@
 <body>
 <header>
     <nav class="navbar">
-        <div class="logo"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li><a href="donate.html">Quero Doar</a></li>
@@ -86,22 +86,28 @@
                     <legend>Fale Conosco</legend>
                     <p style="text-align: center; margin-bottom: 20px;">Se sua dúvida não foi respondida acima,
                         preencha o formulário abaixo.</p>
-                    <div class="form-group">
-                        <label for="supportName">Seu Nome:</label>
-                        <input type="text" id="supportName" name="supportName" required disabled> </div>
-                    <div class="form-group">
-                        <label for="supportEmail">Seu Email:</label>
-                        <input type="email" id="supportEmail" name="supportEmail" required disabled> </div>
-                    <div class="form-group">
-                        <label for="supportSubject">Assunto:</label>
-                        <input type="text" id="supportSubject" name="supportSubject" required>
+                    <div id="loginRequiredMessage" style="display: none; text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="margin-bottom: 15px;">Você precisa estar logado para enviar uma mensagem.</p>
+                        <a href="login.html" class="btn btn-primary">Fazer Login</a>
                     </div>
-                    <div class="form-group">
-                        <label for="supportMessage">Sua Mensagem:</label>
-                        <textarea id="supportMessage" name="supportMessage" rows="6" required></textarea>
+                    <div id="formFields">
+                        <div class="form-group">
+                            <label for="supportName">Seu Nome:</label>
+                            <input type="text" id="supportName" name="supportName" required disabled> </div>
+                        <div class="form-group">
+                            <label for="supportEmail">Seu Email:</label>
+                            <input type="email" id="supportEmail" name="supportEmail" required disabled> </div>
+                        <div class="form-group">
+                            <label for="supportSubject">Assunto:</label>
+                            <input type="text" id="supportSubject" name="supportSubject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="supportMessage">Sua Mensagem:</label>
+                            <textarea id="supportMessage" name="supportMessage" rows="6" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-submit">Enviar Mensagem</button>
                     </div>
                 </fieldset>
-                <button type="submit" class="btn btn-primary btn-submit">Enviar Mensagem</button>
             </form>
         </div>
     </section>
@@ -116,16 +122,21 @@
 <script src="js/main.js"></script>
 <script src="js/nav-visibility.js"></script>
 <script src="js/theme-switcher.js"></script>
-<script src="js/auth.js"></script> <script>
-    document.addEventListener('DOMContentLoaded', function() {
+<script src="js/auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
         const supportForm = document.getElementById('supportForm');
         const supportNameInput = document.getElementById('supportName');
         const supportEmailInput = document.getElementById('supportEmail');
+        const loginRequiredMessage = document.getElementById('loginRequiredMessage');
+        const formFields = document.getElementById('formFields');
 
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+        // Verifica sessão com backend
+        const loggedInUser = await Auth.checkSession();
 
         if (loggedInUser && loggedInUser.id) {
-            fetch(`/api/users/${loggedInUser.id}`)
+            // Usuário logado - mostra o formulário
+            fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -138,21 +149,22 @@
                 })
                 .catch(error => {
                     console.error('Erro ao preencher dados de suporte:', error);
-                    alert('Não foi possível carregar seus dados para o formulário de suporte. Por favor, preencha manualmente.');
-                    localStorage.removeItem('loggedInUser');
+                    // Mostra mensagem de erro, mas mantém o formulário
+                    supportNameInput.disabled = false;
+                    supportEmailInput.disabled = false;
                 });
         } else {
-            // Se não estiver logado, pode-se exigir login ou deixar os campos preenchíveis
-            alert('Você precisa estar logado para enviar um formulário de suporte. Por favor, faça login.');
-            window.location.href = 'login.html'; // Redireciona para login se não logado
+            // Usuário não logado - mostra mensagem de login, esconde formulário
+            loginRequiredMessage.style.display = 'block';
+            formFields.style.display = 'none';
         }
 
         supportForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const formData = {
-                nome: supportNameInput.value, // Pega do campo preenchido/desabilitado
-                email: supportEmailInput.value, // Pega do campo preenchido/desabilitado
+                nome: supportNameInput.value,
+                email: supportEmailInput.value,
                 assunto: document.getElementById('supportSubject').value,
                 mensagem: document.getElementById('supportMessage').value
             };
@@ -160,6 +172,7 @@
             try {
                 const response = await fetch('/api/suporte', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
@@ -169,6 +182,11 @@
 
                 if (response.ok) {
                     supportForm.reset();
+                    // Recarrega dados do usuário
+                    if (loggedInUser && loggedInUser.id) {
+                        supportNameInput.value = loggedInUser.nome || '';
+                        supportEmailInput.value = loggedInUser.email || '';
+                    }
                 }
 
             } catch (error) {

@@ -47,6 +47,14 @@ body {
     color: #007bff;
 }
 
+.navbar .logo a {
+    text-decoration: none;
+}
+
+.navbar .logo img {
+    cursor: pointer;
+}
+
 .nav-links {
     list-style: none;
     display: flex;

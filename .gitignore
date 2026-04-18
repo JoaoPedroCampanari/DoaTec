@@ -33,3 +33,5 @@ build/
 .vscode/
 
 .openclaude/
+
+CONTEXT_MEMORY_BANK.md

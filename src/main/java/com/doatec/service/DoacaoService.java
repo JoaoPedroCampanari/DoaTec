@@ -2,9 +2,10 @@ package com.doatec.service;
 
 import com.doatec.dto.request.DoacaoRequest;
 import com.doatec.dto.response.DashboardStatsResponse;
+import com.doatec.dto.response.DoacaoResponse;
 import com.doatec.mapper.DoacaoMapper;
 import com.doatec.model.account.Pessoa;
-import com.doatec.model.account.TipoUsuario;
+import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.Doacao;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.PessoaRepository;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -27,8 +29,10 @@ public class DoacaoService {
     private PessoaRepository pessoaRepository;
 
     @Transactional(readOnly = true)
-    public List<Doacao> findDoacoesByDoadorId(Integer doadorId) {
-        return doacaoRepository.findByDoadorId(doadorId);
+    public List<DoacaoResponse> findDoacoesByDoadorId(Integer doadorId) {
+        return doacaoRepository.findByDoadorId(doadorId).stream()
+                .map(DoacaoMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -41,29 +45,30 @@ public class DoacaoService {
 
         Pessoa doador = doadorOptional.get();
 
-        if (dto.tipoDocumento().equals("cpf")) {
-            if (doador.getTipo() != TipoUsuario.DOADOR_PF) {
+        // Validar tipo de documento contra tipo de pessoa
+        if (dto.tipoDocumento().equalsIgnoreCase("cpf")) {
+            if (doador.getTipoPessoa() != TipoPessoa.DOADOR_PF) {
                 throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Física.");
             }
             if (!doador.getDocumento().equals(dto.numeroDocumento())) {
                 throw new RuntimeException("O CPF informado não corresponde ao CPF cadastrado para este email.");
             }
-        } else if (dto.tipoDocumento().equals("cnpj")) {
-            if (doador.getTipo() != TipoUsuario.DOADOR_PJ) {
+        } else if (dto.tipoDocumento().equalsIgnoreCase("cnpj")) {
+            if (doador.getTipoPessoa() != TipoPessoa.DOADOR_PJ) {
                 throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Pessoa Jurídica.");
             }
             if (!doador.getDocumento().equals(dto.numeroDocumento())) {
                 throw new RuntimeException("O CNPJ informado não corresponde ao CNPJ cadastrado para este email.");
             }
-        } else if (dto.tipoDocumento().equals("aluno")) {
-            if (doador.getTipo() != TipoUsuario.ALUNO) {
+        } else if (dto.tipoDocumento().equalsIgnoreCase("aluno") || dto.tipoDocumento().equalsIgnoreCase("ra")) {
+            if (doador.getTipoPessoa() != TipoPessoa.ALUNO) {
                 throw new RuntimeException("O email " + dto.email() + " pertence a um usuário que não é Aluno. Se deseja doar como aluno, seu tipo de cadastro deve ser 'ALUNO'.");
             }
             if (!doador.getDocumento().equals(dto.numeroDocumento())) {
                 throw new RuntimeException("O RA informado não corresponde ao RA cadastrado para este email.");
             }
         } else {
-            throw new RuntimeException("Tipo de documento inválido para a doação.");
+            throw new RuntimeException("Tipo de documento inválido para a doação. Use: 'cpf', 'cnpj' ou 'aluno'.");
         }
 
         if (!doador.getNome().equals(dto.nome())) {

@@ -1,6 +1,8 @@
 package com.doatec.controller;
 
 import com.doatec.dto.request.RegistroRequest;
+import com.doatec.dto.response.UserLoginResponse;
+import com.doatec.mapper.PessoaMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.service.PessoaService;
 import jakarta.validation.Valid;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controlador para o registro de novos usuários.
+ * Tipos de pessoa: DOADOR_PF, DOADOR_PJ, ALUNO
+ * Role padrão: USER (pode ser alterado posteriormente por ADMIN)
  */
 @RestController
 @RequestMapping("/api/register")
@@ -23,16 +27,19 @@ public class RegistroController {
     private PessoaService pessoaService;
 
     @PostMapping
-    public ResponseEntity<String> registerUser(@Valid @RequestBody RegistroRequest registroRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistroRequest registroRequest) {
         try {
             Pessoa novaPessoa = pessoaService.registrarPessoa(registroRequest);
-            if (novaPessoa != null) {
-                return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao registrar usuário. Tipo de usuário inválido.");
-            }
+
+            // Retorna os dados do usuário registrado (sem a senha)
+            UserLoginResponse response = PessoaMapper.toResponse(novaPessoa);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno ao registrar usuário: " + e.getMessage());
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.doatec.controller;
 
 import com.doatec.dto.request.SolicitacaoRequest;
+import com.doatec.dto.response.SolicitacaoResponse;
+import com.doatec.mapper.SolicitacaoMapper;
+import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.service.SolicitacaoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +22,13 @@ public class SolicitacaoController {
     private SolicitacaoService solicitacaoService;
 
     @PostMapping
-    public ResponseEntity<String> criar(@Valid @RequestBody SolicitacaoRequest dto) {
+    public ResponseEntity<SolicitacaoResponse> criar(@Valid @RequestBody SolicitacaoRequest dto) {
         try {
-            solicitacaoService.criarSolicitacao(dto);
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body("Solicitação registrada com sucesso! Nossa equipe analisará seu pedido e entrará em contato.");
+            SolicitacaoHardware solicitacao = solicitacaoService.criarSolicitacao(dto);
+            SolicitacaoResponse response = SolicitacaoMapper.toResponse(solicitacao);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

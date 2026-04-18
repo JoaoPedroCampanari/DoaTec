@@ -1,7 +1,7 @@
 package com.doatec.service;
 
 import com.doatec.dto.request.SuporteFormularioRequest;
-import com.doatec.mapper.SuporteFormularioMapper;
+import com.doatec.mapper.SuporteMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.suporte.SuporteFormulario;
 import com.doatec.repository.PessoaRepository;
@@ -29,7 +29,7 @@ public class SuporteFormularioService {
             throw new RuntimeException("Nome inválido!");
         }
 
-        SuporteFormulario novoTicket = SuporteFormularioMapper.toSuporteFormulario(dto, autor);
+        SuporteFormulario novoTicket = SuporteMapper.toSuporteFormulario(dto, autor);
 
         return suporteRepository.save(novoTicket);
     }

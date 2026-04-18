@@ -8,8 +8,7 @@ import com.doatec.mapper.DoacaoMapper;
 import com.doatec.mapper.PessoaMapper;
 import com.doatec.mapper.SolicitacaoMapper;
 import com.doatec.model.account.Pessoa;
-import com.doatec.model.donation.Doacao;
-import com.doatec.model.solicitacao.SolicitacaoHardware;
+import com.doatec.repository.PessoaRepository;
 import com.doatec.service.DoacaoService;
 import com.doatec.service.PessoaService;
 import com.doatec.service.SolicitacaoService;
@@ -17,6 +16,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,25 @@ public class UserController {
 
     @Autowired
     private SolicitacaoService solicitacaoService;
+
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    /**
+     * Endpoint para verificar se o usuário está autenticado.
+     * Retorna os dados do usuário logado ou 401 se não estiver autenticado.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserLoginResponse> getCurrentUser(@AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Pessoa pessoa = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        return ResponseEntity.ok(PessoaMapper.toResponse(pessoa));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserLoginResponse> getUserById(@PathVariable Integer id) {
@@ -59,19 +79,13 @@ public class UserController {
 
     @GetMapping("/{id}/donations")
     public ResponseEntity<List<DoacaoResponse>> getUserDonations(@PathVariable Integer id) {
-        List<Doacao> doacoes = doacaoService.findDoacoesByDoadorId(id);
-        List<DoacaoResponse> responseDtos = doacoes.stream()
-                .map(DoacaoMapper::toResponse)
-                .toList();
-        return ResponseEntity.ok(responseDtos);
+        List<DoacaoResponse> doacoes = doacaoService.findDoacoesByDoadorId(id);
+        return ResponseEntity.ok(doacoes);
     }
 
     @GetMapping("/{id}/solicitacoes")
     public ResponseEntity<List<SolicitacaoResponse>> getUserSolicitacoes(@PathVariable Integer id) {
-        List<SolicitacaoHardware> solicitacoes = solicitacaoService.findSolicitacoesByAlunoId(id);
-        List<SolicitacaoResponse> responseDtos = solicitacoes.stream()
-                .map(SolicitacaoMapper::toResponse)
-                .toList();
-        return ResponseEntity.ok(responseDtos);
+        List<SolicitacaoResponse> solicitacoes = solicitacaoService.findSolicitacoesByAlunoId(id);
+        return ResponseEntity.ok(solicitacoes);
     }
 }
