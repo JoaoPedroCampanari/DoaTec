@@ -21,19 +21,6 @@
         </div>
         <h1>Crie sua Conta</h1>
 
-        <!-- Selecao de Tipo de Usuario -->
-        <div class="form-group user-type-selection">
-            <div>
-                <input type="radio" id="typePf" name="userType" value="DOADOR_PF" checked> <label for="typePf" class="radio-label">Pessoa Física</label>
-            </div>
-            <div>
-                <input type="radio" id="typePj" name="userType" value="DOADOR_PJ"> <label for="typePj" class="radio-label">Pessoa Jurídica</label>
-            </div>
-            <div>
-                <input type="radio" id="typeAluno" name="userType" value="ALUNO"> <label for="typeAluno" class="radio-label">Aluno</label>
-            </div>
-        </div>
-
         <!-- Stepper Progress -->
         <div class="stepper-container">
             <div class="stepper-progress">
@@ -73,6 +60,20 @@
 
             <!-- ETAPA 2: Dados Pessoais/Empresariais -->
             <div class="form-step" data-step="2" style="display: none;">
+                <!-- Selecao de Tipo de Usuario -->
+                <div class="form-group user-type-selection">
+                    <label>Qual seu perfil?</label>
+                    <div>
+                        <input type="radio" id="typePf" name="userType" value="DOADOR_PF" checked> <label for="typePf" class="radio-label">Pessoa Física</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="typePj" name="userType" value="DOADOR_PJ"> <label for="typePj" class="radio-label">Pessoa Jurídica</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="typeAluno" name="userType" value="ALUNO"> <label for="typeAluno" class="radio-label">Aluno</label>
+                    </div>
+                </div>
+
                 <!-- Campos Pessoa Fisica -->
                 <div id="pfFields">
                     <div class="form-group">
@@ -265,6 +266,11 @@
 
             // Atualiza estado do botao ao mudar de etapa
             atualizarEstadoBotaoProximo();
+
+            // Atualiza campos visiveis baseado no tipo de usuario (na etapa 2)
+            if (step === 2) {
+                updateUserForm();
+            }
         }
 
         function validateStep(step) {
@@ -402,7 +408,6 @@
         userTypeRadios.forEach(radio => {
             radio.addEventListener('change', updateUserForm);
         });
-        updateUserForm();
 
         // ==================== VIACEP - BUSCA DE ENDERECO ====================
         async function buscarCEP(cep) {
