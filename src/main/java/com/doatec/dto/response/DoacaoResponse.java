@@ -15,10 +15,11 @@ public record DoacaoResponse(
     LocalDate dataDoacao,
     String status,
     String preferenciaEntrega,
+    String descricaoGeral,
+    String urlFoto,
     String observacaoAdmin,
     String adminAvaliadorNome,
-    LocalDateTime dataAvaliacao,
-    List<ItemDoadoResponse> itens
+    LocalDateTime dataAvaliacao
 ) {
     public static DoacaoResponse from(Doacao doacao) {
         return DoacaoResponse.builder()
@@ -29,12 +30,11 @@ public record DoacaoResponse(
                 .status(doacao.getStatus().name())
                 .preferenciaEntrega(doacao.getPreferenciaEntrega() != null
                         ? doacao.getPreferenciaEntrega().name() : null)
+                .descricaoGeral(doacao.getDescricaoGeral())
+                .urlFoto(doacao.getUrlFoto())
                 .observacaoAdmin(doacao.getObservacaoAdmin())
                 .adminAvaliadorNome(doacao.getAdminAvaliador() != null ? doacao.getAdminAvaliador().getNome() : null)
                 .dataAvaliacao(doacao.getDataAvaliacao())
-                .itens(doacao.getItens().stream()
-                        .map(ItemDoadoResponse::from)
-                        .toList())
                 .build();
     }
 }

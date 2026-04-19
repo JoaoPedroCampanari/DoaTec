@@ -17,11 +17,10 @@ public record DoacaoRequest(
 
     String telefone,
 
-    @NotBlank(message = "O campo tipo de item é obrigatório")
-    String tipoItem,
+    @NotBlank(message = "O campo descrição geral é obrigatório")
+    String descricaoGeral,
 
-    @NotBlank(message = "O campo descrição do item é obrigatório")
-    String descricaoItem,
+    String urlFoto,
 
     PreferenciaEntrega preferenciaEntrega
 ) {}

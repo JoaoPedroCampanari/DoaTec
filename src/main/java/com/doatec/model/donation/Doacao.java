@@ -40,10 +40,16 @@ public class Doacao {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    private StatusDoacao status = StatusDoacao.EM_ANALISE;
+    private StatusDoacao status = StatusDoacao.EM_TRIAGEM;
 
     @Enumerated(EnumType.STRING)
     private PreferenciaEntrega preferenciaEntrega;
+
+    @Column(columnDefinition = "TEXT")
+    private String descricaoGeral;
+
+    @Column(length = 500)
+    private String urlFoto;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_avaliador_id")
