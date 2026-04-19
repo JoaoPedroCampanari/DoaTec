@@ -13,10 +13,14 @@
         <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
-            <li><a href="donate.html">Quero Doar</a></li>
-            <li id="minhasDoacoesNavItem"><a href="minhas-doacoes.html">Minhas Doações</a></li>
-            <li id="precisoComputadorNavItem"><a href="aluno.html">Preciso de um Computador</a></li>
-            <li id="meusPedidosNavItem"><a href="meus-pedidos.html">Meus Pedidos</a></li>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
             <li><a href="suporte.html">Suporte</a></li>
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
@@ -34,7 +38,11 @@
                 </div>
             </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px;">Perfil</button>
+            <li id="minhaContaDropdownItem" class="nav-dropdown">
+                <a href="#">Minha Conta</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
             <div class="menu-toggle">
                 <span></span>
                 <span></span>

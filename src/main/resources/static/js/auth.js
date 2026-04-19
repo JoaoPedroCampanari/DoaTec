@@ -70,9 +70,10 @@ const Auth = {
 
     /**
      * Faz logout do usuário
+     * @param {string} redirectUrl - URL para redirecionar após logout (padrão: index.html)
      * @returns {Promise<boolean>}
      */
-    async logout() {
+    async logout(redirectUrl = 'index.html') {
         try {
             const response = await fetch('/api/logout', {
                 method: 'POST',
@@ -82,12 +83,22 @@ const Auth = {
             this.currentUser = null;
             localStorage.removeItem('loggedInUser');
 
+            // Redireciona após logout para atualizar o navbar
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
+
             return response.ok;
         } catch (error) {
             console.error('Erro no logout:', error);
             // Limpa local mesmo com erro
             this.currentUser = null;
             localStorage.removeItem('loggedInUser');
+
+            // Redireciona mesmo com erro
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
             return false;
         }
     },

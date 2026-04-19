@@ -15,10 +15,14 @@
         <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
-            <li><a href="donate.html">Quero Doar</a></li>
-            <li id="minhasDoacoesNavItem"><a href="minhas-doacoes.html">Minhas Doações</a></li>
-            <li id="precisoComputadorNavItem"><a href="aluno.html">Preciso de um Computador</a></li>
-            <li id="meusPedidosNavItem"><a href="meus-pedidos.html">Meus Pedidos</a></li>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
             <li><a href="suporte.html">Suporte</a></li>
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
@@ -36,7 +40,11 @@
                 </div>
             </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px;">Perfil</button>
+            <li id="minhaContaDropdownItem" class="nav-dropdown">
+                <a href="#">Minha Conta</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
             <div class="menu-toggle">
                 <span></span>
                 <span></span>
@@ -79,32 +87,14 @@
                 <fieldset>
                     <legend>Detalhes da Doação</legend>
                     <div class="form-group">
-                        <label>O que você gostaria de doar?</label>
-                        <div>
-                            <input type="radio" id="itemDesktop" name="donatedItems" value="desktop" checked>
-                            <label for="itemDesktop" class="radio-label">Computador de Mesa (Desktop)</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="itemNotebook" name="donatedItems" value="notebook">
-                            <label for="itemNotebook" class="radio-label">Notebook</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="itemComponents" name="donatedItems" value="components">
-                            <label for="itemComponents" class="radio-label">Peças e Componentes Avulsos</label>
-                        </div>
-                        <div>
-                            <input type="radio" id="itemOutros" name="donatedItems" value="outros">
-                            <label for="itemOutros" class="radio-label">Outros</label>
-                        </div>
+                        <label for="descricaoGeral">Descrição Geral da Doação *</label>
+                        <textarea id="descricaoGeral" name="descricaoGeral" rows="5" required placeholder="Descreva os equipamentos que deseja doar, incluindo quantidade, estado de conservação e qualquer informação relevante..."></textarea>
+                        <small class="form-text">Exemplo: "2 notebooks Dell em bom estado, 1 desktop completo sem monitor, 3 teclados e 2 mouses usados."</small>
                     </div>
                     <div class="form-group">
-                        <label for="itemDescription">Descrição dos Itens:</label>
-                        <textarea id="itemDescription" name="itemDescription" rows="5" required></textarea>
-                        <small class="form-text">Por favor, liste os itens que deseja doar e, se possível, seu estado de conservação (ex: "Notebook Dell, funcionando, mas sem bateria", "2x pentes de memória RAM DDR3 4GB").</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="fotoDoacao">Foto da doação:</label>
-                        <input type="file" id="fotoDoacao">
+                        <label for="fotoDoacao">Foto do Lote (opcional):</label>
+                        <input type="file" id="fotoDoacao" accept="image/jpeg,image/png,image/gif">
+                        <small class="form-text">Envie uma foto do lote de equipamentos. Formatos aceitos: JPEG, PNG, GIF. Máximo: 5MB.</small>
                     </div>
                 </fieldset>
 
@@ -214,28 +204,55 @@
             // Pega o valor "limpo" da máscara, se ela existir
             const numeroDocumento = documentMask ? documentMask.unmaskedValue : documentInput.value;
 
-            const tipoItem = document.querySelector('input[name="donatedItems"]:checked').value;
-            const descricaoItem = document.getElementById('itemDescription').value;
+            const descricaoGeral = document.getElementById('descricaoGeral').value;
             const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value;
             const termsAccepted = document.getElementById('terms').checked;
+            const fotoFile = document.getElementById('fotoDoacao').files[0];
 
             if (!termsAccepted) {
                 alert('Você deve concordar com os termos da doação.');
                 return;
             }
-            if (!tipoItem) {
-                alert('Por favor, selecione o que você gostaria de doar.');
+
+            if (!descricaoGeral.trim()) {
+                alert('Por favor, preencha a descrição geral da doação.');
                 return;
+            }
+
+            // Upload da foto primeiro (se houver)
+            let urlFoto = null;
+            if (fotoFile) {
+                const formData = new FormData();
+                formData.append('file', fotoFile);
+
+                try {
+                    const uploadResponse = await fetch('/api/upload/foto', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (uploadResponse.ok) {
+                        urlFoto = await uploadResponse.text();
+                    } else {
+                        const errorMsg = await uploadResponse.text();
+                        alert('Erro ao enviar foto: ' + errorMsg);
+                        return;
+                    }
+                } catch (uploadError) {
+                    console.error('Erro no upload:', uploadError);
+                    alert('Erro ao enviar foto. Tente novamente.');
+                    return;
+                }
             }
 
             const doacaoData = {
                 nome: donorNameInput.value,
                 tipoDocumento: usuarioTipoDocumento,
-                numeroDocumento: numeroDocumento, // Envia o valor sem máscara
+                numeroDocumento: numeroDocumento,
                 email: emailInput.value,
                 telefone: phoneInput.value,
-                tipoItem: tipoItem,
-                descricaoItem: descricaoItem,
+                descricaoGeral: descricaoGeral,
+                urlFoto: urlFoto,
                 preferenciaEntrega: preferenciaEntrega
             };
 
