@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minhas Doações - Plataforma de Doação</title>
+    <title>Minhas Doações - DoaTec</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
 
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -57,7 +58,7 @@
         <div class="container">
             <div class="application-header">
                 <h1>Minhas Doações</h1>
-                <p>Aqui está o histórico de todas as doações que você realizou na nossa plataforma. Agradecemos a sua contribuição!</p>
+                <p>Confira o histórico de todas as doações que você realizou na nossa plataforma. Agradecemos sua contribuição!</p>
             </div>
 
             <div id="donationsContainer" class="donations-list">
@@ -68,10 +69,11 @@
 
 <footer>
     <div class="container">
-        <p>&copy; 2025 Plataforma de Doação - Fatec Garça. Todos os direitos reservados.</p>
+        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
     </div>
 </footer>
 
+<script src="js/main.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/theme-switcher.js"></script>
@@ -88,6 +90,7 @@
             return;
         }
 
+        // Fetch donations
         fetch(`/api/users/${loggedInUser.id}/donations`, { credentials: 'include' })
             .then(response => {
                 if (!response.ok) {
@@ -97,42 +100,158 @@
             })
             .then(donations => {
                 if (donations.length === 0) {
-                    donationsContainer.innerHTML = '<p class="no-donations">Você ainda não fez nenhuma doação.</p>';
+                    // Create empty state
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 12 20 22 4 22 4 12"/>
+                                <rect x="2" y="7" width="20" height="5"/>
+                                <line x1="12" y1="22" x2="12" y2="7"/>
+                                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                            </svg>
+                        </div>
+                        <h3>Nenhuma doação realizada</h3>
+                        <p>Você ainda não fez nenhuma doação. Que tal fazer sua primeira doação?</p>
+                        <a href="donate.html" class="btn btn-primary" style="margin-top: 16px;">Fazer Doação</a>
+                    `;
+                    donationsContainer.appendChild(emptyState);
                     return;
                 }
 
+                // Create cards for each donation
                 donations.forEach(donation => {
+                    const statusClass = getStatusClass(donation.status);
+                    const statusText = translateStatus(donation.status);
+
                     const donationCard = document.createElement('div');
                     donationCard.className = 'donation-card';
 
+                    // Build items HTML
                     let itemsHtml = '';
-                    if(donation.itens && donation.itens.length > 0) {
-                        itemsHtml = donation.itens.map(item => `
-                            <div style="padding-left: 15px; margin-top: 10px;">
-                                <p><strong>Item:</strong> ${item.tipoItem}</p>
-                                <p><strong>Descrição:</strong> ${item.descricao}</p>
-                            </div>
-                        `).join('');
+                    if (donation.itens && donation.itens.length > 0) {
+                        itemsHtml = '<div class="donation-items">';
+                        donation.itens.forEach(item => {
+                            itemsHtml += `
+                                <div class="donation-item">
+                                    <strong>${escapeHtml(item.tipoItem)}</strong>
+                                    ${item.descricao ? ': ' + escapeHtml(item.descricao) : ''}
+                                </div>
+                            `;
+                        });
+                        itemsHtml += '</div>';
                     }
 
                     donationCard.innerHTML = `
-                        <h3>Doação #${donation.id}</h3>
-                        <p><strong>Data da Doação:</strong> ${new Date(donation.dataDoacao).toLocaleDateString()}</p>
-                        <p><strong>Status:</strong> ${donation.status}</p>
-                        <p><strong>Preferência de Entrega:</strong> ${donation.preferenciaEntrega}</p>
-                        <div>
-                            <strong>Itens Doado(s):</strong>
+                        <div class="donation-content" style="flex: 1;">
+                            <div class="donation-header">
+                                <h3 class="donation-title">Doação #${donation.id}</h3>
+                                <span class="status-pill ${statusClass}">${statusText}</span>
+                            </div>
+                            <span class="donation-date">${formatDate(donation.dataDoacao)}</span>
+                            <div class="donation-meta">
+                                <span class="donation-meta-item">
+                                    <strong>Entrega:</strong> ${escapeHtml(donation.preferenciaEntrega || 'Não especificada')}
+                                </span>
+                            </div>
                             ${itemsHtml}
                         </div>
                     `;
+
                     donationsContainer.appendChild(donationCard);
                 });
             })
             .catch(error => {
                 console.error('Erro ao buscar doações:', error);
-                donationsContainer.innerHTML = '<p class="no-donations" style="color: red;">Ocorreu um erro ao carregar suas doações.</p>';
+                donationsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Erro ao carregar</h3>
+                        <p style="color: #dc3545;">Ocorreu um erro ao carregar suas doações. Tente novamente mais tarde.</p>
+                    </div>
+                `;
             });
     });
+
+    // Helper functions
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('pt-BR');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getStatusClass(status) {
+        if (!status) return 'status-pending';
+        const statusLower = status.toLowerCase();
+
+        const classMap = {
+            'triagem': 'status-triagem',
+            'em triagem': 'status-triagem',
+            'em_analise': 'status-pendente',
+            'em análise': 'status-pendente',
+            'pendente': 'status-pendente',
+            'aprovado': 'status-aprovado',
+            'aprovada': 'status-aprovado',
+            'approved': 'status-aprovado',
+            'reprovado': 'status-reprovado',
+            'recusado': 'status-reprovado',
+            'rejeitado': 'status-reprovado',
+            'rejected': 'status-reprovado',
+            'concluído': 'status-concluido',
+            'concluido': 'status-concluido',
+            'entregue': 'status-entregue',
+            'finalizado': 'status-concluido',
+            'completed': 'status-concluido'
+        };
+
+        return classMap[statusLower] || 'status-pendente';
+    }
+
+    function translateStatus(status) {
+        if (!status) return 'Desconhecido';
+        const statusLower = status.toLowerCase();
+
+        const translations = {
+            'triagem': 'Em Triagem',
+            'em triagem': 'Em Triagem',
+            'triage': 'Em Triagem',
+            'em_analise': 'Em Análise',
+            'em análise': 'Em Análise',
+            'pendente': 'Pendente',
+            'pending': 'Pendente',
+            'aprovado': 'Aprovado',
+            'aprovada': 'Aprovado',
+            'approved': 'Aprovado',
+            'reprovado': 'Reprovado',
+            'recusado': 'Reprovado',
+            'rejeitado': 'Reprovado',
+            'rejected': 'Reprovado',
+            'concluído': 'Concluído',
+            'concluido': 'Concluído',
+            'entregue': 'Entregue',
+            'delivered': 'Entregue',
+            'finalizado': 'Finalizado',
+            'completed': 'Concluído'
+        };
+
+        return translations[statusLower] || status;
+    }
 </script>
 </body>
+
 </html>

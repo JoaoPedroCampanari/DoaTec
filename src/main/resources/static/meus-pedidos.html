@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meus Pedidos - Plataforma de Doação</title>
+    <title>Meus Pedidos - DoaTec</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
 
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -43,6 +44,11 @@
                 <ul class="dropdown-menu"></ul>
             </li>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </nav>
 </header>
@@ -62,10 +68,11 @@
 
 <footer>
     <div class="container">
-        <p>&copy; 2025 Plataforma de Doação - Fatec Garça. Todos os direitos reservados.</p>
+        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
     </div>
 </footer>
 
+<script src="js/main.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/theme-switcher.js"></script>
@@ -83,7 +90,18 @@
         }
 
         if (loggedInUser.tipoPessoa !== 'ALUNO') {
-            pedidosContainer.innerHTML = '<p class="no-donations">Esta página é exclusiva para alunos.</p>';
+            pedidosContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>Acesso Restrito</h3>
+                    <p>Esta página é exclusiva para alunos cadastrados.</p>
+                </div>
+            `;
             return;
         }
 
@@ -94,27 +112,146 @@
             })
             .then(pedidos => {
                 if (pedidos.length === 0) {
-                    pedidosContainer.innerHTML = '<p class="no-donations">Você ainda não fez nenhum pedido.</p>';
+                    pedidosContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                            </div>
+                            <h3>Nenhum pedido realizado</h3>
+                            <p>Você ainda não fez nenhuma solicitação de equipamento.</p>
+                            <a href="aluno.html" class="btn btn-primary" style="margin-top: 16px;">Fazer Solicitação</a>
+                        </div>
+                    `;
                     return;
                 }
+
                 pedidos.forEach(pedido => {
                     const pedidoCard = document.createElement('div');
                     pedidoCard.className = 'donation-card';
+
+                    const statusClass = getStatusClass(pedido.status);
+                    const statusText = translateStatus(pedido.status);
+
                     pedidoCard.innerHTML = `
-                        <h3>Pedido #${pedido.id}</h3>
-                        <p><strong>Data do Pedido:</strong> ${new Date(pedido.dataSolicitacao + 'T00:00:00').toLocaleDateString()}</p>
-                        <p><strong>Status:</strong> ${pedido.status}</p>
-                        <p><strong>Preferência:</strong> ${pedido.preferenciaEquipamento || 'Não especificada'}</p>
-                        <p><strong>Justificativa:</strong> ${pedido.justificativa}</p>
+                        <div class="donation-content" style="flex: 1;">
+                            <div class="donation-header">
+                                <h3 class="donation-title">Pedido #${pedido.id}</h3>
+                                <span class="status-pill ${statusClass}">${statusText}</span>
+                            </div>
+                            <span class="donation-date">${formatDate(pedido.dataSolicitacao)}</span>
+                            <div class="donation-meta">
+                                <span class="donation-meta-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                        <line x1="8" y1="21" x2="16" y2="21"/>
+                                        <line x1="12" y1="17" x2="12" y2="21"/>
+                                    </svg>
+                                    <strong>Preferência:</strong> ${escapeHtml(pedido.preferenciaEquipamento || 'Não especificada')}
+                                </span>
+                            </div>
+                            <div class="donation-items" style="margin-top: 12px;">
+                                <div class="donation-item">
+                                    <strong>Justificativa:</strong>
+                                    <p style="margin: 8px 0 0 0; line-height: 1.6;">${escapeHtml(pedido.justificativa || 'Não informada')}</p>
+                                </div>
+                            </div>
+                        </div>
                     `;
                     pedidosContainer.appendChild(pedidoCard);
                 });
             })
             .catch(error => {
                 console.error('Erro:', error);
-                pedidosContainer.innerHTML = '<p class="no-donations" style="color: red;">Ocorreu um erro ao carregar seus pedidos.</p>';
+                pedidosContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Erro ao carregar</h3>
+                        <p style="color: #dc3545;">Ocorreu um erro ao carregar seus pedidos. Tente novamente mais tarde.</p>
+                    </div>
+                `;
             });
     });
+
+    // Helper functions
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('pt-BR');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getStatusClass(status) {
+        if (!status) return 'status-pending';
+        const statusLower = status.toLowerCase();
+
+        const classMap = {
+            'triagem': 'status-triagem',
+            'em triagem': 'status-triagem',
+            'em_analise': 'status-pendente',
+            'em análise': 'status-pendente',
+            'pendente': 'status-pendente',
+            'aprovado': 'status-aprovado',
+            'aprovada': 'status-aprovado',
+            'approved': 'status-aprovado',
+            'reprovado': 'status-reprovado',
+            'recusado': 'status-reprovado',
+            'rejeitado': 'status-reprovado',
+            'rejected': 'status-reprovado',
+            'concluído': 'status-concluido',
+            'concluido': 'status-concluido',
+            'entregue': 'status-entregue',
+            'finalizado': 'status-concluido',
+            'completed': 'status-concluido'
+        };
+
+        return classMap[statusLower] || 'status-pendente';
+    }
+
+    function translateStatus(status) {
+        if (!status) return 'Desconhecido';
+        const statusLower = status.toLowerCase();
+
+        const translations = {
+            'triagem': 'Em Triagem',
+            'em triagem': 'Em Triagem',
+            'triage': 'Em Triagem',
+            'em_analise': 'Em Análise',
+            'em análise': 'Em Análise',
+            'pendente': 'Pendente',
+            'pending': 'Pendente',
+            'aprovado': 'Aprovado',
+            'aprovada': 'Aprovado',
+            'approved': 'Aprovado',
+            'reprovado': 'Reprovado',
+            'recusado': 'Reprovado',
+            'rejeitado': 'Reprovado',
+            'rejected': 'Reprovado',
+            'concluído': 'Concluído',
+            'concluido': 'Concluído',
+            'entregue': 'Entregue',
+            'delivered': 'Entregue',
+            'finalizado': 'Finalizado',
+            'completed': 'Concluído'
+        };
+
+        return translations[statusLower] || status;
+    }
 </script>
 </body>
 </html>
