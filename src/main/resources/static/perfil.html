@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil - Plataforma de Doacao</title>
+    <title>Meu Perfil - DoaTec</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
     <script src="https://unpkg.com/imask"></script>
 </head>
 <body class="login-page perfil-page">
@@ -13,7 +14,15 @@
         <div class="logo">
             <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
         </div>
-        <h1>Meu Perfil</h1>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">
+                <span id="avatarInitial">?</span>
+            </div>
+            <h1 class="profile-name" id="profileName">Carregando...</h1>
+            <p class="profile-role" id="profileRole">-</p>
+        </div>
 
         <div class="profile-sections-container">
             <section class="profile-readonly-section">
@@ -34,7 +43,7 @@
 
             <form id="profileForm" class="application-form profile-editable-form">
                 <fieldset>
-                    <legend>Informacoes de Contato e Acesso</legend>
+                    <legend>Informações de Contato e Acesso</legend>
                     <div class="profile-fields-grid">
                         <div class="form-group">
                             <label for="profileEmail">Email:</label>
@@ -45,7 +54,7 @@
                             <input type="tel" id="profileTelefone">
                         </div>
                         <div class="form-group full-width">
-                            <label for="profileSenha">Nova Senha (deixe em branco para nao alterar):</label>
+                            <label for="profileSenha">Nova Senha (deixe em branco para não alterar):</label>
                             <input type="password" id="profileSenha" minlength="6">
                         </div>
                         <div class="form-group full-width">
@@ -55,7 +64,7 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend>Endereco</legend>
+                    <legend>Endereço</legend>
                     <div class="form-group">
                         <label for="profileCep">CEP:</label>
                         <input type="text" id="profileCep" placeholder="00000-000">
@@ -67,7 +76,7 @@
                             <input type="text" id="profileLogradouro" readonly>
                         </div>
                         <div class="form-group">
-                            <label for="profileNumero">Numero:</label>
+                            <label for="profileNumero">Número:</label>
                             <input type="text" id="profileNumero">
                         </div>
                         <div class="form-group">
@@ -91,7 +100,7 @@
         <hr style="margin: 20px 0;">
 
         <div class="profile-bottom-buttons">
-            <a href="index.html" id="backToHomeButton" class="btn btn-secondary">Voltar a Home</a>
+            <a href="index.html" id="backToHomeButton" class="btn btn-secondary">Voltar ao Início</a>
             <button id="logoutButton" class="btn btn-secondary">Sair da Conta</button>
         </div>
     </div>
@@ -118,6 +127,12 @@
         const profileTelefoneInput = document.getElementById('profileTelefone');
         const logoutButton = document.getElementById('logoutButton');
 
+        // Profile header elements
+        const profileName = document.getElementById('profileName');
+        const profileRole = document.getElementById('profileRole');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const avatarInitial = document.getElementById('avatarInitial');
+
         // Mascaras
         const cepMask = IMask(profileCepInput, { mask: '00000-000' });
         const telefoneMask = IMask(profileTelefoneInput, { mask: '(00) 00000-0000' });
@@ -126,6 +141,11 @@
         const loggedInUser = await Auth.checkSession();
 
         if (loggedInUser && loggedInUser.id) {
+            // Set avatar initial
+            const name = loggedInUser.nome || 'U';
+            avatarInitial.textContent = name.charAt(0).toUpperCase();
+            profileAvatar.style.backgroundColor = getAvatarColor(name);
+
             fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
@@ -134,9 +154,14 @@
                     throw new Error('Falha ao carregar dados do perfil.');
                 })
                 .then(userData => {
+                    // Update header
+                    profileName.textContent = userData.nome || 'Usuário';
+                    profileRole.textContent = formatUserRole(userData.tipoPessoa);
+
+                    // Update form fields
                     profileNomeInput.value = userData.nome || '';
-                    profileTipoInput.value = userData.tipoPessoa || '';
-                    profileDocumentoInput.value = userData.documento || '';
+                    profileTipoInput.value = formatUserRole(userData.tipoPessoa);
+                    profileDocumentoInput.value = formatDocument(userData);
 
                     profileEmailInput.value = userData.email || '';
                     cepMask.value = userData.cep || '';
@@ -157,7 +182,7 @@
                 })
                 .catch(error => {
                     console.error('Erro ao carregar perfil:', error);
-                    alert('Nao foi possivel carregar os dados do seu perfil. Por favor, tente novamente.');
+                    alert('Não foi possível carregar os dados do seu perfil. Por favor, tente novamente.');
                     window.location.href = 'login.html';
                 });
 
@@ -175,7 +200,7 @@
                         this.classList.remove('viacep-loading');
 
                         if (data.erro) {
-                            alert('CEP nao encontrado');
+                            alert('CEP não encontrado');
                             // Libera campos para edicao manual
                             ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
                                 const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -205,7 +230,7 @@
                         }
                     } catch (err) {
                         this.classList.remove('viacep-loading');
-                        alert('Erro ao buscar CEP. Verifique sua conexao.');
+                        alert('Erro ao buscar CEP. Verifique sua conexão.');
                     }
                 }
             });
@@ -217,12 +242,12 @@
                 const confirmarSenha = profileConfirmarSenhaInput.value;
 
                 if (novaSenha && novaSenha !== confirmarSenha) {
-                    alert('A nova senha e a confirmacao de senha nao coincidem.');
+                    alert('A nova senha e a confirmação de senha não coincidem.');
                     return;
                 }
 
                 if (novaSenha && novaSenha.length < 6) {
-                    alert('A senha deve ter no minimo 6 caracteres.');
+                    alert('A senha deve ter no mínimo 6 caracteres.');
                     return;
                 }
 
@@ -262,7 +287,7 @@
                     }
                 } catch (error) {
                     console.error('Erro na requisicao de atualizacao:', error);
-                    alert('Ocorreu um erro de conexao ao atualizar seu perfil.');
+                    alert('Ocorreu um erro de conexão ao atualizar seu perfil.');
                 }
             });
 
@@ -276,6 +301,34 @@
             window.location.href = 'login.html';
         }
     });
+
+    // Helper functions
+    function formatUserRole(tipo) {
+        if (!tipo) return 'Usuário';
+        const roles = {
+            'ALUNO': 'Aluno',
+            'DOADOR_PF': 'Doador (Pessoa Física)',
+            'DOADOR_PJ': 'Doador (Pessoa Jurídica)',
+            'ADMIN': 'Administrador'
+        };
+        return roles[tipo] || tipo;
+    }
+
+    function formatDocument(userData) {
+        if (!userData.documento) return '-';
+        // Format CPF/CNPJ as needed
+        return userData.documento;
+    }
+
+    function getAvatarColor(name) {
+        if (!name) return 'var(--primary-100)';
+        const colors = [
+            '#E3F2FD', '#E8F5E9', '#FFF3E0', '#F3E5F5',
+            '#E0F2F1', '#FBE9E7', '#F1F8E9', '#E1F5FE'
+        ];
+        const charCode = name.toUpperCase().charCodeAt(0);
+        return colors[charCode % colors.length];
+    }
 </script>
 </body>
 </html>
