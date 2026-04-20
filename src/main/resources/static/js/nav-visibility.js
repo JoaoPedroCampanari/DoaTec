@@ -2,6 +2,48 @@
  * Controle de visibilidade do menu de navegação
  * Dois dropdowns por intenção: "Quero Doar" e "Solicitar Doação"
  */
+
+// ==================== SCROLL EFFECT (Glassmorphism) ====================
+function handleScroll() {
+    const navbar = document.querySelector('.navbar');
+    if (!navbar) return;
+
+    if (window.scrollY > 20) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+}
+
+// Add scroll listener
+window.addEventListener('scroll', handleScroll);
+// Check on load
+document.addEventListener('DOMContentLoaded', handleScroll);
+
+// ==================== MOBILE MENU TOGGLE ====================
+function setupMobileMenu() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (!menuToggle || !navLinks) return;
+
+    menuToggle.addEventListener('click', () => {
+        menuToggle.classList.toggle('active');
+        navLinks.classList.toggle('active');
+    });
+
+    // Close menu when clicking a link
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            menuToggle.classList.remove('active');
+            navLinks.classList.remove('active');
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', setupMobileMenu);
+
+// ==================== SESSION & NAVIGATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
     // Verifica sessão com backend
     let loggedInUser = null;
