@@ -4,16 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Doação de Tecnologia</title>
+    <title>DoaTec - Plataforma de Doação de Tecnologia</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 
 <body>
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="215" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
-            <li><a href="index.html">Início</a></li>
+            <li><a href="index.html" class="active">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
                 <a href="#">Quero Doar</a>
                 <ul class="dropdown-menu"></ul>
@@ -54,13 +55,16 @@
 </header>
 
 <main>
+    <!-- HERO SECTION -->
     <section class="hero">
         <div class="container">
             <h1>Democratizando o Acesso à Tecnologia</h1>
             <p>Conectamos doadores a estudantes de baixa renda que precisam de computadores para seus estudos.</p>
+            <a href="donate.html" class="hero-cta">Quero Doar</a>
         </div>
     </section>
 
+    <!-- ABOUT SECTION -->
     <section class="about-short">
         <div class="container">
             <h2>Nossa Missão</h2>
@@ -70,70 +74,106 @@
         </div>
     </section>
 
-    <<section class="dashboard-section">
-    <div class="container">
-        <h2 class="dashboard-title">Nosso Impacto em Números</h2>
-        <div class="stats-container">
-            <div class="stat-card">
-                <span id="totalDonations" class="stat-number">0</span>
-                <span class="stat-label">Doações Totais</span>
-            </div>
-            <div class="stat-card">
-                <span id="lastDonationDate" class="stat-date">-</span>
-                <span class="stat-label">Última Doação Recebida</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-    <section class="">
+    <!-- STATS SECTION -->
+    <section class="dashboard-section">
         <div class="container">
-            <h2 style="text-align: center; margin-bottom: 30px;">Como Funciona</h2>
-            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
-
-                <div style="flex-basis: 250px; text-align: center;">
-                    <img src="https://img.icons8.com/plasticine/100/null/box.png" alt="Doação"
-                         style="margin-bottom: 10px;">
-                    <h3>1. Doe</h3>
-                    <p>Pessoas e empresas doam computadores ou componentes que não usam mais.</p>
+            <h2 class="dashboard-title">Nosso Impacto em Números</h2>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </div>
+                    <span id="totalDonations" class="stat-number">0</span>
+                    <span class="stat-label">Doações Totais</span>
                 </div>
-
-                <div style="flex-basis: 250px; text-align: center;">
-                    <img src="https://img.icons8.com/plasticine/100/null/maintenance.png" alt="Remontagem"
-                         style="margin-bottom: 10px;">
-                    <h3>2. Remontagem</h3>
-                    <p>Nossa equipe técnica avalia, conserta e monta os computadores.</p>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <span id="lastDonationDate" class="stat-date">-</span>
+                    <span class="stat-label">Última Doação Recebida</span>
                 </div>
-
-                <div style="flex-basis: 250px; text-align: center;">
-                    <img src="https://img.icons8.com/plasticine/100/null/student-male.png" alt="Solicitação"
-                         style="margin-bottom: 10px;">
-                    <h3>3. Solicitação</h3>
-                    <p>Alunos de baixa renda se cadastram em nosso site para solicitar um equipamento.</p>
-                </div>
-
-                <div style="flex-basis: 250px; text-align: center;">
-                    <img src="https://img.icons8.com/plasticine/100/null/receive-cash.png" alt="Entrega"
-                         style="margin-bottom: 10px;">
-                    <h3>4. Entrega</h3>
-                    <p>A instituição de ensino organiza a entrega dos computadores para os alunos selecionados.</p>
-                </div>
-
             </div>
         </div>
     </section>
 
+    <!-- HOW IT WORKS (TIMELINE) -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2>Como Funciona</h2>
+            <div class="timeline">
+                <!-- Step 1 -->
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 12 20 22 4 22 4 12"/>
+                            <rect x="2" y="7" width="20" height="5"/>
+                            <line x1="12" y1="22" x2="12" y2="7"/>
+                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                        </svg>
+                    </div>
+                    <h3>Doe</h3>
+                    <p>Pessoas e empresas doam computadores ou componentes que não usam mais.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <h3>Remontagem</h3>
+                    <p>Nossa equipe técnica avalia, conserta e monta os computadores.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>Solicitação</h3>
+                    <p>Alunos de baixa renda se cadastram para solicitar um equipamento.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <h3>Entrega</h3>
+                    <p>A instituição de ensino organiza a entrega dos computadores.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION -->
     <section class="news-testimonials">
         <div class="container">
-            <br>
-            <h2 style="text-align: center; margin-bottom: 30px;">Impacto e Depoimentos</h2>
-            <div style="padding: 20px; max-width: 800px; margin: auto;">
-                <blockquote style="font-style: italic; font-size: 1.1rem; color: #555;">
-                    "Receber o notebook desta plataforma foi um divisor de águas na minha graduação. Antes, eu tinha muita dificuldade para acompanhar as aulas online e fazer os trabalhos.
-                    Agora, tenho a ferramenta que preciso para estudar com qualidade. Sou muito grato!"
+            <h2>Impacto e Depoimentos</h2>
+            <div class="testimonial">
+                <blockquote>
+                    "Receber o notebook desta plataforma foi um divisor de águas na minha graduação. Antes, eu tinha muita dificuldade para acompanhar as aulas online e fazer os trabalhos. Agora, tenho a ferramenta que preciso para estudar com qualidade. Sou muito grato!"
                 </blockquote>
-                <p style="text-align: right; margin-top: 15px; font-weight: bold;">— Gabriel Batista
-                    Pires</p>
+                <p class="testimonial-author">— Gabriel Batista Pires</p>
             </div>
         </div>
     </section>
@@ -141,9 +181,10 @@
 
 <footer>
     <div class="container">
-        <p>&copy; 2025 Plataforma de Doação - Fatec Garça. Todos os direitos reservados.</p>
+        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
     </div>
 </footer>
+
 <script src="js/main.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/notifications.js"></script>
@@ -162,19 +203,24 @@
                 return response.json();
             })
             .then(stats => {
-                totalDonationsSpan.textContent = stats.totalDonations;
+                // Animate counter
+                if (window.DoaTec) {
+                    DoaTec.animateCounter(totalDonationsSpan, stats.totalDonations, 1500);
+                } else {
+                    totalDonationsSpan.textContent = stats.totalDonations;
+                }
 
                 if (stats.lastDonationDate) {
-                    const date = new Date(stats.lastDonationDate + 'T00:00:00'); // Adiciona tempo para evitar problemas de fuso
+                    const date = new Date(stats.lastDonationDate + 'T00:00:00');
                     lastDonationDateSpan.textContent = date.toLocaleDateString('pt-BR');
                 } else {
-                    lastDonationDateSpan.textContent = 'Nenhuma doação registrada';
+                    lastDonationDateSpan.textContent = 'Nenhuma doação';
                 }
             })
             .catch(error => {
                 console.error('Erro no dashboard:', error);
                 totalDonationsSpan.textContent = 'N/A';
-                lastDonationDateSpan.textContent = 'Erro ao carregar';
+                lastDonationDateSpan.textContent = 'Erro';
             });
     });
 </script>
