@@ -8,124 +8,189 @@
     <link rel="icon" href="doatec_logo.png" type="image/png">
     <script src="https://unpkg.com/imask"></script>
 </head>
-<body class="login-page perfil-page">
-<div class="login-container">
-    <div class="login-box">
-        <div class="logo">
-            <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
+<body class="perfil-page">
+<header>
+    <nav class="navbar">
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Início</a></li>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li><a href="suporte.html">Suporte</a></li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
+        </ul>
+        <div class="navbar-right">
+            <!-- Notificações -->
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <li id="minhaContaDropdownItem" class="nav-dropdown">
+                <a href="#">Minha Conta</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
+    </nav>
+</header>
 
-        <!-- Profile Header -->
-        <div class="profile-header">
-            <div class="profile-avatar" id="profileAvatar">
+<main>
+    <!-- Profile Hero -->
+    <section class="profile-hero">
+        <div class="container">
+            <div class="profile-hero-avatar" id="profileAvatar">
                 <span id="avatarInitial">?</span>
             </div>
-            <h1 class="profile-name" id="profileName">Carregando...</h1>
-            <p class="profile-role" id="profileRole">-</p>
+            <h1 class="profile-hero-name" id="profileName">Carregando...</h1>
+            <p class="profile-hero-role" id="profileRole">-</p>
         </div>
+    </section>
 
-        <div class="profile-sections-container">
-            <section class="profile-readonly-section">
-                <h2>Dados de Registro</h2>
-                <div class="form-group">
-                    <label for="profileNome">Nome:</label>
-                    <input type="text" id="profileNome" disabled>
-                </div>
-                <div class="form-group">
-                    <label for="profileTipo">Tipo de Usuário:</label>
-                    <input type="text" id="profileTipo" disabled>
-                </div>
-                <div class="form-group">
-                    <label for="profileDocumento">Documento:</label>
-                    <input type="text" id="profileDocumento" disabled>
-                </div>
-            </section>
+    <!-- Back Link -->
+    <div class="profile-back-link">
+        <a href="index.html">← Voltar para o Início</a>
+    </div>
 
-            <form id="profileForm" class="application-form profile-editable-form">
-                <fieldset>
-                    <legend>Informações de Contato e Acesso</legend>
-                    <div class="profile-fields-grid">
-                        <div class="form-group">
-                            <label for="profileEmail">Email:</label>
-                            <input type="email" id="profileEmail">
-                        </div>
-                        <div class="form-group">
-                            <label for="profileTelefone">Telefone:</label>
-                            <input type="tel" id="profileTelefone">
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="profileSenha">Nova Senha (deixe em branco para não alterar):</label>
-                            <input type="password" id="profileSenha" minlength="6">
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="profileConfirmarSenha">Confirmar Nova Senha:</label>
-                            <input type="password" id="profileConfirmarSenha" minlength="6">
-                        </div>
+    <!-- Profile Cards -->
+    <div class="profile-cards-container">
+        <!-- Card 1: Dados de Registro -->
+        <section class="profile-card">
+            <h2>Dados de Registro</h2>
+            <div class="profile-info-grid">
+                <div class="profile-info-item">
+                    <label>Nome Completo</label>
+                    <span id="profileNome">-</span>
+                </div>
+                <div class="profile-info-item">
+                    <label>Tipo de Usuário</label>
+                    <span id="profileTipo">-</span>
+                </div>
+                <div class="profile-info-item full-width">
+                    <label>Documento</label>
+                    <span id="profileDocumento">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Card 2: Contato e Acesso -->
+        <section class="profile-card">
+            <h2>Contato e Acesso</h2>
+            <form id="contactForm">
+                <div class="profile-info-grid">
+                    <div class="form-group full-width">
+                        <label for="profileEmail">Email</label>
+                        <input type="email" id="profileEmail">
                     </div>
-                </fieldset>
-                <fieldset>
-                    <legend>Endereço</legend>
+                    <div class="form-group full-width">
+                        <label for="profileTelefone">Telefone</label>
+                        <input type="tel" id="profileTelefone" placeholder="(00) 00000-0000">
+                    </div>
                     <div class="form-group">
-                        <label for="profileCep">CEP:</label>
+                        <label for="profileSenha">Nova Senha</label>
+                        <input type="password" id="profileSenha" minlength="6" placeholder="Deixe em branco para não alterar">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileConfirmarSenha">Confirmar Senha</label>
+                        <input type="password" id="profileConfirmarSenha" minlength="6">
+                    </div>
+                </div>
+                <div class="profile-card-actions">
+                    <button type="submit" class="btn btn-primary">Salvar Contato</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Card 3: Endereço -->
+        <section class="profile-card profile-card--full">
+            <h2>Endereço</h2>
+            <form id="addressForm">
+                <div class="profile-info-grid">
+                    <div class="form-group">
+                        <label for="profileCep">CEP</label>
                         <input type="text" id="profileCep" placeholder="00000-000">
                         <small class="form-text">Digite o CEP para preencher automaticamente</small>
                     </div>
-                    <div class="profile-fields-grid">
-                        <div class="form-group full-width">
-                            <label for="profileLogradouro">Logradouro:</label>
-                            <input type="text" id="profileLogradouro" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="profileNumero">Número:</label>
-                            <input type="text" id="profileNumero">
-                        </div>
-                        <div class="form-group">
-                            <label for="profileBairro">Bairro:</label>
-                            <input type="text" id="profileBairro" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="profileCidade">Cidade:</label>
-                            <input type="text" id="profileCidade" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="profileEstado">Estado:</label>
-                            <input type="text" id="profileEstado" maxlength="2" readonly>
-                        </div>
+                    <div class="form-group">
+                        <label for="profileNumero">Número</label>
+                        <input type="text" id="profileNumero">
                     </div>
-                </fieldset>
-                <button type="submit" class="btn btn-primary btn-submit">Atualizar Perfil</button>
+                    <div class="form-group full-width">
+                        <label for="profileLogradouro">Logradouro</label>
+                        <input type="text" id="profileLogradouro" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileBairro">Bairro</label>
+                        <input type="text" id="profileBairro" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileCidade">Cidade</label>
+                        <input type="text" id="profileCidade" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileEstado">Estado</label>
+                        <input type="text" id="profileEstado" maxlength="2" readonly>
+                    </div>
+                </div>
+                <div class="profile-card-actions">
+                    <button type="submit" class="btn btn-primary">Salvar Endereço</button>
+                </div>
             </form>
-        </div>
-
-        <hr style="margin: 20px 0;">
-
-        <div class="profile-bottom-buttons">
-            <a href="index.html" id="backToHomeButton" class="btn btn-secondary">Voltar ao Início</a>
-            <button id="logoutButton" class="btn btn-secondary">Sair da Conta</button>
-        </div>
+        </section>
     </div>
-</div>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
+    </div>
+</footer>
 
 <script src="js/main.js"></script>
-<script src="js/theme-switcher.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/nav-visibility.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const profileForm = document.getElementById('profileForm');
-        const profileNomeInput = document.getElementById('profileNome');
-        const profileTipoInput = document.getElementById('profileTipo');
-        const profileDocumentoInput = document.getElementById('profileDocumento');
+        // Form elements
+        const contactForm = document.getElementById('contactForm');
+        const addressForm = document.getElementById('addressForm');
+
+        // Contact form fields
+        const profileNomeSpan = document.getElementById('profileNome');
+        const profileTipoSpan = document.getElementById('profileTipo');
+        const profileDocumentoSpan = document.getElementById('profileDocumento');
         const profileEmailInput = document.getElementById('profileEmail');
+        const profileTelefoneInput = document.getElementById('profileTelefone');
         const profileSenhaInput = document.getElementById('profileSenha');
         const profileConfirmarSenhaInput = document.getElementById('profileConfirmarSenha');
+
+        // Address form fields
         const profileCepInput = document.getElementById('profileCep');
         const profileLogradouroInput = document.getElementById('profileLogradouro');
         const profileNumeroInput = document.getElementById('profileNumero');
         const profileBairroInput = document.getElementById('profileBairro');
         const profileCidadeInput = document.getElementById('profileCidade');
         const profileEstadoInput = document.getElementById('profileEstado');
-        const profileTelefoneInput = document.getElementById('profileTelefone');
-        const logoutButton = document.getElementById('logoutButton');
 
         // Profile header elements
         const profileName = document.getElementById('profileName');
@@ -133,11 +198,11 @@
         const profileAvatar = document.getElementById('profileAvatar');
         const avatarInitial = document.getElementById('avatarInitial');
 
-        // Mascaras
+        // Masks
         const cepMask = IMask(profileCepInput, { mask: '00000-000' });
         const telefoneMask = IMask(profileTelefoneInput, { mask: '(00) 00000-0000' });
 
-        // Verifica sessao com o backend
+        // Verifica sessão com o backend
         const loggedInUser = await Auth.checkSession();
 
         if (loggedInUser && loggedInUser.id) {
@@ -158,19 +223,22 @@
                     profileName.textContent = userData.nome || 'Usuário';
                     profileRole.textContent = formatUserRole(userData.tipoPessoa);
 
-                    // Update form fields
-                    profileNomeInput.value = userData.nome || '';
-                    profileTipoInput.value = formatUserRole(userData.tipoPessoa);
-                    profileDocumentoInput.value = formatDocument(userData);
+                    // Update card 1 (readonly)
+                    profileNomeSpan.textContent = userData.nome || '-';
+                    profileTipoSpan.textContent = formatUserRole(userData.tipoPessoa);
+                    profileDocumentoSpan.textContent = formatDocument(userData);
 
+                    // Update card 2 (contact)
                     profileEmailInput.value = userData.email || '';
+                    telefoneMask.value = userData.telefone || '';
+
+                    // Update card 3 (address)
                     cepMask.value = userData.cep || '';
                     profileLogradouroInput.value = userData.logradouro || '';
                     profileNumeroInput.value = userData.numero || '';
                     profileBairroInput.value = userData.bairro || '';
                     profileCidadeInput.value = userData.cidade || '';
                     profileEstadoInput.value = userData.estado || '';
-                    telefoneMask.value = userData.telefone || '';
 
                     // Marca campos preenchidos via CEP
                     if (userData.logradouro || userData.bairro || userData.cidade) {
@@ -182,8 +250,10 @@
                 })
                 .catch(error => {
                     console.error('Erro ao carregar perfil:', error);
-                    alert('Não foi possível carregar os dados do seu perfil. Por favor, tente novamente.');
-                    window.location.href = 'login.html';
+                    DoaTec.showToast('Não foi possível carregar os dados do seu perfil.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
                 });
 
             // Busca CEP ViaCEP
@@ -200,7 +270,7 @@
                         this.classList.remove('viacep-loading');
 
                         if (data.erro) {
-                            alert('CEP não encontrado');
+                            DoaTec.showToast('CEP não encontrado', 'warning');
                             // Libera campos para edicao manual
                             ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
                                 const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
@@ -230,36 +300,31 @@
                         }
                     } catch (err) {
                         this.classList.remove('viacep-loading');
-                        alert('Erro ao buscar CEP. Verifique sua conexão.');
+                        DoaTec.showToast('Erro ao buscar CEP. Verifique sua conexão.', 'error');
                     }
                 }
             });
 
-            profileForm.addEventListener('submit', async (event) => {
+            // Contact form submit
+            contactForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
                 const novaSenha = profileSenhaInput.value;
                 const confirmarSenha = profileConfirmarSenhaInput.value;
 
                 if (novaSenha && novaSenha !== confirmarSenha) {
-                    alert('A nova senha e a confirmação de senha não coincidem.');
+                    DoaTec.showToast('A nova senha e a confirmação não coincidem.', 'error');
                     return;
                 }
 
                 if (novaSenha && novaSenha.length < 6) {
-                    alert('A senha deve ter no mínimo 6 caracteres.');
+                    DoaTec.showToast('A senha deve ter no mínimo 6 caracteres.', 'error');
                     return;
                 }
 
                 const updateData = {
                     email: profileEmailInput.value,
                     senha: novaSenha || null,
-                    endereco: cepMask.unmaskedValue,
-                    logradouro: profileLogradouroInput.value,
-                    numero: profileNumeroInput.value,
-                    bairro: profileBairroInput.value,
-                    cidade: profileCidadeInput.value,
-                    estado: profileEstadoInput.value,
                     telefone: telefoneMask.unmaskedValue
                 };
 
@@ -272,29 +337,50 @@
                     });
 
                     if (response.ok) {
-                        const message = await response.text();
-                        alert(message);
-                        window.location.reload();
+                        DoaTec.showToast('Contato atualizado com sucesso!', 'success');
+                        profileSenhaInput.value = '';
+                        profileConfirmarSenhaInput.value = '';
                     } else {
-                        let errorMessage;
-                        try {
-                            const errorJson = await response.json();
-                            errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
-                        } catch (jsonError) {
-                            errorMessage = await response.text();
-                        }
-                        alert('Erro ao atualizar perfil: ' + errorMessage);
+                        const errorData = await response.json().catch(() => ({}));
+                        DoaTec.showToast(errorData.message || 'Erro ao atualizar contato.', 'error');
                     }
                 } catch (error) {
-                    console.error('Erro na requisicao de atualizacao:', error);
-                    alert('Ocorreu um erro de conexão ao atualizar seu perfil.');
+                    console.error('Erro:', error);
+                    DoaTec.showToast('Erro de conexão ao atualizar contato.', 'error');
                 }
             });
 
-            // Logout
-            logoutButton.addEventListener('click', async () => {
-                await Auth.logout();
-                window.location.href = 'login.html';
+            // Address form submit
+            addressForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const updateData = {
+                    endereco: cepMask.unmaskedValue,
+                    logradouro: profileLogradouroInput.value,
+                    numero: profileNumeroInput.value,
+                    bairro: profileBairroInput.value,
+                    cidade: profileCidadeInput.value,
+                    estado: profileEstadoInput.value
+                };
+
+                try {
+                    const response = await fetch(`/api/users/${loggedInUser.id}`, {
+                        method: 'PUT',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updateData)
+                    });
+
+                    if (response.ok) {
+                        DoaTec.showToast('Endereço atualizado com sucesso!', 'success');
+                    } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        DoaTec.showToast(errorData.message || 'Erro ao atualizar endereço.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    DoaTec.showToast('Erro de conexão ao atualizar endereço.', 'error');
+                }
             });
 
         } else {
@@ -316,7 +402,6 @@
 
     function formatDocument(userData) {
         if (!userData.documento) return '-';
-        // Format CPF/CNPJ as needed
         return userData.documento;
     }
 
