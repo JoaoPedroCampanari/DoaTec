@@ -852,6 +852,168 @@ body.perfil-page {
     background: var(--neutral-50);
 }
 
+/* Profile Hero Section */
+.profile-hero {
+    background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-600) 100%);
+    padding: 100px 0 140px;
+    text-align: center;
+    position: relative;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+}
+
+.profile-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.profile-hero-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--primary-100);
+    color: var(--primary-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 auto var(--spacing-md);
+    font-family: var(--font-heading);
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.profile-hero-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: var(--spacing-xs);
+    font-family: var(--font-heading);
+}
+
+.profile-hero-role {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1rem;
+}
+
+/* Profile Back Link */
+.profile-back-link {
+    max-width: 1100px;
+    margin: -60px auto 0;
+    padding: 0 var(--spacing-md);
+    position: relative;
+    z-index: 10;
+}
+
+.profile-back-link a {
+    display: inline-flex;
+    align-items: center;
+    color: var(--neutral-600);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color var(--transition-base);
+    background: #fff;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.profile-back-link a:hover {
+    color: var(--primary-600);
+}
+
+/* Profile Cards Container */
+.profile-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-xl);
+    max-width: 1100px;
+    margin: var(--spacing-xl) auto var(--spacing-3xl);
+    padding: 0 var(--spacing-md);
+}
+
+/* Profile Card */
+.profile-card {
+    background: #fff;
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.profile-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+.profile-card--full {
+    grid-column: 1 / -1;
+}
+
+.profile-card h2 {
+    color: var(--primary-900);
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--primary-100);
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+
+.profile-card label {
+    font-family: var(--font-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.profile-card-actions {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--neutral-100);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+}
+
+/* Profile Info Grid */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.profile-info-grid .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.profile-info-item {
+    padding: var(--spacing-sm) 0;
+}
+
+.profile-info-item label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--neutral-600);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+}
+
+.profile-info-item span {
+    font-size: 1rem;
+    color: var(--neutral-900);
+    font-weight: 500;
+}
+
+/* Profile Content Wrapper */
+.profile-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+/* Legacy Profile Page Support */
 body.perfil-page .login-container {
     max-width: 950px;
     width: 95%;
@@ -862,7 +1024,7 @@ body.perfil-page .login-box {
     padding: var(--spacing-xl);
 }
 
-/* Profile Header */
+/* Profile Header (Legacy) */
 .profile-header {
     text-align: center;
     margin-bottom: var(--spacing-xl);
@@ -1888,6 +2050,63 @@ body.dark-mode .login-page.perfil-page {
     background: var(--dark-900);
 }
 
+/* Profile Hero Dark Mode */
+body.dark-mode .profile-hero {
+    background: linear-gradient(135deg, var(--dark-800) 0%, var(--dark-700) 100%);
+}
+
+body.dark-mode .profile-hero-avatar {
+    background: var(--dark-700);
+    color: var(--primary-400);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .profile-hero-name {
+    color: #fff;
+}
+
+body.dark-mode .profile-hero-role {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* Profile Back Link Dark Mode */
+body.dark-mode .profile-back-link a {
+    background: var(--dark-800);
+    color: var(--dark-500);
+}
+
+body.dark-mode .profile-back-link a:hover {
+    color: var(--primary-400);
+}
+
+/* Profile Cards Dark Mode */
+body.dark-mode .profile-card {
+    background: var(--dark-800);
+    border-color: var(--dark-700);
+}
+
+body.dark-mode .profile-card h2 {
+    color: var(--primary-400);
+    border-bottom-color: var(--dark-700);
+}
+
+body.dark-mode .profile-card label {
+    color: #b0b0b0;
+}
+
+body.dark-mode .profile-card-actions {
+    border-top-color: var(--dark-700);
+}
+
+body.dark-mode .profile-info-item label {
+    color: #888;
+}
+
+body.dark-mode .profile-info-item span {
+    color: #e0e0e0;
+}
+
+/* Legacy Profile Dark Mode */
 body.dark-mode .profile-readonly-section,
 body.dark-mode .profile-editable-form {
     background-color: var(--dark-800);
@@ -2185,6 +2404,47 @@ body.dark-mode .empty-state-icon {
 
     .profile-bottom-buttons .btn:last-child {
         margin-bottom: 0;
+    }
+
+    /* Profile Hero Mobile */
+    .profile-hero {
+        padding: 60px 0 100px;
+    }
+
+    .profile-hero-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 2.5rem;
+    }
+
+    .profile-hero-name {
+        font-size: 1.5rem;
+    }
+
+    .profile-back-link {
+        margin-top: -50px;
+    }
+
+    /* Profile Cards Mobile */
+    .profile-cards-container {
+        grid-template-columns: 1fr;
+        margin-top: var(--spacing-lg);
+    }
+
+    .profile-card--full {
+        grid-column: auto;
+    }
+
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-card-actions {
+        flex-direction: column;
+    }
+
+    .profile-card-actions .btn {
+        width: 100%;
     }
 
     /* Dropdown Mobile */
