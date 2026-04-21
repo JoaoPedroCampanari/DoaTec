@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - DoaTec</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="doatec_logo.png" type="image/png">
     <script src="https://unpkg.com/imask"></script>
@@ -56,6 +60,9 @@
 <main>
     <!-- Profile Hero -->
     <section class="profile-hero">
+        <div class="profile-back-link">
+            <a href="index.html">← Voltar para o Início</a>
+        </div>
         <div class="container">
             <div class="profile-hero-avatar" id="profileAvatar">
                 <span id="avatarInitial">?</span>
@@ -64,11 +71,6 @@
             <p class="profile-hero-role" id="profileRole">-</p>
         </div>
     </section>
-
-    <!-- Back Link -->
-    <div class="profile-back-link">
-        <a href="index.html">← Voltar para o Início</a>
-    </div>
 
     <!-- Profile Cards -->
     <div class="profile-cards-container">
