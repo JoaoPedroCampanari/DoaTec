@@ -90,6 +90,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    margin: 0;
+    padding: 0;
     transition: background-color var(--transition-base), color var(--transition-base);
 }
 
@@ -118,15 +120,22 @@ p {
 }
 
 /* ==================== NAVBAR ==================== */
+header {
+    margin: 0;
+    padding: 0;
+}
+
 .navbar {
     background: #343a40;
     color: #fff;
-    height: 64px;
+    height: 80px;
     display: flex;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 1000;
+    margin: 0;
+    padding: 0;
     transition: background var(--transition-base), backdrop-filter var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -161,7 +170,7 @@ p {
     cursor: pointer;
     height: 40px;
     width: auto;
-    max-height: 45px;
+    max-height: 55px;
 }
 
 /* ==================== NAV LINKS ==================== */
@@ -238,15 +247,17 @@ p {
 /* ==================== MAIN ==================== */
 main {
     flex-grow: 1;
-    padding: var(--spacing-xl) 0;
+    padding: 0;
 }
 
 /* ==================== HERO SECTION ==================== */
 .hero {
     background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-600) 100%);
     position: relative;
-    padding: var(--spacing-3xl) 0;
+    padding: 100px 0 150px;
     overflow: hidden;
+    margin-top: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
 }
 
 /* Pattern overlay */
@@ -272,6 +283,8 @@ main {
     font-weight: 700;
     margin-bottom: var(--spacing-md);
     font-family: var(--font-heading);
+    position: relative;
+    z-index: 2;
 }
 
 .hero p {
@@ -279,6 +292,8 @@ main {
     font-size: 1.2rem;
     max-width: 600px;
     margin-bottom: var(--spacing-lg);
+    position: relative;
+    z-index: 2;
 }
 
 /* Hero CTA Button */
@@ -293,6 +308,8 @@ main {
     text-decoration: none;
     transition: transform var(--transition-base), box-shadow var(--transition-base);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 2;
 }
 
 .hero-cta:hover {
@@ -302,7 +319,7 @@ main {
 
 /* ==================== ABOUT SHORT SECTION ==================== */
 .about-short {
-    padding: var(--spacing-3xl) 0;
+    padding: 100px 0;
     background: #fff;
     text-align: center;
 }
@@ -321,8 +338,9 @@ main {
 
 /* ==================== DASHBOARD SECTION (Stats) ==================== */
 .dashboard-section {
-    padding: var(--spacing-3xl) 0;
-    background: var(--neutral-50);
+    padding: 80px 0 100px;
+    background: #fff;
+    margin-top: -80px;
 }
 
 .dashboard-title {
@@ -346,8 +364,8 @@ main {
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
     text-align: center;
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
     transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -396,7 +414,7 @@ main {
 
 /* ==================== HOW IT WORKS (Timeline) ==================== */
 .how-it-works {
-    padding: var(--spacing-3xl) 0;
+    padding: 100px 0;
     background: #fff;
 }
 
@@ -462,8 +480,8 @@ main {
 }
 
 .step-icon {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     margin: 0 auto var(--spacing-md);
     color: var(--primary-600);
 }
@@ -490,7 +508,7 @@ main {
 
 /* ==================== TESTIMONIALS SECTION ==================== */
 .news-testimonials {
-    padding: var(--spacing-3xl) 0;
+    padding: 100px 0;
     background: var(--neutral-50);
 }
 
@@ -2042,13 +2060,13 @@ body.dark-mode .empty-state-icon {
         flex-direction: column;
         width: 100%;
         position: fixed;
-        top: 64px;
+        top: 80px;
         left: 0;
         right: 0;
         background: #343a40;
         padding: var(--spacing-md) var(--spacing-lg);
         box-shadow: var(--shadow-lg);
-        max-height: calc(100vh - 64px);
+        max-height: calc(100vh - 80px);
         overflow-y: auto;
     }
 
@@ -2071,7 +2089,7 @@ body.dark-mode .empty-state-icon {
 
     /* Hero Mobile */
     .hero {
-        padding: var(--spacing-2xl) 0;
+        padding: 60px 0 120px;
     }
 
     .hero h1 {
@@ -2086,6 +2104,12 @@ body.dark-mode .empty-state-icon {
     .hero-cta {
         padding: var(--spacing-sm) var(--spacing-lg);
         font-size: 0.95rem;
+    }
+
+    /* Dashboard section - adjust for slanted hero */
+    .dashboard-section {
+        padding: 60px 0 80px;
+        margin-top: -60px;
     }
 
     /* Stats Mobile */
@@ -2196,7 +2220,7 @@ body.dark-mode .empty-state-icon {
     /* Notifications Mobile */
     .notification-dropdown {
         position: fixed;
-        top: 64px;
+        top: 80px;
         left: var(--spacing-md);
         right: var(--spacing-md);
         width: calc(100% - 2 * var(--spacing-md));
