@@ -32,6 +32,21 @@ build/
 ### VS Code ###
 .vscode/
 
+### Docker export ###
+doatec-docker-export/
+
+### Maven local (desnecessario com wrapper/Docker) ###
+apache-maven-3.8.6/
+apache-maven-3.8.6-bin.zip
+
+### Arquivos de teste/sobra ###
+test.Dockerfile
+cookies.txt
+
+### Uploads (dados de runtime) ###
+uploads/
+
+### Claude / OpenClaude ###
 .openclaude/
 .claude
 CONTEXT_MEMORY_BANK.md

@@ -1,0 +1,15 @@
+.git
+.gitignore
+.idea
+.vscode
+target
+apache-maven-3.8.6
+apache-maven-3.8.6-bin.zip
+uploads
+*.md
+*.bat
+*.sh
+test.Dockerfile
+docker-compose.yml
+.dockerignore
+.claude
