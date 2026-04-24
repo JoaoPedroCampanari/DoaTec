@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
 
                         // 5. PROTEÇÃO DE PÁGINAS PRIVADAS (Exige Login)
-                        .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html").authenticated()
+                        .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html", "/admin.html").authenticated()
 
                         // 6. PROTEÇÃO DE APIs (Exige Role Específica)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

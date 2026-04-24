@@ -42,21 +42,42 @@ function getStatusClass(status) {
     if (!status) return 'status-pending';
 
     const statusMap = {
+        // Doações
         'triagem': 'status-triagem',
         'em triagem': 'status-triagem',
+        'em_triagem': 'status-triagem',
+        'aguardando coleta': 'status-triagem',
+        'aguardando_coleta': 'status-triagem',
+        'recebido': 'status-pendente',
+        'em análise': 'status-pendente',
+        'em_analise': 'status-pendente',
         'aprovado': 'status-aprovado',
         'aprovada': 'status-aprovado',
+        'finalizado': 'status-concluido',
         'reprovado': 'status-reprovado',
         'recusado': 'status-reprovado',
         'rejeitado': 'status-reprovado',
         'rejeitada': 'status-reprovado',
+        // Solicitações
         'pendente': 'status-pendente',
-        'em análise': 'status-pendente',
         'concluído': 'status-concluido',
         'concluido': 'status-concluido',
+        'concluída': 'status-concluido',
+        'concluida': 'status-concluido',
+        // Equipamentos
+        'disponivel': 'status-aprovado',
+        'disponível': 'status-aprovado',
+        'reservado': 'status-triagem',
         'entregue': 'status-entregue',
-        'finalizado': 'status-concluido',
-        'completed': 'status-concluido'
+        // Suporte
+        'aberto': 'status-reprovado',
+        'em andamento': 'status-triagem',
+        'em_andamento': 'status-triagem',
+        'resolvido': 'status-concluido',
+        'fechado': 'status-pending',
+        // General
+        'completed': 'status-concluido',
+        'delivered': 'status-entregue'
     };
 
     return statusMap[status.toLowerCase()] || 'status-pending';
@@ -69,23 +90,53 @@ function translateStatus(status) {
     if (!status) return 'Desconhecido';
 
     const translations = {
+        // Doações
+        'em_triagem': 'Em Triagem',
         'triagem': 'Em Triagem',
         'triage': 'Em Triagem',
-        'approved': 'Aprovado',
-        'aprovado': 'Aprovado',
-        'rejected': 'Reprovado',
-        'reprovado': 'Reprovado',
+        'aguardando_coleta': 'Aguardando Coleta',
+        'aguardando coleta': 'Aguardando Coleta',
+        'recebido': 'Recebido',
+        'em_analise': 'Em Análise',
+        'em análise': 'Em Análise',
+        'em analise': 'Em Análise',
+        'finalizado': 'Finalizado',
         'rejeitada': 'Rejeitada',
-        'pending': 'Pendente',
+        'aprovado': 'Aprovado',
+        'aprovada': 'Aprovada',
+        'approved': 'Aprovado',
+        'rejected': 'Rejeitada',
+        'reprovado': 'Reprovado',
+        // Solicitações
         'pendente': 'Pendente',
-        'completed': 'Concluído',
+        'pending': 'Pendente',
+        'concluído': 'Concluído',
         'concluido': 'Concluído',
+        'concluída': 'Concluída',
+        'concluida': 'Concluída',
+        'completed': 'Concluído',
+        // Equipamentos
+        'disponivel': 'Disponível',
+        'disponível': 'Disponível',
+        'reservado': 'Reservado',
         'entregue': 'Entregue',
-        'delivered': 'Entregue'
+        'delivered': 'Entregue',
+        // Suporte
+        'aberto': 'Aberto',
+        'em_andamento': 'Em Andamento',
+        'em andamento': 'Em Andamento',
+        'resolvido': 'Resolvido',
+        'fechado': 'Fechado',
+        // Conservação
+        'novo': 'Novo',
+        'excelente': 'Excelente',
+        'bom': 'Bom',
+        'regular': 'Regular',
+        'necessita_reparo': 'Necessita Reparo'
     };
 
-    const lower = status.toLowerCase();
-    return translations[lower] || capitalize(status);
+    const lower = status.toLowerCase().replace(/-/g, '_');
+    return translations[lower] || capitalize(status.replace(/_/g, ' '));
 }
 
 // ==================== SVG ICONS ====================

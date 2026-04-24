@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - DoaTec</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
+</head>
+<body class="admin-page">
+<header>
+    <nav class="navbar">
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Início</a></li>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li><a href="suporte.html">Suporte</a></li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
+        </ul>
+        <div class="navbar-right">
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
+        </div>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </nav>
+</header>
+
+<main class="admin-container">
+    <div class="admin-header">
+        <h1>Painel Administrativo</h1>
+        <p class="admin-subtitle">Gerencie doações, solicitações, inventário, suporte e usuários</p>
+    </div>
+
+    <!-- Abas de navegação -->
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+        <button class="admin-tab" data-tab="doacoes">Doações</button>
+        <button class="admin-tab" data-tab="solicitacoes">Solicitações</button>
+        <button class="admin-tab" data-tab="inventario">Inventário</button>
+        <button class="admin-tab" data-tab="suporte-usuarios">Suporte & Usuários</button>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="tab-dashboard" class="admin-tab-content active">
+        <div class="admin-stats-grid" id="dashboard-stats">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-primary, #4F46E5);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                </div>
+                <span class="stat-number" id="stat-total-doacoes">0</span>
+                <span class="stat-label">Total Doações</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-success, #28a745);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span class="stat-number" id="stat-doacoes-aprovadas">0</span>
+                <span class="stat-label">Doações Aprovadas</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-danger, #dc3545);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <span class="stat-number" id="stat-doacoes-rejeitadas">0</span>
+                <span class="stat-label">Doações Rejeitadas</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-warning, #ffc107);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <span class="stat-number" id="stat-solicitacoes-pendentes">0</span>
+                <span class="stat-label">Solicitações Pendentes</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-success, #28a745);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span class="stat-number" id="stat-solicitacoes-aprovadas">0</span>
+                <span class="stat-label">Solicitações Aprovadas</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-danger, #dc3545);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+                <span class="stat-number" id="stat-solicitacoes-rejeitadas">0</span>
+                <span class="stat-label">Solicitações Rejeitadas</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-danger, #dc3545);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <span class="stat-number" id="stat-tickets-abertos">0</span>
+                <span class="stat-label">Tickets Abertos</span>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="color: var(--color-primary, #4F46E5);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <span class="stat-number" id="stat-usuarios-ativos">0</span>
+                <span class="stat-label">Usuários Ativos</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DOAÇÕES ==================== -->
+    <div id="tab-doacoes" class="admin-tab-content">
+        <div class="admin-filter-bar" id="doacoes-filters"></div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Doador</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Descrição</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="doacoes-tbody"></tbody>
+            </table>
+        </div>
+        <div class="admin-pagination" id="doacoes-pagination"></div>
+    </div>
+
+    <!-- ==================== SOLICITAÇÕES ==================== -->
+    <div id="tab-solicitacoes" class="admin-tab-content">
+        <div class="admin-filter-bar" id="solicitacoes-filters"></div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Aluno</th>
+                        <th>Data</th>
+                        <th>Preferência</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="solicitacoes-tbody"></tbody>
+            </table>
+        </div>
+        <div class="admin-pagination" id="solicitacoes-pagination"></div>
+        <!-- Painel de sugestões de matching -->
+        <div id="match-panel" class="match-panel" style="display:none;">
+            <div class="match-panel-header">
+                <h3>Sugestões de Matching</h3>
+                <button class="btn-action" onclick="AdminPanel.closeMatchPanel()">Fechar</button>
+            </div>
+            <div id="match-panel-content"></div>
+        </div>
+    </div>
+
+    <!-- ==================== INVENTÁRIO ==================== -->
+    <div id="tab-inventario" class="admin-tab-content">
+        <div class="admin-filter-bar" id="inventario-filters"></div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Conservação</th>
+                        <th>Status</th>
+                        <th>Doador Origem</th>
+                        <th>Destinatário</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="inventario-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ==================== SUPORTE & USUÁRIOS ==================== -->
+    <div id="tab-suporte-usuarios" class="admin-tab-content">
+        <div class="admin-subtabs">
+            <button class="admin-subtab active" data-subtab="suporte">Suporte</button>
+            <button class="admin-subtab" data-subtab="usuarios">Usuários</button>
+        </div>
+
+        <!-- Sub-tab Suporte -->
+        <div id="subtab-suporte" class="admin-subtab-content active">
+            <div class="admin-filter-bar" id="suporte-filters"></div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Autor</th>
+                            <th>Assunto</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suporte-tbody"></tbody>
+                </table>
+            </div>
+            <div class="admin-pagination" id="suporte-pagination"></div>
+        </div>
+
+        <!-- Sub-tab Usuários -->
+        <div id="subtab-usuarios" class="admin-subtab-content">
+            <div class="admin-filter-bar" id="usuarios-filters"></div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Tipo</th>
+                            <th>Role</th>
+                            <th>Ativo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios-tbody"></tbody>
+                </table>
+            </div>
+            <div class="admin-pagination" id="usuarios-pagination"></div>
+        </div>
+    </div>
+</main>
+
+<!-- ==================== MODAL DE AVALIAÇÃO ==================== -->
+<div id="modal-avaliacao" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3 id="modal-avaliacao-title">Avaliação</h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-avaliacao')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <p id="modal-avaliacao-description"></p>
+            <div class="form-group">
+                <label for="modal-avaliacao-observacao">Observação</label>
+                <textarea id="modal-avaliacao-observacao" rows="4" maxlength="500" placeholder="Observação opcional..."></textarea>
+                <small id="modal-avaliacao-warning" style="color:var(--color-danger);display:none;">Observação obrigatória para rejeitar.</small>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-avaliacao')">Cancelar</button>
+            <button class="btn-approve" id="modal-avaliacao-confirm">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DE RESPOSTA SUPORTE ==================== -->
+<div id="modal-resposta" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3>Responder Ticket</h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-resposta')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="form-group">
+                <label for="modal-resposta-texto">Resposta</label>
+                <textarea id="modal-resposta-texto" rows="4" maxlength="1000" placeholder="Escreva a resposta..."></textarea>
+                <small id="modal-resposta-warning" style="color:var(--color-danger);display:none;">Resposta obrigatória.</small>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-resposta')">Cancelar</button>
+            <button class="btn-approve" id="modal-resposta-confirm">Enviar Resposta</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DE ALTERAR STATUS SUPORTE ==================== -->
+<div id="modal-status-suporte" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3>Alterar Status do Ticket</h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-status-suporte')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="form-group">
+                <label for="modal-status-suporte-select">Novo Status</label>
+                <select id="modal-status-suporte-select">
+                    <option value="ABERTO">Aberto</option>
+                    <option value="EM_ANDAMENTO">Em Andamento</option>
+                    <option value="RESOLVIDO">Resolvido</option>
+                    <option value="FECHADO">Fechado</option>
+                </select>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-status-suporte')">Cancelar</button>
+            <button class="btn-approve" id="modal-status-suporte-confirm">Alterar Status</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DE ALTERAR ROLE USUÁRIO ==================== -->
+<div id="modal-role-usuario" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3>Alterar Role do Usuário</h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-role-usuario')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="form-group">
+                <label for="modal-role-usuario-select">Nova Role</label>
+                <select id="modal-role-usuario-select">
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-role-usuario')">Cancelar</button>
+            <button class="btn-approve" id="modal-role-usuario-confirm">Alterar Role</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/nav-visibility.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
