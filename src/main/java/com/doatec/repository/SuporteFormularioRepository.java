@@ -15,4 +15,5 @@ public interface SuporteFormularioRepository extends JpaRepository<SuporteFormul
     List<SuporteFormulario> findByStatus(StatusSuporte status);
     Page<SuporteFormulario> findByStatus(StatusSuporte status, Pageable pageable);
     long countByStatus(StatusSuporte status);
+    long countByAutorId(Integer autorId);
 }

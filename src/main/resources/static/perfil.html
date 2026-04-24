@@ -92,6 +92,18 @@
                     <label>Documento</label>
                     <span id="profileDocumento">-</span>
                 </div>
+                <div class="profile-info-item" id="statsDoacoesItem" style="display:none;">
+                    <label>Doações Realizadas</label>
+                    <span id="profileTotalDoacoes">0</span>
+                </div>
+                <div class="profile-info-item" id="statsSolicitacoesItem" style="display:none;">
+                    <label>Solicitações Realizadas</label>
+                    <span id="profileTotalSolicitacoes">0</span>
+                </div>
+                <div class="profile-info-item">
+                    <label>Tickets de Suporte</label>
+                    <span id="profileTotalTicketsSuporte">0</span>
+                </div>
             </div>
         </section>
 
@@ -231,6 +243,17 @@
                     profileNomeSpan.textContent = userData.nome || '-';
                     profileTipoSpan.textContent = formatUserRole(userData.tipoPessoa);
                     profileDocumentoSpan.textContent = formatDocument(userData);
+
+                    // Estatísticas do usuário
+                    const tipo = userData.tipoPessoa;
+                    if (tipo === 'DOADOR_PF' || tipo === 'DOADOR_PJ') {
+                        document.getElementById('statsDoacoesItem').style.display = '';
+                        document.getElementById('profileTotalDoacoes').textContent = userData.totalDoacoes || 0;
+                    } else if (tipo === 'ALUNO') {
+                        document.getElementById('statsSolicitacoesItem').style.display = '';
+                        document.getElementById('profileTotalSolicitacoes').textContent = userData.totalSolicitacoes || 0;
+                    }
+                    document.getElementById('profileTotalTicketsSuporte').textContent = userData.totalTicketsSuporte || 0;
 
                     // Update card 2 (contact)
                     profileEmailInput.value = userData.email || '';

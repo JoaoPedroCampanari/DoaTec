@@ -15,4 +15,5 @@ public interface SolicitacaoHardwareRepository extends JpaRepository<Solicitacao
     List<SolicitacaoHardware> findByStatus(StatusSolicitacao status);
     Page<SolicitacaoHardware> findByStatus(StatusSolicitacao status, Pageable pageable);
     long countByStatus(StatusSolicitacao status);
+    long countByAlunoId(Integer alunoId);
 }

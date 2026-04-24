@@ -154,6 +154,10 @@ public class PessoaMapper {
      * Usa metodos polimorficos getDocumento() e getTipoPessoa() das subclasses.
      */
     public static UserLoginResponse toResponse(Pessoa pessoa) {
+        return toResponse(pessoa, 0L, 0L, 0L);
+    }
+
+    public static UserLoginResponse toResponse(Pessoa pessoa, Long totalDoacoes, Long totalSolicitacoes, Long totalTicketsSuporte) {
         return UserLoginResponse.fromWithAddress(
                 pessoa.getId(),
                 pessoa.getNome(),
@@ -168,7 +172,10 @@ public class PessoaMapper {
                 pessoa.getNumero(),
                 pessoa.getBairro(),
                 pessoa.getCidade(),
-                pessoa.getEstado()
+                pessoa.getEstado(),
+                totalDoacoes,
+                totalSolicitacoes,
+                totalTicketsSuporte
         );
     }
 

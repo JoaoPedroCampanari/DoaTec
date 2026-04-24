@@ -18,4 +18,5 @@ public interface DoacaoRepository extends JpaRepository<Doacao, Integer> {
     Page<Doacao> findByStatus(StatusDoacao status, Pageable pageable);
     Optional<Doacao> findTopByOrderByDataDoacaoDesc();
     long countByStatus(StatusDoacao status);
+    long countByDoadorId(Integer doadorId);
 }
