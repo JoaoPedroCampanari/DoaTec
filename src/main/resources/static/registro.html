@@ -9,7 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/imask"></script>
+    <script src="js/vendor/imask.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
 </head>
 
 <body class="login-page">
@@ -305,11 +307,11 @@
                 const senha = passwordInput.value;
                 const confirma = confirmPasswordInput.value;
                 if (senha !== confirma) {
-                    alert('As senhas nao coincidem!');
+                    DoaTec.showToast('As senhas não coincidem!', 'error');
                     return false;
                 }
                 if (senha.length < 6) {
-                    alert('A senha deve ter no minimo 6 digitos.');
+                    DoaTec.showToast('A senha deve ter no mínimo 6 dígitos.', 'error');
                     return false;
                 }
             }
@@ -319,7 +321,7 @@
                 const cep = document.getElementById('cep');
                 const cepLimpo = cep.value.replace(/\D/g, '');
                 if (cepLimpo.length !== 8) {
-                    alert('CEP invalido.');
+                    DoaTec.showToast('CEP inválido.', 'error');
                     cep.focus();
                     return false;
                 }
@@ -330,24 +332,24 @@
                 const estado = document.getElementById('estado');
 
                 if (!logradouro.value.trim()) {
-                    alert('Logradouro invalido.');
+                    DoaTec.showToast('Logradouro inválido.', 'error');
                     return false;
                 }
                 if (!numero.value.trim()) {
-                    alert('Numero do endereco e obrigatorio.');
+                    DoaTec.showToast('Número do endereço é obrigatório.', 'error');
                     numero.focus();
                     return false;
                 }
                 if (!bairro.value.trim()) {
-                    alert('Bairro invalido.');
+                    DoaTec.showToast('Bairro inválido.', 'error');
                     return false;
                 }
                 if (!cidade.value.trim()) {
-                    alert('Cidade invalida.');
+                    DoaTec.showToast('Cidade inválida.', 'error');
                     return false;
                 }
                 if (!estado.value.trim()) {
-                    alert('Estado invalido.');
+                    DoaTec.showToast('Estado inválido.', 'error');
                     return false;
                 }
             }
@@ -468,7 +470,7 @@
                 this.classList.remove('viacep-loading');
 
                 if (endereco.erro) {
-                    alert(endereco.erro);
+                    DoaTec.showToast(endereco.erro, 'error');
                     // Libera campos para edicao manual
                     liberarCamposEndereco();
                 } else {
@@ -496,6 +498,9 @@
             if (!validateStep(3)) {
                 return;
             }
+
+            const submitBtn = document.getElementById('submitBtn');
+            DoaTec.setButtonLoading(submitBtn, true);
 
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
             const email = document.getElementById('regEmail').value;
@@ -560,7 +565,7 @@
             }
 
             try {
-                const response = await fetch(endpoint, {
+                const response = await apiFetch(endpoint, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -590,11 +595,13 @@
                             errorMsg = errorText;
                         }
                     }
-                    alert(errorMsg);
+                    DoaTec.showToast(errorMsg, 'error');
                 }
             } catch (error) {
                 console.error('Erro na requisicao:', error);
-                alert('Ocorreu um erro ao tentar registrar. Verifique a conexao com o servidor.');
+                DoaTec.showToast('Ocorreu um erro ao tentar registrar. Verifique a conexão com o servidor.', 'error');
+            } finally {
+                DoaTec.setButtonLoading(submitBtn, false);
             }
         });
 

@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="doatec_logo.png" type="image/png">
-    <script src="https://unpkg.com/imask"></script>
+    <script src="js/vendor/imask.min.js"></script>
 </head>
 
 <body>
@@ -45,10 +45,12 @@
                 </div>
             </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <li id="minhaContaDropdownItem" class="nav-dropdown">
-                <a href="#">Minha Conta</a>
-                <ul class="dropdown-menu"></ul>
-            </li>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
             <div class="menu-toggle">
                 <span></span>
@@ -194,7 +196,7 @@
                 })
                 .catch(error => {
                     console.error('Erro ao preencher dados do doador:', error);
-                    alert('Não foi possível carregar seus dados para preenchimento automático.');
+                    DoaTec.showToast('Não foi possível carregar seus dados para preenchimento automático.', 'error');
                     Auth.logout();
                 });
         } else {
@@ -206,6 +208,9 @@
         donationForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            const submitBtn = donationForm.querySelector('button[type="submit"]');
+            DoaTec.setButtonLoading(submitBtn, true);
+
             // Pega o valor "limpo" da máscara, se ela existir
             const numeroDocumento = documentMask ? documentMask.unmaskedValue : documentInput.value;
 
@@ -215,12 +220,12 @@
             const fotoFile = document.getElementById('fotoDoacao').files[0];
 
             if (!termsAccepted) {
-                alert('Você deve concordar com os termos da doação.');
+                DoaTec.showToast('Você deve concordar com os termos da doação.', 'warning');
                 return;
             }
 
             if (!descricaoGeral.trim()) {
-                alert('Por favor, preencha a descrição geral da doação.');
+                DoaTec.showToast('Por favor, preencha a descrição geral da doação.', 'warning');
                 return;
             }
 
@@ -231,7 +236,7 @@
                 formData.append('file', fotoFile);
 
                 try {
-                    const uploadResponse = await fetch('/api/upload/foto', {
+                    const uploadResponse = await apiFetch('/api/upload/foto', {
                         method: 'POST',
                         body: formData
                     });
@@ -240,12 +245,12 @@
                         urlFoto = await uploadResponse.text();
                     } else {
                         const errorMsg = await uploadResponse.text();
-                        alert('Erro ao enviar foto: ' + errorMsg);
+                        DoaTec.showToast('Erro ao enviar foto: ' + errorMsg, 'error');
                         return;
                     }
                 } catch (uploadError) {
                     console.error('Erro no upload:', uploadError);
-                    alert('Erro ao enviar foto. Tente novamente.');
+                    DoaTec.showToast('Erro ao enviar foto. Tente novamente.', 'error');
                     return;
                 }
             }
@@ -262,7 +267,7 @@
             };
 
             try {
-                const response = await fetch('/api/donations', {
+                const response = await apiFetch('/api/donations', {
                     method: 'POST',
                     credentials: 'include',
                     headers: {
@@ -273,8 +278,8 @@
 
                 if (response.ok) {
                     const message = await response.text();
-                    alert(message);
-                    donationForm.reset();
+                    DoaTec.showToast(message, 'success');
+                    setTimeout(() => window.location.href = 'minhas-doacoes.html', 1500);
                 } else {
                     let errorMessage = 'Erro desconhecido.';
                     try {
@@ -283,11 +288,13 @@
                     } catch (jsonError) {
                         errorMessage = await response.text();
                     }
-                    alert('Erro ao registrar doação: ' + errorMessage);
+                    DoaTec.showToast('Erro ao registrar doação: ' + errorMessage, 'error');
                 }
             } catch (error) {
                 console.error('Erro na requisição de doação:', error);
-                alert('Ocorreu um erro ao enviar sua doação. Verifique a conexão com o servidor.');
+                DoaTec.showToast('Ocorreu um erro ao enviar sua doação. Verifique a conexão com o servidor.', 'error');
+            } finally {
+                DoaTec.setButtonLoading(submitBtn, false);
             }
         });
     });

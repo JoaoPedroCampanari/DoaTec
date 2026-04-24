@@ -13,12 +13,19 @@ import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.StatusDoacao;
 import com.doatec.model.solicitacao.StatusSolicitacao;
 import com.doatec.model.suporte.StatusSuporte;
+import com.doatec.repository.PessoaRepository;
 import com.doatec.service.AdminService;
 import com.doatec.service.PessoaService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +40,15 @@ public class AdminController {
     @Autowired
     private PessoaService pessoaService;
 
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    private Integer getAuthenticatedAdminId(User userDetails) {
+        return pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+    }
+
     // ==================== DASHBOARD ====================
 
     @GetMapping("/dashboard")
@@ -44,17 +60,19 @@ public class AdminController {
     // ==================== DOAÇÕES ====================
 
     @GetMapping("/doacoes")
-    public ResponseEntity<List<DoacaoResponse>> listarDoacoes(
-            @RequestParam(required = false) StatusDoacao status) {
-        List<DoacaoResponse> doacoes = adminService.listarDoacoes(status);
+    public ResponseEntity<Page<DoacaoResponse>> listarDoacoes(
+            @RequestParam(required = false) StatusDoacao status,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Page<DoacaoResponse> doacoes = adminService.listarDoacoes(status, pageable);
         return ResponseEntity.ok(doacoes);
     }
 
     @PutMapping("/doacoes/{id}/aprovar")
     public ResponseEntity<DoacaoResponse> aprovarDoacao(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
-            @RequestBody(required = false) AvaliacaoRequest request) {
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         DoacaoResponse doacao = adminService.aprovarDoacao(id, adminId, request);
         return ResponseEntity.ok(doacao);
     }
@@ -62,8 +80,9 @@ public class AdminController {
     @PutMapping("/doacoes/{id}/rejeitar")
     public ResponseEntity<DoacaoResponse> rejeitarDoacao(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
-            @RequestBody(required = false) AvaliacaoRequest request) {
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         DoacaoResponse doacao = adminService.rejeitarDoacao(id, adminId, request);
         return ResponseEntity.ok(doacao);
     }
@@ -71,17 +90,19 @@ public class AdminController {
     // ==================== SOLICITAÇÕES ====================
 
     @GetMapping("/solicitacoes")
-    public ResponseEntity<List<SolicitacaoResponse>> listarSolicitacoes(
-            @RequestParam(required = false) StatusSolicitacao status) {
-        List<SolicitacaoResponse> solicitacoes = adminService.listarSolicitacoes(status);
+    public ResponseEntity<Page<SolicitacaoResponse>> listarSolicitacoes(
+            @RequestParam(required = false) StatusSolicitacao status,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Page<SolicitacaoResponse> solicitacoes = adminService.listarSolicitacoes(status, pageable);
         return ResponseEntity.ok(solicitacoes);
     }
 
     @PutMapping("/solicitacoes/{id}/aprovar")
     public ResponseEntity<SolicitacaoResponse> aprovarSolicitacao(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
-            @RequestBody(required = false) AvaliacaoRequest request) {
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         SolicitacaoResponse solicitacao = adminService.aprovarSolicitacao(id, adminId, request);
         return ResponseEntity.ok(solicitacao);
     }
@@ -89,8 +110,9 @@ public class AdminController {
     @PutMapping("/solicitacoes/{id}/rejeitar")
     public ResponseEntity<SolicitacaoResponse> rejeitarSolicitacao(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
-            @RequestBody(required = false) AvaliacaoRequest request) {
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         SolicitacaoResponse solicitacao = adminService.rejeitarSolicitacao(id, adminId, request);
         return ResponseEntity.ok(solicitacao);
     }
@@ -98,17 +120,19 @@ public class AdminController {
     // ==================== SUPORTE ====================
 
     @GetMapping("/suporte")
-    public ResponseEntity<List<SuporteResponse>> listarTickets(
-            @RequestParam(required = false) StatusSuporte status) {
-        List<SuporteResponse> tickets = adminService.listarTickets(status);
+    public ResponseEntity<Page<SuporteResponse>> listarTickets(
+            @RequestParam(required = false) StatusSuporte status,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Page<SuporteResponse> tickets = adminService.listarTickets(status, pageable);
         return ResponseEntity.ok(tickets);
     }
 
     @PutMapping("/suporte/{id}/responder")
     public ResponseEntity<SuporteResponse> responderTicket(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
+            @AuthenticationPrincipal User userDetails,
             @Valid @RequestBody RespostaSuporteRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         SuporteResponse ticket = adminService.responderTicket(id, adminId, request);
         return ResponseEntity.ok(ticket);
     }
@@ -124,8 +148,9 @@ public class AdminController {
     // ==================== USUÁRIOS ====================
 
     @GetMapping("/usuarios")
-    public ResponseEntity<List<UsuarioAdminResponse>> listarTodosUsuarios() {
-        List<UsuarioAdminResponse> usuarios = adminService.listarTodosUsuarios();
+    public ResponseEntity<Page<UsuarioAdminResponse>> listarTodosUsuarios(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Page<UsuarioAdminResponse> usuarios = adminService.listarTodosUsuarios(pageable);
         return ResponseEntity.ok(usuarios);
     }
 
@@ -146,8 +171,9 @@ public class AdminController {
     @PutMapping("/usuarios/{id}/status")
     public ResponseEntity<UsuarioAdminResponse> alterarStatusUsuario(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
+            @AuthenticationPrincipal User userDetails,
             @Valid @RequestBody StatusUsuarioRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         UsuarioAdminResponse usuario = pessoaService.alterarStatusUsuario(id, request.ativo(), adminId);
         return ResponseEntity.ok(usuario);
     }
@@ -155,8 +181,9 @@ public class AdminController {
     @PutMapping("/usuarios/{id}/role")
     public ResponseEntity<UsuarioAdminResponse> alterarRoleUsuario(
             @PathVariable Integer id,
-            @RequestParam Integer adminId,
+            @AuthenticationPrincipal User userDetails,
             @RequestParam Role novaRole) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         UsuarioAdminResponse usuario = pessoaService.alterarRoleUsuario(id, novaRole, adminId);
         return ResponseEntity.ok(usuario);
     }

@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,9 +24,11 @@ public class SolicitacaoController {
     private SolicitacaoService solicitacaoService;
 
     @PostMapping
-    public ResponseEntity<SolicitacaoResponse> criar(@Valid @RequestBody SolicitacaoRequest dto) {
+    public ResponseEntity<SolicitacaoResponse> criar(
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody SolicitacaoRequest dto) {
         try {
-            SolicitacaoHardware solicitacao = solicitacaoService.criarSolicitacao(dto);
+            SolicitacaoHardware solicitacao = solicitacaoService.criarSolicitacao(userDetails.getUsername(), dto);
             SolicitacaoResponse response = SolicitacaoMapper.toResponse(solicitacao);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {

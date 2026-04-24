@@ -66,6 +66,23 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
     --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.15);
+
+    /* Transitions */
+    --transition-base: 0.3s ease;
+    --transition-fast: 0.15s ease;
+
+    /* Neutral fill (used in 40+ places but were missing) */
+    --neutral-200: #EEEEEE;
+    --neutral-500: #9E9E9E;
+    --neutral-700: #616161;
+
+    /* Semantic colors */
+    --color-white: #fff;
+    --color-dark: #343a40;
+    --color-danger: #dc3545;
+    --color-success: #28a745;
+    --color-warning: #ffc107;
+    --color-info: #007bff;
 }
 
 /* ==================== RESET CSS ==================== */
@@ -132,7 +149,7 @@ header {
 }
 
 .navbar {
-    background: #343a40;
+    background: var(--color-dark);
     color: #fff;
     height: 80px;
     display: flex;
@@ -148,7 +165,7 @@ header {
 
 /* Glassmorphism on scroll */
 .navbar.scrolled {
-    background: rgba(52, 58, 64, 0.92);
+    background: color-mix(in srgb, var(--color-dark) 92%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -644,7 +661,7 @@ main {
 
 /* ==================== FOOTER ==================== */
 footer {
-    background: #343a40;
+    background: var(--color-dark);
     color: #adb5bd;
     text-align: center;
     padding: var(--spacing-xl) 0;
@@ -1397,6 +1414,14 @@ body.perfil-page .login-box {
     flex-shrink: 0;
 }
 
+.nav-links-account {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
 /* ==================== NOTIFICATIONS ==================== */
 .notification-container {
     position: relative;
@@ -1426,7 +1451,7 @@ body.perfil-page .login-box {
     position: absolute;
     top: -2px;
     right: 0;
-    background-color: #dc3545;
+    background-color: var(--color-danger);
     color: #fff;
     font-size: 0.7rem;
     font-weight: bold;
@@ -1629,9 +1654,9 @@ body.perfil-page .login-box {
 }
 
 .stepper .step.completed .step-number {
-    background: #28a745;
+    background: var(--color-success);
     color: #fff;
-    border-color: #28a745;
+    border-color: var(--color-success);
     position: relative;
     box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
@@ -1643,17 +1668,17 @@ body.perfil-page .login-box {
 }
 
 .stepper .step.completed .step-label {
-    color: #28a745;
+    color: var(--color-success);
     font-weight: 600;
 }
 
 /* Progress bar between completed steps */
 .stepper-progress.completed-1::before {
-    background: linear-gradient(to right, #28a745 50%, var(--neutral-200) 50%);
+    background: linear-gradient(to right, var(--color-success) 50%, var(--neutral-200) 50%);
 }
 
 .stepper-progress.completed-2::before {
-    background: linear-gradient(to right, #28a745 100%, var(--neutral-200) 0%);
+    background: linear-gradient(to right, var(--color-success) 100%, var(--neutral-200) 0%);
 }
 
 /* Form Steps Animation */
@@ -1704,7 +1729,7 @@ body.perfil-page .login-box {
 }
 
 .viacep-error {
-    border-color: #dc3545 !important;
+    border-color: var(--color-danger) !important;
 }
 
 .edit-address-btn {
@@ -1721,7 +1746,7 @@ body.perfil-page .login-box {
 
 /* ==================== VALIDATION ==================== */
 .is-invalid {
-    border-color: #dc3545 !important;
+    border-color: var(--color-danger) !important;
 }
 
 .is-invalid:focus {
@@ -1729,7 +1754,7 @@ body.perfil-page .login-box {
 }
 
 .is-valid {
-    border-color: #28a745 !important;
+    border-color: var(--color-success) !important;
 }
 
 .is-valid:focus {
@@ -1744,11 +1769,11 @@ body.perfil-page .login-box {
 }
 
 .email-feedback.invalid {
-    color: #dc3545;
+    color: var(--color-danger);
 }
 
 .email-feedback.valid {
-    color: #28a745;
+    color: var(--color-success);
 }
 
 /* ==================== FAQ SECTION ==================== */
@@ -2275,6 +2300,50 @@ html.dark-mode .empty-state-icon {
     color: var(--dark-500);
 }
 
+html.dark-mode .login-page {
+    background: var(--dark-900);
+}
+
+html.dark-mode .login-box {
+    background: var(--dark-800);
+    border-color: var(--dark-700);
+    color: #e0e0e0;
+}
+
+html.dark-mode .login-box h1,
+html.dark-mode .login-box h2 {
+    color: #e0e0e0;
+}
+
+html.dark-mode .login-box label {
+    color: #ccc;
+}
+
+html.dark-mode .login-box input[type="text"],
+html.dark-mode .login-box input[type="email"],
+html.dark-mode .login-box input[type="password"],
+html.dark-mode .login-box input[type="tel"],
+html.dark-mode .login-box select,
+html.dark-mode .login-box textarea {
+    background: var(--dark-900);
+    border-color: var(--dark-700);
+    color: #e0e0e0;
+}
+
+html.dark-mode .login-box input:focus,
+html.dark-mode .login-box select:focus,
+html.dark-mode .login-box textarea:focus {
+    border-color: var(--primary-400);
+    box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+}
+
+/* Dark mode mobile nav */
+@media (max-width: 768px) {
+    html.dark-mode .nav-links.active {
+        background: var(--dark-900);
+    }
+}
+
 /* ==================== RESPONSIVIDADE MOBILE ==================== */
 @media (max-width: 768px) {
     /* Navbar Mobile */
@@ -2286,7 +2355,7 @@ html.dark-mode .empty-state-icon {
         top: 80px;
         left: 0;
         right: 0;
-        background: #343a40;
+        background: var(--color-dark);
         padding: var(--spacing-md) var(--spacing-lg);
         box-shadow: var(--shadow-lg);
         max-height: calc(100vh - 80px);

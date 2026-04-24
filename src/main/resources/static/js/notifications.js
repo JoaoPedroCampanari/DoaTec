@@ -186,7 +186,7 @@ const Notifications = {
      */
     async markAsRead(notificationId) {
         try {
-            const response = await fetch(`/api/notificacoes/${notificationId}/ler`, {
+            const response = await apiFetch(`/api/notificacoes/${notificationId}/ler`, {
                 method: 'PUT',
                 credentials: 'include'
             });
@@ -214,7 +214,7 @@ const Notifications = {
         if (!user || !user.id) return;
 
         try {
-            const response = await fetch(`/api/notificacoes/usuario/${user.id}/ler-todas`, {
+            const response = await apiFetch(`/api/notificacoes/usuario/${user.id}/ler-todas`, {
                 method: 'PUT',
                 credentials: 'include'
             });
@@ -232,13 +232,23 @@ const Notifications = {
      * Inicia polling para atualizar contador periodicamente
      */
     startPolling() {
+        // Limpa polling anterior se existir
+        this.stopPolling();
+
         // Busca contador imediatamente
         this.fetchCount();
 
         // Atualiza a cada 60 segundos
-        setInterval(() => {
+        this._pollingId = setInterval(() => {
             this.fetchCount();
         }, 60000);
+    },
+
+    stopPolling() {
+        if (this._pollingId) {
+            clearInterval(this._pollingId);
+            this._pollingId = null;
+        }
     },
 
     /**

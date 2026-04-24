@@ -6,6 +6,19 @@
 // ==================== UTILITIES ====================
 
 /**
+ * Escapa HTML para prevenir XSS
+ */
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
  * Formata uma data para o padrão brasileiro
  */
 function formatDate(dateString) {
@@ -36,6 +49,7 @@ function getStatusClass(status) {
         'reprovado': 'status-reprovado',
         'recusado': 'status-reprovado',
         'rejeitado': 'status-reprovado',
+        'rejeitada': 'status-reprovado',
         'pendente': 'status-pendente',
         'em análise': 'status-pendente',
         'concluído': 'status-concluido',
@@ -61,6 +75,7 @@ function translateStatus(status) {
         'aprovado': 'Aprovado',
         'rejected': 'Reprovado',
         'reprovado': 'Reprovado',
+        'rejeitada': 'Rejeitada',
         'pending': 'Pendente',
         'pendente': 'Pendente',
         'completed': 'Concluído',
@@ -257,7 +272,7 @@ function createDonationCard(donation) {
     const meta = document.createElement('div');
     meta.className = 'donation-meta';
     meta.innerHTML = `
-        <span class="donation-meta-item"><strong>Entrega:</strong> ${donation.preferenciaEntrega || 'Não especificada'}</span>
+        <span class="donation-meta-item"><strong>Entrega:</strong> ${escapeHtml(donation.preferenciaEntrega) || 'Não especificada'}</span>
     `;
 
     // Items
@@ -267,7 +282,7 @@ function createDonationCard(donation) {
         donation.itens.forEach(item => {
             itemsHtml += `
                 <div class="donation-item">
-                    <strong>${item.tipoItem}</strong>: ${item.descricao}
+                    <strong>${escapeHtml(item.tipoItem)}</strong>: ${escapeHtml(item.descricao)}
                 </div>
             `;
         });
@@ -346,7 +361,7 @@ function showToast(message, type = 'info') {
         bottom: 20px;
         right: 20px;
         padding: 16px 24px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+        background: ${type === 'success' ? 'var(--color-success, #28a745)' : type === 'error' ? 'var(--color-danger, #dc3545)' : type === 'warning' ? 'var(--color-warning, #ffc107)' : 'var(--color-info, #007bff)'};
         color: white;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -367,6 +382,7 @@ function showToast(message, type = 'info') {
 window.DoaTec = {
     formatDate,
     capitalize,
+    escapeHtml,
     getStatusClass,
     translateStatus,
     createIcon,

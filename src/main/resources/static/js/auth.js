@@ -3,6 +3,44 @@
  * Usado em todas as páginas que precisam de autenticação
  */
 
+/**
+ * Lê o token CSRF do cookie XSRF-TOKEN (setado pelo CookieCsrfTokenRepository)
+ */
+function getCsrfToken() {
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Wrapper de fetch que injeta o header CSRF automaticamente em métodos de escrita
+ * e adiciona timeout (10s por padrão)
+ */
+async function apiFetch(url, options = {}) {
+    const method = (options.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        const token = getCsrfToken();
+        if (token) {
+            options.headers = {
+                ...options.headers,
+                'X-XSRF-TOKEN': token
+            };
+        }
+    }
+
+    // Timeout com AbortController
+    const timeoutMs = options.timeout || 10000;
+    delete options.timeout;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    options.signal = options.signal || controller.signal;
+
+    try {
+        return await fetch(url, options);
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 const Auth = {
     // Armazena dados do usuário logado
     currentUser: null,
@@ -12,6 +50,11 @@ const Auth = {
      * @returns {Promise<Object|null>} Dados do usuário ou null
      */
     async checkSession() {
+        // Cache: retorna currentUser se ainda válido (TTL 30s)
+        if (this.currentUser && this._sessionCacheTime && (Date.now() - this._sessionCacheTime < 30000)) {
+            return this.currentUser;
+        }
+
         try {
             const response = await fetch('/api/users/me', {
                 method: 'GET',
@@ -23,10 +66,12 @@ const Auth = {
 
             if (response.ok) {
                 this.currentUser = await response.json();
+                this._sessionCacheTime = Date.now();
                 localStorage.setItem('loggedInUser', JSON.stringify(this.currentUser));
                 return this.currentUser;
             } else {
                 this.currentUser = null;
+                this._sessionCacheTime = null;
                 localStorage.removeItem('loggedInUser');
                 return null;
             }
@@ -44,7 +89,7 @@ const Auth = {
      */
     async login(email, senha) {
         try {
-            const response = await fetch('/api/login', {
+            const response = await apiFetch('/api/login', {
                 method: 'POST',
                 credentials: 'include', // Importante para sessão
                 headers: {
@@ -75,7 +120,7 @@ const Auth = {
      */
     async logout(redirectUrl = 'index.html') {
         try {
-            const response = await fetch('/api/logout', {
+            const response = await apiFetch('/api/logout', {
                 method: 'POST',
                 credentials: 'include'
             });

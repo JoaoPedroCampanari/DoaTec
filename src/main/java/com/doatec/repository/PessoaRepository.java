@@ -23,6 +23,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
 
     List<Pessoa> findByAtivoTrue();
 
+    long countByAtivoTrue();
+
     /**
      * Busca pessoas por tipo específico (Aluno, DoadorPF, DoadorPJ).
      * Usa a função TYPE do JPA para filtrar pela classe concreta.

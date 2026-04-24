@@ -9,6 +9,7 @@ import com.doatec.model.account.DoadorPF;
 import com.doatec.model.account.DoadorPJ;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.donation.Doacao;
+import com.doatec.model.donation.StatusDoacao;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.PessoaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,21 @@ public class DoacaoService {
 
     @Autowired
     private PessoaRepository pessoaRepository;
+
+    @Transactional(readOnly = true)
+    public List<DoacaoResponse> listDoacoes(StatusDoacao status, Integer doadorId) {
+        List<Doacao> doacoes;
+        if (status != null && doadorId != null) {
+            doacoes = doacaoRepository.findByDoadorIdAndStatus(doadorId, status);
+        } else if (status != null) {
+            doacoes = doacaoRepository.findByStatus(status);
+        } else if (doadorId != null) {
+            doacoes = doacaoRepository.findByDoadorId(doadorId);
+        } else {
+            doacoes = doacaoRepository.findAll();
+        }
+        return doacoes.stream().map(DoacaoMapper::toResponse).collect(Collectors.toList());
+    }
 
     @Transactional(readOnly = true)
     public List<DoacaoResponse> findDoacoesByDoadorId(Integer doadorId) {

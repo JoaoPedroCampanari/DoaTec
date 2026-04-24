@@ -32,6 +32,8 @@ import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SolicitacaoHardwareRepository;
 import com.doatec.repository.SuporteFormularioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,15 +70,15 @@ public class AdminService {
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboardStats() {
         long totalDoacoes = doacaoRepository.count();
-        long totalSolicitacoesPendentes = solicitacaoRepository.findByStatus(StatusSolicitacao.EM_ANALISE).size();
-        long totalTicketsAbertos = suporteRepository.findByStatus(StatusSuporte.ABERTO).size();
-        long totalUsuariosAtivos = pessoaRepository.findByAtivoTrue().size();
+        long totalSolicitacoesPendentes = solicitacaoRepository.countByStatus(StatusSolicitacao.EM_ANALISE);
+        long totalTicketsAbertos = suporteRepository.countByStatus(StatusSuporte.ABERTO);
+        long totalUsuariosAtivos = pessoaRepository.countByAtivoTrue();
 
-        long doacoesAprovadas = doacaoRepository.findByStatus(StatusDoacao.FINALIZADO).size();
-        long doacoesRejeitadas = doacaoRepository.findByStatus(StatusDoacao.AGUARDANDO_COLETA).size();
+        long doacoesAprovadas = doacaoRepository.countByStatus(StatusDoacao.FINALIZADO);
+        long doacoesRejeitadas = doacaoRepository.countByStatus(StatusDoacao.REJEITADA);
 
-        long solicitacoesAprovadas = solicitacaoRepository.findByStatus(StatusSolicitacao.APROVADA).size();
-        long solicitacoesRejeitadas = solicitacaoRepository.findByStatus(StatusSolicitacao.REJEITADA).size();
+        long solicitacoesAprovadas = solicitacaoRepository.countByStatus(StatusSolicitacao.APROVADA);
+        long solicitacoesRejeitadas = solicitacaoRepository.countByStatus(StatusSolicitacao.REJEITADA);
 
         return AdminDashboardResponse.builder()
                 .totalDoacoes(totalDoacoes)
@@ -93,14 +95,12 @@ public class AdminService {
     // ==================== DOAÇÕES ====================
 
     @Transactional(readOnly = true)
-    public List<DoacaoResponse> listarDoacoes(StatusDoacao status) {
-        List<Doacao> doacoes = status != null
-                ? doacaoRepository.findByStatus(status)
-                : doacaoRepository.findAll();
+    public Page<DoacaoResponse> listarDoacoes(StatusDoacao status, Pageable pageable) {
+        Page<Doacao> doacoes = status != null
+                ? doacaoRepository.findByStatus(status, pageable)
+                : doacaoRepository.findAll(pageable);
 
-        return doacoes.stream()
-                .map(DoacaoMapper::toResponse)
-                .collect(Collectors.toList());
+        return doacoes.map(DoacaoMapper::toResponse);
     }
 
     @Transactional
@@ -147,7 +147,7 @@ public class AdminService {
 
         Pessoa admin = validarAdmin(adminId);
 
-        doacao.setStatus(StatusDoacao.AGUARDANDO_COLETA);
+        doacao.setStatus(StatusDoacao.REJEITADA);
         doacao.setAdminAvaliador(admin);
         doacao.setDataAvaliacao(LocalDateTime.now());
         if (request != null && request.observacao() != null) {
@@ -178,14 +178,12 @@ public class AdminService {
     // ==================== SOLICITAÇÕES ====================
 
     @Transactional(readOnly = true)
-    public List<SolicitacaoResponse> listarSolicitacoes(StatusSolicitacao status) {
-        List<SolicitacaoHardware> solicitacoes = status != null
-                ? solicitacaoRepository.findByStatus(status)
-                : solicitacaoRepository.findAll();
+    public Page<SolicitacaoResponse> listarSolicitacoes(StatusSolicitacao status, Pageable pageable) {
+        Page<SolicitacaoHardware> solicitacoes = status != null
+                ? solicitacaoRepository.findByStatus(status, pageable)
+                : solicitacaoRepository.findAll(pageable);
 
-        return solicitacoes.stream()
-                .map(SolicitacaoMapper::toResponse)
-                .collect(Collectors.toList());
+        return solicitacoes.map(SolicitacaoMapper::toResponse);
     }
 
     @Transactional
@@ -257,14 +255,12 @@ public class AdminService {
     // ==================== SUPORTE ====================
 
     @Transactional(readOnly = true)
-    public List<SuporteResponse> listarTickets(StatusSuporte status) {
-        List<SuporteFormulario> tickets = status != null
-                ? suporteRepository.findByStatus(status)
-                : suporteRepository.findAll();
+    public Page<SuporteResponse> listarTickets(StatusSuporte status, Pageable pageable) {
+        Page<SuporteFormulario> tickets = status != null
+                ? suporteRepository.findByStatus(status, pageable)
+                : suporteRepository.findAll(pageable);
 
-        return tickets.stream()
-                .map(SuporteMapper::toResponse)
-                .collect(Collectors.toList());
+        return tickets.map(SuporteMapper::toResponse);
     }
 
     @Transactional
@@ -301,10 +297,9 @@ public class AdminService {
     // ==================== USUÁRIOS ====================
 
     @Transactional(readOnly = true)
-    public List<UsuarioAdminResponse> listarTodosUsuarios() {
-        return pessoaRepository.findAll().stream()
-                .map(PessoaMapper::toAdminResponse)
-                .collect(Collectors.toList());
+    public Page<UsuarioAdminResponse> listarTodosUsuarios(Pageable pageable) {
+        return pessoaRepository.findAll(pageable)
+                .map(PessoaMapper::toAdminResponse);
     }
 
     @Transactional(readOnly = true)

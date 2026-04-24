@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="doatec_logo.png" type="image/png">
-    <script src="https://unpkg.com/imask"></script>
+    <script src="js/vendor/imask.min.js"></script>
 </head>
 <body class="perfil-page">
 <header>
@@ -43,10 +43,12 @@
                 </div>
             </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <li id="minhaContaDropdownItem" class="nav-dropdown">
-                <a href="#">Minha Conta</a>
-                <ul class="dropdown-menu"></ul>
-            </li>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
             <div class="menu-toggle">
                 <span></span>
@@ -331,7 +333,7 @@
                 };
 
                 try {
-                    const response = await fetch(`/api/users/${loggedInUser.id}`, {
+                    const response = await apiFetch(`/api/users/${loggedInUser.id}`, {
                         method: 'PUT',
                         credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
@@ -366,7 +368,7 @@
                 };
 
                 try {
-                    const response = await fetch(`/api/users/${loggedInUser.id}`, {
+                    const response = await apiFetch(`/api/users/${loggedInUser.id}`, {
                         method: 'PUT',
                         credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },

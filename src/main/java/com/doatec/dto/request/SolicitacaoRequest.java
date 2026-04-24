@@ -11,9 +11,6 @@ public record SolicitacaoRequest(
     @NotBlank(message = "O campo email é obrigatório")
     String email,
 
-    @NotBlank(message = "O campo senha é obrigatório")
-    String senha,
-
     String telefone,
 
     String ra,

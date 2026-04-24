@@ -10,7 +10,6 @@ import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SolicitacaoHardwareRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +25,6 @@ public class SolicitacaoService {
     @Autowired
     private SolicitacaoHardwareRepository solicitacaoHardwareRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     @Transactional(readOnly = true)
     public List<SolicitacaoResponse> findSolicitacoesByAlunoId(Integer alunoId) {
         return solicitacaoHardwareRepository.findByAlunoId(alunoId).stream()
@@ -37,22 +33,13 @@ public class SolicitacaoService {
     }
 
     @Transactional
-    public SolicitacaoHardware criarSolicitacao(SolicitacaoRequest dto) {
+    public SolicitacaoHardware criarSolicitacao(String authenticatedEmail, SolicitacaoRequest dto) {
 
-        Pessoa pessoaEncontrada = pessoaRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new BusinessException("Usuário com email " + dto.email() + " não está cadastrado."));
+        Pessoa pessoaEncontrada = pessoaRepository.findByEmail(authenticatedEmail)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
-        // Validar se é aluno usando instanceof
         if (!(pessoaEncontrada instanceof Aluno)) {
-            throw new BusinessException("O email " + dto.email() + " pertence a um usuário que não é aluno. Apenas alunos podem fazer solicitações de hardware.");
-        }
-
-        if (!pessoaEncontrada.getNome().equals(dto.nome())) {
-            throw new BusinessException("Nome incorreto!");
-        }
-
-        if (!passwordEncoder.matches(dto.senha(), pessoaEncontrada.getSenha())) {
-            throw new BusinessException("Senha incorreta!");
+            throw new BusinessException("Apenas alunos podem fazer solicitações de hardware.");
         }
 
         if (!pessoaEncontrada.getDocumento().equals(dto.ra())) {

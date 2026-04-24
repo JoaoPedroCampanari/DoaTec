@@ -67,8 +67,10 @@ public class RegistroController {
 
     /**
      * Endpoint legado para compatibilidade.
-     * Usa RegistroRequest genérico (será descontinuado futuramente).
+     * Usa RegistroRequest genérico — será removido em v2.0.
+     * Use os endpoints especializados: /aluno, /doador-pf, /doador-pj
      */
+    @Deprecated(since = "1.1", forRemoval = true)
     @PostMapping
     public ResponseEntity<UserLoginResponse> registerUser(@Valid @RequestBody RegistroRequest registroRequest) {
         Pessoa novaPessoa = pessoaService.registrarPessoa(registroRequest);

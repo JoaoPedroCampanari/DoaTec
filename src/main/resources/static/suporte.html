@@ -44,10 +44,12 @@
                 </div>
             </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <li id="minhaContaDropdownItem" class="nav-dropdown">
-                <a href="#">Minha Conta</a>
-                <ul class="dropdown-menu"></ul>
-            </li>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
             <div class="menu-toggle">
                 <span></span>
@@ -214,6 +216,9 @@
         supportForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            const submitBtn = supportForm.querySelector('button[type="submit"]');
+            DoaTec.setButtonLoading(submitBtn, true);
+
             const formData = {
                 nome: supportNameInput.value,
                 email: supportEmailInput.value,
@@ -222,7 +227,7 @@
             };
 
             try {
-                const response = await fetch('/api/suporte', {
+                const response = await apiFetch('/api/suporte', {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -230,7 +235,7 @@
                 });
 
                 const message = await response.text();
-                alert(message);
+                DoaTec.showToast(message, response.ok ? 'success' : 'error');
 
                 if (response.ok) {
                     supportForm.reset();
@@ -243,7 +248,9 @@
 
             } catch (error) {
                 console.error('Erro ao enviar formulário de suporte:', error);
-                alert('Ocorreu um erro de conexão ao enviar sua mensagem. Verifique o console.');
+                DoaTec.showToast('Ocorreu um erro de conexão ao enviar sua mensagem. Verifique o console.', 'error');
+            } finally {
+                DoaTec.setButtonLoading(submitBtn, false);
             }
         });
     });

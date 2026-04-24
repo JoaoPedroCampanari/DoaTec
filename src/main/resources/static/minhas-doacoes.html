@@ -43,10 +43,12 @@
                 </div>
             </div>
             <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <li id="minhaContaDropdownItem" class="nav-dropdown">
-                <a href="#">Minha Conta</a>
-                <ul class="dropdown-menu"></ul>
-            </li>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
             <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
             <div class="menu-toggle">
                 <span></span>
@@ -179,82 +181,17 @@
                             </svg>
                         </div>
                         <h3>Erro ao carregar</h3>
-                        <p style="color: #dc3545;">Ocorreu um erro ao carregar suas doações. Tente novamente mais tarde.</p>
+                        <p style="color: var(--color-danger, #dc3545);">Ocorreu um erro ao carregar suas doações. Tente novamente mais tarde.</p>
                     </div>
                 `;
             });
     });
 
-    // Helper functions
-    function formatDate(dateString) {
-        if (!dateString) return '-';
-        const date = new Date(dateString + 'T00:00:00');
-        return date.toLocaleDateString('pt-BR');
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function getStatusClass(status) {
-        if (!status) return 'status-pending';
-        const statusLower = status.toLowerCase();
-
-        const classMap = {
-            'triagem': 'status-triagem',
-            'em triagem': 'status-triagem',
-            'em_analise': 'status-pendente',
-            'em análise': 'status-pendente',
-            'pendente': 'status-pendente',
-            'aprovado': 'status-aprovado',
-            'aprovada': 'status-aprovado',
-            'approved': 'status-aprovado',
-            'reprovado': 'status-reprovado',
-            'recusado': 'status-reprovado',
-            'rejeitado': 'status-reprovado',
-            'rejected': 'status-reprovado',
-            'concluído': 'status-concluido',
-            'concluido': 'status-concluido',
-            'entregue': 'status-entregue',
-            'finalizado': 'status-concluido',
-            'completed': 'status-concluido'
-        };
-
-        return classMap[statusLower] || 'status-pendente';
-    }
-
-    function translateStatus(status) {
-        if (!status) return 'Desconhecido';
-        const statusLower = status.toLowerCase();
-
-        const translations = {
-            'triagem': 'Em Triagem',
-            'em triagem': 'Em Triagem',
-            'triage': 'Em Triagem',
-            'em_analise': 'Em Análise',
-            'em análise': 'Em Análise',
-            'pendente': 'Pendente',
-            'pending': 'Pendente',
-            'aprovado': 'Aprovado',
-            'aprovada': 'Aprovado',
-            'approved': 'Aprovado',
-            'reprovado': 'Reprovado',
-            'recusado': 'Reprovado',
-            'rejeitado': 'Reprovado',
-            'rejected': 'Reprovado',
-            'concluído': 'Concluído',
-            'concluido': 'Concluído',
-            'entregue': 'Entregue',
-            'delivered': 'Entregue',
-            'finalizado': 'Finalizado',
-            'completed': 'Concluído'
-        };
-
-        return translations[statusLower] || status;
-    }
+    // Usando funções globais de DoaTec (main.js)
+    const formatDate = DoaTec.formatDate;
+    const getStatusClass = DoaTec.getStatusClass;
+    const translateStatus = DoaTec.translateStatus;
+    const escapeHtml = DoaTec.escapeHtml;
 </script>
 </body>
 

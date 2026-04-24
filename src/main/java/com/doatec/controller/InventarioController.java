@@ -3,9 +3,12 @@ package com.doatec.controller;
 import com.doatec.dto.response.EquipamentoResponse;
 import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.model.inventory.StatusEquipamento;
+import com.doatec.repository.PessoaRepository;
 import com.doatec.service.InventarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -69,7 +72,8 @@ public class InventarioController {
     public ResponseEntity<EquipamentoResponse> atribuirEquipamento(
             @PathVariable Integer equipamentoId,
             @PathVariable Integer solicitacaoId,
-            @RequestParam Integer adminId) {
+            @AuthenticationPrincipal User userDetails) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         EquipamentoResponse equipamento = inventarioService.atribuirEquipamento(
                 equipamentoId, solicitacaoId, adminId);
         return ResponseEntity.ok(equipamento);
@@ -82,8 +86,18 @@ public class InventarioController {
     @PutMapping("/{id}/entregar")
     public ResponseEntity<EquipamentoResponse> marcarComoEntregue(
             @PathVariable Integer id,
-            @RequestParam Integer adminId) {
+            @AuthenticationPrincipal User userDetails) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
         EquipamentoResponse equipamento = inventarioService.marcarComoEntregue(id, adminId);
         return ResponseEntity.ok(equipamento);
+    }
+
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    private Integer getAuthenticatedAdminId(User userDetails) {
+        return pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
     }
 }
