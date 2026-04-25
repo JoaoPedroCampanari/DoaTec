@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -58,8 +60,9 @@ public class SecurityConfig {
                         .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html", "/admin.html").authenticated()
 
                         // 6. PROTEÇÃO DE APIs (Exige Role Específica)
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte/**", "/api/users/**", "/api/dashboard/**", "/api/notificacoes/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/super-admin/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte/**", "/api/users/**", "/api/dashboard/**", "/api/notificacoes/**").hasAnyRole("USER", "ADMIN", "SUPER_ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -134,5 +137,15 @@ public class SecurityConfig {
     @Bean
     public SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.withDefaultRolePrefix()
+                .role("ROLE_SUPER_ADMIN")
+                .implies("ROLE_ADMIN")
+                .role("ROLE_ADMIN")
+                .implies("ROLE_USER")
+                .build();
     }
 }

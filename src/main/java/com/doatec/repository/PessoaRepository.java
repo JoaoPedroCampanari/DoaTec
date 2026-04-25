@@ -2,11 +2,14 @@ package com.doatec.repository;
 
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +27,14 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
     List<Pessoa> findByAtivoTrue();
 
     long countByAtivoTrue();
+
+    long countByRole(Role role);
+
+    boolean existsByRole(Role role);
+
+    boolean existsByEmail(String email);
+
+    Page<Pessoa> findByRoleIn(Collection<Role> roles, Pageable pageable);
 
     /**
      * Busca pessoas por tipo específico (Aluno, DoadorPF, DoadorPJ).

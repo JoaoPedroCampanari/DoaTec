@@ -323,6 +323,11 @@ public class AdminService {
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
+        // Admins normais não podem alterar status de outros admins/super_admins
+        if (pessoa.isAdmin() && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas Super Admins podem alterar status de outros administradores.");
+        }
+
         pessoa.setAtivo(ativo);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
@@ -339,6 +344,16 @@ public class AdminService {
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
+        // Admins normais só podem alterar role de USERs
+        if (pessoa.isAdmin() && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas Super Admins podem alterar roles de outros administradores.");
+        }
+
+        // Admins normais não podem promover a ADMIN ou SUPER_ADMIN
+        if ((novaRole == Role.ADMIN || novaRole == Role.SUPER_ADMIN) && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas Super Admins podem promover usuários a administradores.");
+        }
+
         pessoa.setRole(novaRole);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
@@ -351,7 +366,7 @@ public class AdminService {
         Pessoa admin = pessoaRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException("Admin não encontrado com ID: " + adminId));
 
-        if (admin.getRole() != Role.ADMIN) {
+        if (!admin.isAdmin()) {
             throw new BusinessException("Apenas administradores podem realizar esta operação.");
         }
 

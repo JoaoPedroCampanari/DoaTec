@@ -107,7 +107,7 @@ public abstract class Pessoa {
      * Verifica se a pessoa é administradora.
      */
     public boolean isAdmin() {
-        return this.role == Role.ADMIN;
+        return this.role == Role.ADMIN || this.role == Role.SUPER_ADMIN;
     }
 
     /**

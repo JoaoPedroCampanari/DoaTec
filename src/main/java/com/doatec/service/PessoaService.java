@@ -280,12 +280,17 @@ public class PessoaService {
         Pessoa admin = pessoaRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException("Admin não encontrado"));
 
-        if (admin.getRole() != Role.ADMIN) {
+        if (!admin.isAdmin()) {
             throw new BusinessException("Apenas administradores podem alterar status de usuários.");
         }
 
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
+
+        // Admins normais não podem alterar status de outros admins
+        if (pessoa.isAdmin() && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas Super Admins podem alterar status de outros administradores.");
+        }
 
         pessoa.setAtivo(ativo);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
@@ -298,12 +303,22 @@ public class PessoaService {
         Pessoa admin = pessoaRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException("Admin não encontrado"));
 
-        if (admin.getRole() != Role.ADMIN) {
+        if (!admin.isAdmin()) {
             throw new BusinessException("Apenas administradores podem alterar roles de usuários.");
         }
 
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
+
+        // Admins normais não podem alterar role de outros admins
+        if (pessoa.isAdmin() && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas Super Admins podem alterar roles de outros administradores.");
+        }
+
+        // Admins normais não podem promover a ADMIN ou SUPER_ADMIN
+        if ((novaRole == Role.ADMIN || novaRole == Role.SUPER_ADMIN) && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas Super Admins podem promover usuários a administradores.");
+        }
 
         pessoa.setRole(novaRole);
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
