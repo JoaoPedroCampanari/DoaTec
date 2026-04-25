@@ -35,7 +35,18 @@ async function apiFetch(url, options = {}) {
     options.signal = options.signal || controller.signal;
 
     try {
-        return await fetch(url, options);
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            let errorMsg = `Erro ${response.status}`;
+            try {
+                const errData = await response.json();
+                errorMsg = errData.message || errData.error || errorMsg;
+            } catch {}
+            const error = new Error(errorMsg);
+            error.status = response.status;
+            throw error;
+        }
+        return response;
     } finally {
         clearTimeout(timeoutId);
     }
@@ -174,7 +185,16 @@ const Auth = {
      */
     isAdmin() {
         const user = this.getUser();
-        return user && user.role === 'ADMIN';
+        return user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN');
+    },
+
+    /**
+     * Retorna a role do usuário logado
+     * @returns {string|null}
+     */
+    getUserRole() {
+        const user = this.getUser();
+        return user ? user.role : null;
     },
 
     /**

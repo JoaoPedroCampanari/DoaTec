@@ -9,7 +9,8 @@ const AdminPanel = {
         doacoes: { page: 0, size: 20, total: 0 },
         solicitacoes: { page: 0, size: 20, total: 0 },
         suporte: { page: 0, size: 20, total: 0 },
-        usuarios: { page: 0, size: 20, total: 0 }
+        usuarios: { page: 0, size: 20, total: 0 },
+        gestaoAdmins: { page: 0, size: 20, total: 0 }
     },
 
     // Filtros atuais
@@ -24,6 +25,8 @@ const AdminPanel = {
 
     // Callback do modal de avaliação
     _modalCallback: null,
+    // Callback do modal de confirmação
+    _confirmCallback: null,
 
     // ==================== INIT ====================
     async init() {
@@ -36,9 +39,20 @@ const AdminPanel = {
             return;
         }
 
+        // Mostrar aba "Gestão de Admins" apenas para SUPER_ADMIN
+        const isSuperAdmin = Auth.getUserRole() === 'SUPER_ADMIN';
+        const tabBtn = document.getElementById('tab-btn-gestao-admins');
+        if (tabBtn) tabBtn.style.display = isSuperAdmin ? '' : 'none';
+
+        // Redirecionamento inteligente: ADMIN comum vai pra Suporte & Usuários
+        if (!isSuperAdmin && window.location.hash === '#gestao-admins') {
+            window.location.hash = '#suporte-usuarios';
+        }
+
         this.setupTabs();
         this.setupSubTabs();
         this.setupFilters();
+        this.setupSuperAdminEvents();
         this.loadDashboard();
     },
 
@@ -59,6 +73,7 @@ const AdminPanel = {
                     case 'solicitacoes': this.loadSolicitacoes(); break;
                     case 'inventario': this.loadInventario(); break;
                     case 'suporte-usuarios': this.loadSuporte(); break;
+                    case 'gestao-admins': this.loadGestaoAdmins(); break;
                 }
             });
         });
@@ -507,15 +522,15 @@ const AdminPanel = {
     },
 
     async marcarEntregue(id) {
-        if (!confirm('Confirmar entrega do equipamento #' + id + '?')) return;
-        try {
-            const res = await apiFetch('/api/admin/inventario/' + id + '/entregar', { method: 'PUT' });
-            if (!res.ok) throw new Error();
-            showToast('Equipamento marcado como entregue', 'success');
-            this.loadInventario();
-        } catch {
-            showToast('Erro ao marcar como entregue', 'error');
-        }
+        this.confirmAction('Confirmar entrega do equipamento #' + id + '?', async () => {
+            try {
+                await apiFetch('/api/admin/inventario/' + id + '/entregar', { method: 'PUT' });
+                showToast('Equipamento marcado como entregue', 'success');
+                this.loadInventario();
+            } catch {
+                showToast('Erro ao marcar como entregue', 'error');
+            }
+        });
     },
 
     // ==================== SUPORTE ====================
@@ -675,10 +690,10 @@ const AdminPanel = {
                 <td>${escapeHtml(u.nome || '-')}</td>
                 <td>${escapeHtml(u.email || '-')}</td>
                 <td>${this.createTipoPessoaLabel(u.tipoPessoa)}</td>
-                <td><span class="role-badge ${u.role === 'ADMIN' ? 'role-admin' : ''}">${escapeHtml(u.role)}</span></td>
+                <td><span class="role-badge ${u.role === 'ADMIN' ? 'role-admin' : u.role === 'SUPER_ADMIN' ? 'role-super-admin' : ''}">${escapeHtml(u.role)}</span></td>
                 <td>
                     <label class="toggle-active">
-                        <input type="checkbox" ${u.ativo ? 'checked' : ''} onchange="AdminPanel.toggleUsuarioAtivo(${u.id}, this.checked)">
+                        <input type="checkbox" ${u.ativo ? 'checked' : ''} data-toggle-user-id="${u.id}" data-toggle-user-ativo="${u.ativo}">
                         <span class="toggle-slider"></span>
                     </label>
                 </td>
@@ -696,6 +711,23 @@ const AdminPanel = {
                 this.alterarRoleUsuario(userId, userRole);
             });
         });
+
+        // Event delegation for toggle ativo (with confirmation when desativando)
+        tbody.querySelectorAll('[data-toggle-user-id]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const id = e.target.dataset.toggleUserId;
+                const novoAtivo = e.target.checked;
+                if (!novoAtivo) {
+                    // Desativando — pede confirmação
+                    e.target.checked = true; // reverte visualmente até confirmar
+                    this.confirmAction('Desativar este usuário?', () => {
+                        this.toggleUsuarioAtivo(id, novoAtivo);
+                    });
+                } else {
+                    this.toggleUsuarioAtivo(id, novoAtivo);
+                }
+            });
+        });
     },
 
     createTipoPessoaLabel(tipo) {
@@ -709,21 +741,25 @@ const AdminPanel = {
 
     async toggleUsuarioAtivo(id, ativo) {
         try {
-            const res = await apiFetch('/api/admin/usuarios/' + id + '/status', {
+            await apiFetch('/api/admin/usuarios/' + id + '/status', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ativo: ativo })
             });
-            if (!res.ok) throw new Error();
             showToast(ativo ? 'Usuário ativado' : 'Usuário desativado', 'success');
-        } catch {
-            showToast('Erro ao alterar status do usuário', 'error');
+            this.loadUsuarios();
+        } catch (e) {
+            showToast(e.message || 'Erro ao alterar status do usuário', 'error');
             this.loadUsuarios();
         }
     },
 
     alterarRoleUsuario(id, currentRole) {
         const select = document.getElementById('modal-role-usuario-select');
+        // Popular options baseado no role do usuário logado
+        const isSuperAdmin = Auth.getUserRole() === 'SUPER_ADMIN';
+        select.innerHTML = '<option value="USER">USER</option>' +
+            (isSuperAdmin ? '<option value="ADMIN">ADMIN</option>' : '');
         select.value = currentRole;
         const confirmBtn = document.getElementById('modal-role-usuario-confirm');
         const newBtn = confirmBtn.cloneNode(true);
@@ -736,10 +772,9 @@ const AdminPanel = {
                 return;
             }
             try {
-                const res = await apiFetch('/api/admin/usuarios/' + id + '/role?novaRole=' + novaRole, {
+                await apiFetch('/api/admin/usuarios/' + id + '/role?novaRole=' + novaRole, {
                     method: 'PUT'
                 });
-                if (!res.ok) throw new Error();
                 showToast('Role alterada para ' + novaRole, 'success');
                 this.closeModal('modal-role-usuario');
                 this.loadUsuarios();
@@ -847,10 +882,217 @@ const AdminPanel = {
             case 'solicitacoes': this.loadSolicitacoes(); break;
             case 'suporte': this.loadSuporte(); break;
             case 'usuarios': this.loadUsuarios(); break;
+            case 'gestaoAdmins': this.loadGestaoAdmins(); break;
         }
     },
 
+    // ==================== SUPER ADMIN — GESTÃO DE ADMINS ====================
+    setupSuperAdminEvents() {
+        // Botão criar admin
+        const btnCriar = document.getElementById('btn-criar-admin');
+        if (btnCriar) {
+            btnCriar.addEventListener('click', () => this.openModal('modal-criar-admin'));
+        }
+
+        // Confirmar criação de admin
+        const confirmCriar = document.getElementById('modal-criar-admin-confirm');
+        if (confirmCriar) {
+            confirmCriar.addEventListener('click', () => this.criarAdmin());
+        }
+
+        // Confirmar modal de confirmação genérico
+        const confirmBtn = document.getElementById('modal-confirmacao-confirm');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                if (typeof this._confirmCallback === 'function') {
+                    this._confirmCallback();
+                }
+                this.closeModal('modal-confirmacao');
+                this._confirmCallback = null;
+            });
+        }
+    },
+
+    async loadGestaoAdmins() {
+        const { page, size } = this.pagination.gestaoAdmins;
+        const tbody = document.getElementById('gestao-admins-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = this.skeletonRows(7, 3);
+
+        try {
+            const res = await apiFetch(`/api/super-admin/admins?page=${page}&size=${size}`);
+            const data = await res.json();
+            this.pagination.gestaoAdmins.total = data.totalElements;
+
+            if (data.content.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum administrador encontrado.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.content.map(a => `
+                <tr>
+                    <td>${a.id}</td>
+                    <td>${escapeHtml(a.nome)}</td>
+                    <td>${escapeHtml(a.email)}</td>
+                    <td>${this.createTipoPessoaLabel(a.tipoPessoa)}</td>
+                    <td><span class="role-badge ${a.role === 'SUPER_ADMIN' ? 'role-super-admin' : 'role-admin'}">${escapeHtml(a.role)}</span></td>
+                    <td>
+                        <label class="toggle-active">
+                            <input type="checkbox" ${a.ativo ? 'checked' : ''} ${a.role === 'SUPER_ADMIN' ? '' : ''}
+                                data-toggle-status-id="${a.id}" data-toggle-status-ativo="${a.ativo}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </td>
+                    <td class="admin-actions">
+                        ${a.role !== 'SUPER_ADMIN' ? `
+                            <button class="btn-action btn-sm" data-alterar-role-id="${a.id}" data-alterar-role-current="${escapeHtml(a.role)}">Alterar Role</button>
+                            <button class="btn-danger btn-sm" data-excluir-id="${a.id}" data-excluir-nome="${escapeHtml(a.nome)}">Excluir</button>
+                        ` : '<span class="text-muted">—</span>'}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Event delegation para toggle de status
+            tbody.querySelectorAll('[data-toggle-status-id]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const id = e.target.dataset.toggleStatusId;
+                    const novoAtivo = e.target.checked;
+                    const msg = novoAtivo ? 'Ativar este administrador?' : 'Desativar este administrador?';
+                    this.confirmAction(msg, () => this.alterarStatusAdmin(id, novoAtivo));
+                });
+            });
+            // Event delegation para alterar role
+            tbody.querySelectorAll('[data-alterar-role-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.alterarRoleId;
+                    const currentRole = btn.dataset.alterarRoleCurrent;
+                    this.alterarRoleAdmin(id, currentRole);
+                });
+            });
+            tbody.querySelectorAll('[data-excluir-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.excluirId;
+                    const nome = btn.dataset.excluirNome;
+                    this.confirmAction(`Excluir administrador ${nome}? Esta ação não pode ser desfeita.`, () => this.excluirAdmin(id));
+                });
+            });
+
+            this.renderPagination('gestao-admins-pagination', 'gestaoAdmins', data);
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Erro ao carregar administradores.</td></tr>';
+        }
+    },
+
+    async criarAdmin() {
+        const nome = document.getElementById('criar-admin-nome').value.trim();
+        const email = document.getElementById('criar-admin-email').value.trim();
+        const senha = document.getElementById('criar-admin-senha').value;
+        const tipoPessoa = document.getElementById('criar-admin-tipo').value;
+        const documento = document.getElementById('criar-admin-documento').value.trim();
+
+        if (!nome || !email) {
+            showToast('Nome e email são obrigatórios', 'error');
+            return;
+        }
+
+        try {
+            await apiFetch('/api/super-admin/admins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nome,
+                    email,
+                    senha: senha || null,
+                    tipoPessoa,
+                    documento: documento || null,
+                    role: 'ADMIN'
+                })
+            });
+            showToast('Administrador criado com sucesso!', 'success');
+            this.closeModal('modal-criar-admin');
+            // Limpar formulário
+            document.getElementById('criar-admin-nome').value = '';
+            document.getElementById('criar-admin-email').value = '';
+            document.getElementById('criar-admin-senha').value = '';
+            document.getElementById('criar-admin-documento').value = '';
+            this.loadGestaoAdmins();
+        } catch (e) {
+            showToast(e.message || 'Erro ao criar administrador', 'error');
+        }
+    },
+
+    async rebaixarAdmin(id) {
+        try {
+            await apiFetch(`/api/super-admin/admins/${id}/rebaixar`, { method: 'PUT' });
+            showToast('Administrador rebaixado para USER', 'success');
+            this.loadGestaoAdmins();
+        } catch (e) {
+            showToast(e.message || 'Erro ao rebaixar administrador', 'error');
+        }
+    },
+
+    async alterarStatusAdmin(id, ativo) {
+        try {
+            await apiFetch(`/api/super-admin/admins/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ativo })
+            });
+            showToast(`Admin ${ativo ? 'ativado' : 'desativado'} com sucesso`, 'success');
+            this.loadGestaoAdmins();
+        } catch (e) {
+            showToast(e.message || 'Erro ao alterar status do admin', 'error');
+            this.loadGestaoAdmins(); // reload to reset toggle
+        }
+    },
+
+    async alterarRoleAdmin(id, currentRole) {
+        const select = document.getElementById('modal-role-usuario-select');
+        select.innerHTML = '<option value="USER">USER</option><option value="ADMIN">ADMIN</option>';
+        select.value = currentRole;
+        this._modalCallback = async () => {
+            try {
+                const novaRole = select.value;
+                await apiFetch(`/api/super-admin/admins/${id}/role?novaRole=${novaRole}`, { method: 'PUT' });
+                showToast(`Role alterada para ${novaRole}`, 'success');
+                this.loadGestaoAdmins();
+            } catch (e) {
+                showToast(e.message || 'Erro ao alterar role', 'error');
+            }
+        };
+        this.openModal('modal-role-usuario');
+    },
+
+    async excluirAdmin(id) {
+        try {
+            await apiFetch(`/api/super-admin/admins/${id}`, { method: 'DELETE' });
+            showToast('Administrador excluído', 'success');
+            this.loadGestaoAdmins();
+        } catch (e) {
+            showToast(e.message || 'Erro ao excluir administrador', 'error');
+        }
+    },
+
+    // Modal de confirmação genérico
+    confirmAction(message, callback) {
+        document.getElementById('modal-confirmacao-message').textContent = message;
+        this._confirmCallback = callback;
+        this.openModal('modal-confirmacao');
+    },
+
     // ==================== HELPERS ====================
+    skeletonRows(cols, rows = 3) {
+        let html = '';
+        for (let r = 0; r < rows; r++) {
+            html += '<tr>';
+            for (let c = 0; c < cols; c++) {
+                html += `<td><div class="skeleton-line"></div></td>`;
+            }
+            html += '</tr>';
+        }
+        return html;
+    },
+
     createPillHtml(status) {
         const cls = getStatusClass(status);
         const label = translateStatus(status);

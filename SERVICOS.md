@@ -5,6 +5,7 @@
 | Servico | URL | Credenciais |
 |---|---|---|
 | Aplicacao DoaTec | http://localhost:8080 | Login via aplicacao |
+| Super Admin (auto-criado) | http://localhost:8080/admin.html | admin@doatec.com / Admin@123 (**Troque a senha em produção!**) |
 | pgAdmin | http://localhost:5050 | admin@doatec.com / admin123 |
 | PostgreSQL | localhost:5432 | doatec_user / doatec_password |
 
@@ -18,6 +19,18 @@
    - Port: 5432
    - Username: doatec_user
    - Password: doatec_password
+
+---
+
+## Hierarquia de Roles
+
+```
+SUPER_ADMIN > ADMIN > USER
+```
+
+- **SUPER_ADMIN**: Acesso total + gestão de administradores (6ª aba "Gestão de Admins")
+- **ADMIN**: Gestão de doações, solicitações, suporte e usuários (5 abas)
+- **USER**: Acesso básico ao sistema
 
 ---
 
@@ -91,7 +104,7 @@
 | PUT | /api/notificacoes/{id}/ler | Marcar como lida |
 | PUT | /api/notificacoes/usuario/{id}/ler-todas | Marcar todas como lidas |
 
-### Admin (requer role ADMIN)
+### Admin (requer role ADMIN ou SUPER_ADMIN)
 
 | Metodo | Endpoint | Descricao |
 |---|---|---|
@@ -110,6 +123,15 @@
 | GET | /api/admin/usuarios/role/{role} | Usuarios por role |
 | PUT | /api/admin/usuarios/{id}/status | Alterar status do usuario |
 | PUT | /api/admin/usuarios/{id}/role | Alterar role do usuario |
+
+### Super Admin (requer role SUPER_ADMIN)
+
+| Metodo | Endpoint | Descricao |
+|---|---|---|
+| GET | /api/super-admin/admins | Listar administradores |
+| POST | /api/super-admin/admins | Criar novo administrador |
+| PUT | /api/super-admin/admins/{id}/rebaixar | Rebaixar admin para USER |
+| DELETE | /api/super-admin/admins/{id} | Excluir administrador |
 
 ### Inventario (requer role ADMIN)
 
@@ -138,6 +160,7 @@
 | Meus Pedidos | http://localhost:8080/meus-pedidos.html |
 | Suporte | http://localhost:8080/suporte.html |
 | Sobre | http://localhost:8080/sobre.html |
+| Painel Admin | http://localhost:8080/admin.html |
 
 ---
 

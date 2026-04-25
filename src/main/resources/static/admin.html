@@ -65,6 +65,7 @@
         <button class="admin-tab" data-tab="solicitacoes">Solicitações</button>
         <button class="admin-tab" data-tab="inventario">Inventário</button>
         <button class="admin-tab" data-tab="suporte-usuarios">Suporte & Usuários</button>
+        <button class="admin-tab" data-tab="gestao-admins" id="tab-btn-gestao-admins" style="display:none;">Gestão de Admins</button>
     </div>
 
     <!-- ==================== DASHBOARD ==================== -->
@@ -251,6 +252,31 @@
             <div class="admin-pagination" id="usuarios-pagination"></div>
         </div>
     </div>
+
+    <!-- ==================== GESTÃO DE ADMINS ==================== -->
+    <div id="tab-gestao-admins" class="admin-tab-content">
+        <div class="admin-section-header">
+            <h3>Administradores</h3>
+            <button class="btn-approve" id="btn-criar-admin">+ Novo Admin</button>
+        </div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Tipo</th>
+                        <th>Role</th>
+                        <th>Ativo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="gestao-admins-tbody"></tbody>
+            </table>
+        </div>
+        <div class="admin-pagination" id="gestao-admins-pagination"></div>
+    </div>
 </main>
 
 <!-- ==================== MODAL DE AVALIAÇÃO ==================== -->
@@ -340,6 +366,63 @@
         <div class="admin-modal-footer">
             <button class="btn-action" onclick="AdminPanel.closeModal('modal-role-usuario')">Cancelar</button>
             <button class="btn-approve" id="modal-role-usuario-confirm">Alterar Role</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DE CRIAR ADMIN ==================== -->
+<div id="modal-criar-admin" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3>Novo Administrador</h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-criar-admin')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="form-group">
+                <label for="criar-admin-nome">Nome *</label>
+                <input type="text" id="criar-admin-nome" placeholder="Nome completo" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label for="criar-admin-email">Email *</label>
+                <input type="email" id="criar-admin-email" placeholder="email@exemplo.com" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label for="criar-admin-senha">Senha (padrão: Admin@123)</label>
+                <input type="password" id="criar-admin-senha" placeholder="Mínimo 6 caracteres" minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="criar-admin-tipo">Tipo de Pessoa *</label>
+                <select id="criar-admin-tipo">
+                    <option value="DOADOR_PF">Doador PF</option>
+                    <option value="DOADOR_PJ">Doador PJ</option>
+                    <option value="ALUNO">Aluno</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="criar-admin-documento">Documento (CPF/CNPJ/RA)</label>
+                <input type="text" id="criar-admin-documento" placeholder="Opcional">
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-criar-admin')">Cancelar</button>
+            <button class="btn-approve" id="modal-criar-admin-confirm">Criar Admin</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DE CONFIRMAÇÃO GENÉRICO ==================== -->
+<div id="modal-confirmacao" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3 id="modal-confirmacao-title">Confirmar Ação</h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-confirmacao')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <p id="modal-confirmacao-message">Tem certeza que deseja realizar esta ação?</p>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-confirmacao')">Cancelar</button>
+            <button class="btn-danger" id="modal-confirmacao-confirm">Confirmar</button>
         </div>
     </div>
 </div>

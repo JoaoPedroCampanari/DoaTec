@@ -69,9 +69,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const notificationsContainer = document.getElementById('notificationsContainer');
 
     if (loggedInUser) {
-        const role = loggedInUser.role; // 'ADMIN' ou 'USER'
+        const role = loggedInUser.role; // 'ADMIN', 'SUPER_ADMIN' ou 'USER'
         const tipoPessoa = loggedInUser.tipoPessoa; // 'ALUNO', 'DOADOR_PF', 'DOADOR_PJ'
-        const isAdmin = role === 'ADMIN';
+        const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
         const isAluno = tipoPessoa === 'ALUNO';
 
         console.log('nav-visibility: Dados do usuário:', { role, tipoPessoa, isAdmin });
