@@ -49,10 +49,56 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM Copiar docker-compose.yml e SERVICOS.md
+REM Copiar SERVICOS.md e criar docker-compose.yml de producao (image em vez de build)
 echo [5/6] Copiando arquivos de configuracao...
-copy docker-compose.yml %EXPORT_DIR%\ >nul
 copy SERVICOS.md %EXPORT_DIR%\ >nul 2>nul
+
+echo services: > %EXPORT_DIR%\docker-compose.yml
+echo   app: >> %EXPORT_DIR%\docker-compose.yml
+echo     image: doatec-app:latest >> %EXPORT_DIR%\docker-compose.yml
+echo     ports: >> %EXPORT_DIR%\docker-compose.yml
+echo       - "8080:8080" >> %EXPORT_DIR%\docker-compose.yml
+echo     volumes: >> %EXPORT_DIR%\docker-compose.yml
+echo       - ./uploads:/app/uploads >> %EXPORT_DIR%\docker-compose.yml
+echo     environment: >> %EXPORT_DIR%\docker-compose.yml
+echo       - SPRING_PROFILES_ACTIVE=docker >> %EXPORT_DIR%\docker-compose.yml
+echo     depends_on: >> %EXPORT_DIR%\docker-compose.yml
+echo       db: >> %EXPORT_DIR%\docker-compose.yml
+echo         condition: service_healthy >> %EXPORT_DIR%\docker-compose.yml
+echo     restart: on-failure >> %EXPORT_DIR%\docker-compose.yml
+echo. >> %EXPORT_DIR%\docker-compose.yml
+echo   db: >> %EXPORT_DIR%\docker-compose.yml
+echo     image: postgres:16-alpine >> %EXPORT_DIR%\docker-compose.yml
+echo     environment: >> %EXPORT_DIR%\docker-compose.yml
+echo       POSTGRES_DB: doatec >> %EXPORT_DIR%\docker-compose.yml
+echo       POSTGRES_USER: doatec_user >> %EXPORT_DIR%\docker-compose.yml
+echo       POSTGRES_PASSWORD: doatec_password >> %EXPORT_DIR%\docker-compose.yml
+echo     ports: >> %EXPORT_DIR%\docker-compose.yml
+echo       - "5432:5432" >> %EXPORT_DIR%\docker-compose.yml
+echo     volumes: >> %EXPORT_DIR%\docker-compose.yml
+echo       - postgres_data:/var/lib/postgresql/data >> %EXPORT_DIR%\docker-compose.yml
+echo     healthcheck: >> %EXPORT_DIR%\docker-compose.yml
+echo       test: ["CMD-SHELL", "pg_isready -U doatec_user -d doatec"] >> %EXPORT_DIR%\docker-compose.yml
+echo       interval: 5s >> %EXPORT_DIR%\docker-compose.yml
+echo       timeout: 5s >> %EXPORT_DIR%\docker-compose.yml
+echo       retries: 10 >> %EXPORT_DIR%\docker-compose.yml
+echo. >> %EXPORT_DIR%\docker-compose.yml
+echo   pgadmin: >> %EXPORT_DIR%\docker-compose.yml
+echo     image: dpage/pgadmin4:latest >> %EXPORT_DIR%\docker-compose.yml
+echo     environment: >> %EXPORT_DIR%\docker-compose.yml
+echo       PGADMIN_DEFAULT_EMAIL: admin@doatec.com >> %EXPORT_DIR%\docker-compose.yml
+echo       PGADMIN_DEFAULT_PASSWORD: admin123 >> %EXPORT_DIR%\docker-compose.yml
+echo     ports: >> %EXPORT_DIR%\docker-compose.yml
+echo       - "5050:80" >> %EXPORT_DIR%\docker-compose.yml
+echo     depends_on: >> %EXPORT_DIR%\docker-compose.yml
+echo       db: >> %EXPORT_DIR%\docker-compose.yml
+echo         condition: service_healthy >> %EXPORT_DIR%\docker-compose.yml
+echo     volumes: >> %EXPORT_DIR%\docker-compose.yml
+echo       - pgadmin_data:/var/lib/pgadmin >> %EXPORT_DIR%\docker-compose.yml
+echo. >> %EXPORT_DIR%\docker-compose.yml
+echo volumes: >> %EXPORT_DIR%\docker-compose.yml
+echo   postgres_data: >> %EXPORT_DIR%\docker-compose.yml
+echo   pgadmin_data: >> %EXPORT_DIR%\docker-compose.yml
 
 REM Criar script de importacao
 echo [6/6] Criando script de importacao...
