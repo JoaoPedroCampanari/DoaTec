@@ -28,7 +28,7 @@
 SUPER_ADMIN > ADMIN > USER
 ```
 
-- **SUPER_ADMIN**: Acesso total + gestão de administradores (6ª aba "Gestão de Admins")
+- **SUPER_ADMIN**: Acesso total + gestão de administradores (botão "Criar Admin" na aba Usuários)
 - **ADMIN**: Gestão de doações, solicitações, suporte e usuários (5 abas)
 - **USER**: Acesso básico ao sistema
 
@@ -112,9 +112,11 @@ SUPER_ADMIN > ADMIN > USER
 | GET | /api/admin/doacoes | Listar doacoes |
 | PUT | /api/admin/doacoes/{id}/aprovar | Aprovar doacao |
 | PUT | /api/admin/doacoes/{id}/rejeitar | Rejeitar doacao |
+| PUT | /api/admin/doacoes/{id}/status?novoStatus=... | Alterar status da doacao (transicoes validadas) |
 | GET | /api/admin/solicitacoes | Listar solicitacoes |
 | PUT | /api/admin/solicitacoes/{id}/aprovar | Aprovar solicitacao |
 | PUT | /api/admin/solicitacoes/{id}/rejeitar | Rejeitar solicitacao |
+| PUT | /api/admin/solicitacoes/{id}/concluir | Concluir solicitacao aprovada |
 | GET | /api/admin/suporte | Listar mensagens de suporte |
 | PUT | /api/admin/suporte/{id}/responder | Responder suporte |
 | PUT | /api/admin/suporte/{id}/status | Alterar status do suporte |
@@ -131,7 +133,9 @@ SUPER_ADMIN > ADMIN > USER
 | GET | /api/super-admin/admins | Listar administradores |
 | POST | /api/super-admin/admins | Criar novo administrador |
 | PUT | /api/super-admin/admins/{id}/rebaixar | Rebaixar admin para USER |
-| DELETE | /api/super-admin/admins/{id} | Excluir administrador |
+| PUT | /api/super-admin/admins/{id}/role?novaRole=... | Alterar role do admin |
+| PUT | /api/super-admin/admins/{id}/status | Alterar status do admin |
+| DELETE | /api/super-admin/admins/{id} | Desativar administrador (soft delete) |
 
 ### Inventario (requer role ADMIN)
 
