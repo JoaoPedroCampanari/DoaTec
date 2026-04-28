@@ -175,6 +175,73 @@ public class AdminService {
         return DoacaoMapper.toResponse(doacaoAtualizada);
     }
 
+    @Transactional
+    public DoacaoResponse alterarStatusDoacao(Integer id, StatusDoacao novoStatus, Integer adminId, AvaliacaoRequest request) {
+        Doacao doacao = doacaoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
+
+        Pessoa admin = validarAdmin(adminId);
+
+        // Validar transição de status
+        validarTransicaoDoacao(doacao.getStatus(), novoStatus);
+
+        StatusDoacao statusAnterior = doacao.getStatus();
+        doacao.setStatus(novoStatus);
+        doacao.setAdminAvaliador(admin);
+        doacao.setDataAvaliacao(LocalDateTime.now());
+        if (request != null && request.observacao() != null) {
+            doacao.setObservacaoAdmin(request.observacao());
+        }
+
+        // Criar equipamentos no inventário SOMENTE quando transicionar para FINALIZADO
+        if (novoStatus == StatusDoacao.FINALIZADO) {
+            for (ItemDoado item : doacao.getItens()) {
+                EstadoConservacao estado = inferirEstadoConservacao(request);
+                inventarioService.criarEquipamento(item, estado);
+            }
+        }
+
+        Doacao doacaoAtualizada = doacaoRepository.save(doacao);
+
+        // Notificar doador sobre mudança de status
+        notificacaoService.criarNotificacao(
+                doacao.getDoador().getId(),
+                "Status da Doação Atualizado",
+                "O status da sua doação #" + doacao.getId() + " foi alterado de " + statusAnterior.name() + " para " + novoStatus.name() + ".",
+                novoStatus == StatusDoacao.REJEITADA ? TipoNotificacao.DOACAO_REJEITADA
+                        : novoStatus == StatusDoacao.FINALIZADO ? TipoNotificacao.DOACAO_APROVADA
+                        : TipoNotificacao.DOACAO_STATUS_ATUALIZADO,
+                doacao.getId(),
+                "DOACAO"
+        );
+
+        registrarLog(admin, AcaoTipo.ALTERAR_STATUS_DOACAO, "Doacao", id,
+                "Status da doação alterado de " + statusAnterior.name() + " para " + novoStatus.name());
+
+        return DoacaoMapper.toResponse(doacaoAtualizada);
+    }
+
+    private void validarTransicaoDoacao(StatusDoacao atual, StatusDoacao novo) {
+        if (atual == novo) {
+            throw new BusinessException("Doação já está com status " + atual.name());
+        }
+        if (atual == StatusDoacao.FINALIZADO || atual == StatusDoacao.REJEITADA) {
+            throw new BusinessException("Doação com status " + atual.name() + " não pode ser alterada.");
+        }
+
+        boolean transicaoValida = switch (atual) {
+            case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
+            case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
+            case RECEBIDO -> novo == StatusDoacao.EM_ANALISE || novo == StatusDoacao.REJEITADA;
+            case EM_ANALISE -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
+            default -> false;
+        };
+
+        if (!transicaoValida) {
+            throw new BusinessException("Transição de status inválida: " + atual.name() + " → " + novo.name());
+        }
+    }
+
     // ==================== SOLICITAÇÕES ====================
 
     @Transactional(readOnly = true)
@@ -248,6 +315,40 @@ public class AdminService {
         );
 
         registrarLog(admin, AcaoTipo.REJEITAR_SOLICITACAO, "SolicitacaoHardware", id, "Solicitação rejeitada");
+
+        return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
+    }
+
+    @Transactional
+    public SolicitacaoResponse concluirSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
+
+        Pessoa admin = validarAdmin(adminId);
+
+        if (solicitacao.getStatus() != StatusSolicitacao.APROVADA) {
+            throw new BusinessException("Apenas solicitações aprovadas podem ser concluídas. Status atual: " + solicitacao.getStatus().name());
+        }
+
+        solicitacao.setStatus(StatusSolicitacao.CONCLUIDA);
+        solicitacao.setAdminAvaliador(admin);
+        solicitacao.setDataAvaliacao(LocalDateTime.now());
+        if (request != null && request.observacao() != null) {
+            solicitacao.setObservacaoAdmin(request.observacao());
+        }
+
+        SolicitacaoHardware solicitacaoAtualizada = solicitacaoRepository.save(solicitacao);
+
+        notificacaoService.criarNotificacao(
+                solicitacao.getAluno().getId(),
+                "Solicitação Concluída",
+                "Sua solicitação #" + solicitacao.getId() + " foi concluída com sucesso!",
+                TipoNotificacao.SOLICITACAO_CONCLUIDA,
+                solicitacao.getId(),
+                "SOLICITACAO"
+        );
+
+        registrarLog(admin, AcaoTipo.CONCLUIR_SOLICITACAO, "SolicitacaoHardware", id, "Solicitação concluída");
 
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
     }

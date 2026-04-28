@@ -1,6 +1,7 @@
 package com.doatec.dto.response;
 
 import com.doatec.model.donation.Doacao;
+import com.doatec.model.donation.ItemDoado;
 import lombok.Builder;
 
 import java.time.LocalDate;
@@ -19,9 +20,14 @@ public record DoacaoResponse(
     String urlFoto,
     String observacaoAdmin,
     String adminAvaliadorNome,
-    LocalDateTime dataAvaliacao
+    LocalDateTime dataAvaliacao,
+    List<ItemDoadoResumo> itens
 ) {
     public static DoacaoResponse from(Doacao doacao) {
+        List<ItemDoadoResumo> itensResumo = doacao.getItens() != null
+                ? doacao.getItens().stream().map(ItemDoadoResumo::from).toList()
+                : List.of();
+
         return DoacaoResponse.builder()
                 .id(doacao.getId())
                 .doadorNome(doacao.getDoador() != null ? doacao.getDoador().getNome() : null)
@@ -35,6 +41,20 @@ public record DoacaoResponse(
                 .observacaoAdmin(doacao.getObservacaoAdmin())
                 .adminAvaliadorNome(doacao.getAdminAvaliador() != null ? doacao.getAdminAvaliador().getNome() : null)
                 .dataAvaliacao(doacao.getDataAvaliacao())
+                .itens(itensResumo)
                 .build();
+    }
+
+    @Builder
+    public record ItemDoadoResumo(
+        String tipo,
+        String descricao
+    ) {
+        public static ItemDoadoResumo from(ItemDoado item) {
+            return ItemDoadoResumo.builder()
+                    .tipo(item.getTipoItem())
+                    .descricao(item.getDescricao())
+                    .build();
+        }
     }
 }

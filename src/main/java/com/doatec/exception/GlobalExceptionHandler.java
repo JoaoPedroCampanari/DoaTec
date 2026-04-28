@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -91,6 +92,26 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    /**
+     * Trata parâmetros de requisição inválidos (ex: enum inexistente, tipo incorreto).
+     * Retorna HTTP 400 Bad Request.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String param = ex.getName();
+        String value = ex.getValue() != null ? ex.getValue().toString() : "";
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "";
+        String message = "Valor inválido para o parâmetro '" + param + "': '" + value + "'. Tipo esperado: " + requiredType;
+
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Parâmetro Inválido",
+                message
+        );
+
+        return ResponseEntity.badRequest().body(response);
     }
 
     /**

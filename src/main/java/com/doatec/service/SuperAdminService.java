@@ -45,6 +45,10 @@ public class SuperAdminService {
             throw new BusinessException("Email já cadastrado: " + request.email());
         }
 
+        if (pessoaRepository.findByDocumento(request.documento()).isPresent()) {
+            throw new BusinessException("Documento já cadastrado: " + request.documento());
+        }
+
         Role role = Role.valueOf(request.role().toUpperCase());
         if (role == Role.SUPER_ADMIN) {
             throw new BusinessException("Não é possível criar outro Super Admin.");
@@ -61,7 +65,7 @@ public class SuperAdminService {
                     .nome(request.nome())
                     .email(request.email())
                     .senha(senha)
-                    .cpf(request.documento() != null ? request.documento() : "000.000.000-00")
+                    .cpf(request.documento())
                     .role(role)
                     .ativo(true)
                     .build();
@@ -69,7 +73,7 @@ public class SuperAdminService {
                     .nome(request.nome())
                     .email(request.email())
                     .senha(senha)
-                    .cnpj(request.documento() != null ? request.documento() : "00.000.000/0000-00")
+                    .cnpj(request.documento())
                     .razaoSocial(request.nome())
                     .role(role)
                     .ativo(true)
@@ -78,7 +82,7 @@ public class SuperAdminService {
                     .nome(request.nome())
                     .email(request.email())
                     .senha(senha)
-                    .ra(request.documento() != null ? request.documento() : "0000000000")
+                    .ra(request.documento())
                     .role(role)
                     .ativo(true)
                     .build();
@@ -130,7 +134,9 @@ public class SuperAdminService {
             throw new BusinessException("Apenas administradores podem ser excluídos por este endpoint.");
         }
 
-        pessoaRepository.delete(pessoa);
+        pessoa.setAtivo(false);
+        pessoa.setRole(Role.USER);
+        pessoaRepository.save(pessoa);
     }
 
     @Transactional

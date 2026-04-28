@@ -87,6 +87,17 @@ public class AdminController {
         return ResponseEntity.ok(doacao);
     }
 
+    @PutMapping("/doacoes/{id}/status")
+    public ResponseEntity<DoacaoResponse> alterarStatusDoacao(
+            @PathVariable Integer id,
+            @RequestParam StatusDoacao novoStatus,
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
+        DoacaoResponse doacao = adminService.alterarStatusDoacao(id, novoStatus, adminId, request);
+        return ResponseEntity.ok(doacao);
+    }
+
     // ==================== SOLICITAÇÕES ====================
 
     @GetMapping("/solicitacoes")
@@ -114,6 +125,16 @@ public class AdminController {
             @Valid @RequestBody(required = false) AvaliacaoRequest request) {
         Integer adminId = getAuthenticatedAdminId(userDetails);
         SolicitacaoResponse solicitacao = adminService.rejeitarSolicitacao(id, adminId, request);
+        return ResponseEntity.ok(solicitacao);
+    }
+
+    @PutMapping("/solicitacoes/{id}/concluir")
+    public ResponseEntity<SolicitacaoResponse> concluirSolicitacao(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
+        SolicitacaoResponse solicitacao = adminService.concluirSolicitacao(id, adminId, request);
         return ResponseEntity.ok(solicitacao);
     }
 
