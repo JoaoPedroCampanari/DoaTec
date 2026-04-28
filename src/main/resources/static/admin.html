@@ -69,7 +69,6 @@
         <button class="admin-tab" data-tab="solicitacoes">Solicitações</button>
         <button class="admin-tab" data-tab="inventario">Inventário</button>
         <button class="admin-tab" data-tab="suporte-usuarios">Suporte & Usuários</button>
-        <button class="admin-tab" data-tab="gestao-admins" id="tab-btn-gestao-admins" style="display:none;">Gestão de Admins</button>
     </div>
 
     <!-- ==================== DASHBOARD ==================== -->
@@ -174,14 +173,6 @@
             </table>
         </div>
         <div class="admin-pagination" id="solicitacoes-pagination"></div>
-        <!-- Painel de sugestões de matching -->
-        <div id="match-panel" class="match-panel" style="display:none;">
-            <div class="match-panel-header">
-                <h3>Sugestões de Matching</h3>
-                <button class="btn-action" onclick="AdminPanel.closeMatchPanel()">Fechar</button>
-            </div>
-            <div id="match-panel-content"></div>
-        </div>
     </div>
 
     <!-- ==================== INVENTÁRIO ==================== -->
@@ -236,6 +227,10 @@
 
         <!-- Sub-tab Usuários -->
         <div id="subtab-usuarios" class="admin-subtab-content">
+            <div class="admin-section-header">
+                <h3>Usuários</h3>
+                <button class="btn-approve" id="btn-criar-admin" style="display:none;">+ Novo Admin</button>
+            </div>
             <div class="admin-filter-bar" id="usuarios-filters"></div>
             <div class="admin-table-wrapper">
                 <table class="admin-table">
@@ -257,30 +252,6 @@
         </div>
     </div>
 
-    <!-- ==================== GESTÃO DE ADMINS ==================== -->
-    <div id="tab-gestao-admins" class="admin-tab-content">
-        <div class="admin-section-header">
-            <h3>Administradores</h3>
-            <button class="btn-approve" id="btn-criar-admin">+ Novo Admin</button>
-        </div>
-        <div class="admin-table-wrapper">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Tipo</th>
-                        <th>Role</th>
-                        <th>Ativo</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="gestao-admins-tbody"></tbody>
-            </table>
-        </div>
-        <div class="admin-pagination" id="gestao-admins-pagination"></div>
-    </div>
 </main>
 
 <!-- ==================== MODAL DE AVALIAÇÃO ==================== -->
@@ -403,8 +374,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="criar-admin-documento">Documento (CPF/CNPJ/RA)</label>
-                <input type="text" id="criar-admin-documento" placeholder="Opcional">
+                <label for="criar-admin-documento">Documento (CPF/CNPJ/RA) *</label>
+                <input type="text" id="criar-admin-documento" placeholder="Obrigatório" required>
             </div>
         </div>
         <div class="admin-modal-footer">

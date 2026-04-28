@@ -9,8 +9,7 @@ const AdminPanel = {
         doacoes: { page: 0, size: 20, total: 0 },
         solicitacoes: { page: 0, size: 20, total: 0 },
         suporte: { page: 0, size: 20, total: 0 },
-        usuarios: { page: 0, size: 20, total: 0 },
-        gestaoAdmins: { page: 0, size: 20, total: 0 }
+        usuarios: { page: 0, size: 20, total: 0 }
     },
 
     // Filtros atuais
@@ -39,15 +38,10 @@ const AdminPanel = {
             return;
         }
 
-        // Mostrar aba "Gestão de Admins" apenas para SUPER_ADMIN
+        // Mostrar botão "Criar Admin" apenas para SUPER_ADMIN
         const isSuperAdmin = Auth.getUserRole() === 'SUPER_ADMIN';
-        const tabBtn = document.getElementById('tab-btn-gestao-admins');
-        if (tabBtn) tabBtn.style.display = isSuperAdmin ? '' : 'none';
-
-        // Redirecionamento inteligente: ADMIN comum vai pra Suporte & Usuários
-        if (!isSuperAdmin && window.location.hash === '#gestao-admins') {
-            window.location.hash = '#suporte-usuarios';
-        }
+        const btnCriarAdmin = document.getElementById('btn-criar-admin');
+        if (btnCriarAdmin) btnCriarAdmin.style.display = isSuperAdmin ? '' : 'none';
 
         this.setupTabs();
         this.setupSubTabs();
@@ -73,7 +67,6 @@ const AdminPanel = {
                     case 'solicitacoes': this.loadSolicitacoes(); break;
                     case 'inventario': this.loadInventario(); break;
                     case 'suporte-usuarios': this.loadSuporte(); break;
-                    case 'gestao-admins': this.loadGestaoAdmins(); break;
                 }
             });
         });
@@ -292,55 +285,91 @@ const AdminPanel = {
             return;
         }
 
-        tbody.innerHTML = doacoes.map(d => `
-            <tr>
+        tbody.innerHTML = doacoes.map(d => {
+            const proximosStatus = this.getProximosStatusDoacao(d.status);
+            return `
+            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'doacao', ${d.id})">
                 <td>#${d.id}</td>
                 <td>${escapeHtml(d.doadorNome || '-')}<br><small>${escapeHtml(d.doadorEmail || '')}</small></td>
                 <td>${formatDate(d.dataDoacao)}</td>
                 <td>${this.createPillHtml(d.status)}</td>
                 <td>${escapeHtml(d.descricaoGeral || '-')}</td>
                 <td class="admin-actions">
-                    ${d.status !== 'FINALIZADO' && d.status !== 'REJEITADA' ?
-                        `<button class="btn-approve" onclick="AdminPanel.aprovarDoacao(${d.id})">Aprovar</button>
-                         <button class="btn-reject" onclick="AdminPanel.rejeitarDoacao(${d.id})">Rejeitar</button>`
-                        : '<span style="color:var(--neutral-400)">-</span>'}
+                    ${proximosStatus.length ?
+                        `<select class="admin-status-select" onchange="event.stopPropagation(); AdminPanel.alterarStatusDoacao(${d.id}, this.value)">
+                            <option value="">Alterar status</option>
+                            ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
+                        </select>` : '<span style="color:var(--neutral-400)">-</span>'}
                 </td>
             </tr>
-        `).join('');
+            <tr class="admin-detail-row" id="detail-doacao-${d.id}" style="display:none">
+                <td colspan="6">
+                    <div class="admin-detail-content">
+                        <p><strong>Logística:</strong> ${escapeHtml(d.preferenciaEntrega || 'Não informada')}</p>
+                        <p><strong>Descrição:</strong> ${escapeHtml(d.descricaoGeral || 'Não informada')}</p>
+                        ${d.urlFoto ? `<p><strong>Foto:</strong> <a href="${escapeHtml(d.urlFoto)}" target="_blank">Ver imagem</a></p>` : ''}
+                        ${d.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(d.observacaoAdmin)}</p>` : ''}
+                        ${d.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(d.adminAvaliadorNome)}${d.dataAvaliacao ? ' — ' + formatDate(d.dataAvaliacao) : ''}</p>` : ''}
+                        ${d.itens && d.itens.length ? `
+                            <p><strong>Itens doados:</strong></p>
+                            <ul style="margin:4px 0 0 20px">${d.itens.map(i => `<li>${escapeHtml(i.tipo)}${i.descricao ? ' — ' + escapeHtml(i.descricao) : ''}</li>`).join('')}</ul>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;}).join('');
     },
 
-    aprovarDoacao(id) {
-        this.openAvaliacaoModal('Aprovar Doação #' + id, 'Confirme a aprovação desta doação.', false, async (observacao) => {
-            try {
-                const res = await apiFetch('/api/admin/doacoes/' + id + '/aprovar', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ observacao })
-                });
-                if (!res.ok) throw new Error();
-                showToast('Doação aprovada com sucesso', 'success');
-                this.loadDoacoes();
-            } catch {
-                showToast('Erro ao aprovar doação', 'error');
-            }
-        });
+    getProximosStatusDoacao(status) {
+        const transicoes = {
+            'EM_TRIAGEM': ['AGUARDANDO_COLETA', 'REJEITADA'],
+            'AGUARDANDO_COLETA': ['RECEBIDO', 'REJEITADA'],
+            'RECEBIDO': ['EM_ANALISE', 'REJEITADA'],
+            'EM_ANALISE': ['FINALIZADO', 'REJEITADA']
+        };
+        return transicoes[status] || [];
     },
 
-    rejeitarDoacao(id) {
-        this.openAvaliacaoModal('Rejeitar Doação #' + id, 'Informe o motivo da rejeição.', true, async (observacao) => {
-            try {
-                const res = await apiFetch('/api/admin/doacoes/' + id + '/rejeitar', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ observacao })
-                });
-                if (!res.ok) throw new Error();
-                showToast('Doação rejeitada', 'success');
-                this.loadDoacoes();
-            } catch {
-                showToast('Erro ao rejeitar doação', 'error');
+    formatStatusLabel(status) {
+        const labels = {
+            'EM_TRIAGEM': 'Em Triagem',
+            'AGUARDANDO_COLETA': 'Aguardando Coleta',
+            'RECEBIDO': 'Recebido',
+            'EM_ANALISE': 'Em Análise',
+            'FINALIZADO': 'Finalizado',
+            'REJEITADA': 'Rejeitar',
+            'EM_ANALISE_SOL': 'Em Análise',
+            'APROVADA': 'Aprovar',
+            'CONCLUIDA': 'Concluir'
+        };
+        return labels[status] || status;
+    },
+
+    alterarStatusDoacao(id, novoStatus) {
+        if (!novoStatus) return;
+        const isRejeicao = novoStatus === 'REJEITADA';
+        this.openAvaliacaoModal(
+            'Alterar Status — Doação #' + id,
+            isRejeicao ? 'Informe o motivo da rejeição.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            isRejeicao,
+            async (observacao) => {
+                try {
+                    const res = await apiFetch('/api/admin/doacoes/' + id + '/status?novoStatus=' + novoStatus, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ observacao })
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || 'Erro');
+                    }
+                    showToast('Status atualizado para ' + this.formatStatusLabel(novoStatus), 'success');
+                    this.loadDoacoes();
+                } catch (e) {
+                    showToast(e.message || 'Erro ao alterar status', 'error');
+                }
             }
-        });
+        );
     },
 
     // ==================== SOLICITAÇÕES ====================
@@ -370,74 +399,97 @@ const AdminPanel = {
             return;
         }
 
-        tbody.innerHTML = solicitacoes.map(s => `
-            <tr>
+        tbody.innerHTML = solicitacoes.map(s => {
+            const proximosStatus = this.getProximosStatusSolicitacao(s.status);
+            return `
+            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'solicitacao', ${s.id})">
                 <td>#${s.id}</td>
                 <td>${escapeHtml(s.alunoNome || '-')}<br><small>${escapeHtml(s.alunoEmail || '')}</small></td>
                 <td>${formatDate(s.dataSolicitacao)}</td>
                 <td>${escapeHtml(s.preferenciaEquipamento || '-')}</td>
                 <td>${this.createPillHtml(s.status)}</td>
                 <td class="admin-actions">
-                    ${s.status !== 'APROVADA' && s.status !== 'REJEITADA' && s.status !== 'CONCLUIDA' ?
-                        `<button class="btn-approve" onclick="AdminPanel.aprovarSolicitacao(${s.id})">Aprovar</button>
-                         <button class="btn-reject" onclick="AdminPanel.rejeitarSolicitacao(${s.id})">Rejeitar</button>` : ''}
-                    <button class="btn-action" onclick="AdminPanel.verSugestoes(${s.id})">Sugestões</button>
-                    ${s.status === 'APROVADA' ? `<button class="btn-approve" onclick="AdminPanel.closeMatchPanel()">Atribuir</button>` : ''}
+                    ${proximosStatus.length ?
+                        `<select class="admin-status-select" onchange="event.stopPropagation(); AdminPanel.alterarStatusSolicitacao(${s.id}, this.value)">
+                            <option value="">Alterar status</option>
+                            ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
+                        </select>` : ''}
                 </td>
             </tr>
-        `).join('');
-    },
+            <tr class="admin-detail-row" id="detail-solicitacao-${s.id}" style="display:none">
+                <td colspan="6">
+                    <div class="admin-detail-content">
+                        <p><strong>Preferência:</strong> ${escapeHtml(s.preferenciaEquipamento || 'Não informada')}</p>
+                        ${s.justificativa ? `<p><strong>Justificativa:</strong> ${escapeHtml(s.justificativa)}</p>` : ''}
+                        ${s.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(s.observacaoAdmin)}</p>` : ''}
+                        ${s.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(s.adminAvaliadorNome)}${s.dataAvaliacao ? ' — ' + formatDate(s.dataAvaliacao) : ''}</p>` : ''}
+                        <div id="sugestoes-solicitacao-${s.id}"></div>
+                    </div>
+                </td>
+            </tr>
+        `;}).join('');
 
-    aprovarSolicitacao(id) {
-        this.openAvaliacaoModal('Aprovar Solicitação #' + id, 'Confirme a aprovação desta solicitação.', false, async (observacao) => {
-            try {
-                const res = await apiFetch('/api/admin/solicitacoes/' + id + '/aprovar', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ observacao })
-                });
-                if (!res.ok) throw new Error();
-                showToast('Solicitação aprovada', 'success');
-                this.loadSolicitacoes();
-            } catch {
-                showToast('Erro ao aprovar solicitação', 'error');
+        // Carregar sugestões inline para solicitações APROVADAS quando detail row for aberto
+        solicitacoes.forEach(s => {
+            if (s.status === 'APROVADA') {
+                this.carregarSugestoesInline(s.id);
             }
         });
     },
 
-    rejeitarSolicitacao(id) {
-        this.openAvaliacaoModal('Rejeitar Solicitação #' + id, 'Informe o motivo da rejeição.', true, async (observacao) => {
-            try {
-                const res = await apiFetch('/api/admin/solicitacoes/' + id + '/rejeitar', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ observacao })
-                });
-                if (!res.ok) throw new Error();
-                showToast('Solicitação rejeitada', 'success');
-                this.loadSolicitacoes();
-            } catch {
-                showToast('Erro ao rejeitar solicitação', 'error');
-            }
-        });
+    getProximosStatusSolicitacao(status) {
+        const transicoes = {
+            'EM_ANALISE': ['APROVADA', 'REJEITADA'],
+            'APROVADA': ['CONCLUIDA', 'REJEITADA']
+        };
+        return transicoes[status] || [];
     },
 
-    async verSugestoes(solicitacaoId) {
+    alterarStatusSolicitacao(id, novoStatus) {
+        if (!novoStatus) return;
+        const isRejeicao = novoStatus === 'REJEITADA';
+        this.openAvaliacaoModal(
+            'Alterar Status — Solicitação #' + id,
+            isRejeicao ? 'Informe o motivo da rejeição.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            isRejeicao,
+            async (observacao) => {
+                try {
+                    const endpoint = novoStatus === 'CONCLUIDA'
+                        ? '/api/admin/solicitacoes/' + id + '/concluir'
+                        : (novoStatus === 'APROVADA'
+                            ? '/api/admin/solicitacoes/' + id + '/aprovar'
+                            : '/api/admin/solicitacoes/' + id + '/rejeitar');
+                    const res = await apiFetch(endpoint, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ observacao })
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || 'Erro');
+                    }
+                    showToast('Status atualizado para ' + this.formatStatusLabel(novoStatus), 'success');
+                    this.loadSolicitacoes();
+                } catch (e) {
+                    showToast(e.message || 'Erro ao alterar status', 'error');
+                }
+            }
+        );
+    },
+
+    async carregarSugestoesInline(solicitacaoId) {
         try {
             const res = await apiFetch('/api/admin/inventario/sugestoes/' + solicitacaoId);
-            if (!res.ok) throw new Error();
+            if (!res.ok) return;
             const data = await res.json();
+            const container = document.getElementById('sugestoes-solicitacao-' + solicitacaoId);
+            if (!container) return;
 
-            const panel = document.getElementById('match-panel');
-            const content = document.getElementById('match-panel-content');
-            panel.style.display = 'block';
-
-            let html = `<p><strong>Aluno:</strong> ${escapeHtml(data.alunoNome || '-')} | <strong>Preferência:</strong> ${escapeHtml(data.preferenciaEquipamento || '-')}</p>`;
-
+            let html = '<p><strong>Equipamentos compatíveis:</strong></p>';
             if (!data.equipamentosCompativeis || !data.equipamentosCompativeis.length) {
                 html += '<p style="color:var(--neutral-400)">Nenhum equipamento compatível encontrado.</p>';
             } else {
-                html += '<table class="admin-table"><thead><tr><th>ID</th><th>Tipo</th><th>Descrição</th><th>Conservação</th><th>Score</th><th>Ação</th></tr></thead><tbody>';
+                html += '<table class="admin-table" style="margin-top:8px"><thead><tr><th>ID</th><th>Tipo</th><th>Descrição</th><th>Conservação</th><th>Score</th><th>Ação</th></tr></thead><tbody>';
                 data.equipamentosCompativeis.forEach(eq => {
                     const scoreClass = eq.scoreCompatibilidade >= 80 ? 'high' : eq.scoreCompatibilidade >= 50 ? 'medium' : 'low';
                     html += `<tr>
@@ -451,17 +503,10 @@ const AdminPanel = {
                 });
                 html += '</tbody></table>';
             }
-
-            content.innerHTML = html;
+            container.innerHTML = html;
         } catch (err) {
-            console.error('Sugestões:', err);
-            showToast('Erro ao carregar sugestões', 'error');
+            console.error('Sugestões inline:', err);
         }
-    },
-
-    closeMatchPanel() {
-        const panel = document.getElementById('match-panel');
-        if (panel) panel.style.display = 'none';
     },
 
     async atribuirEquipamento(equipamentoId, solicitacaoId) {
@@ -471,7 +516,6 @@ const AdminPanel = {
             });
             if (!res.ok) throw new Error();
             showToast('Equipamento atribuído com sucesso', 'success');
-            this.closeMatchPanel();
             this.loadSolicitacoes();
             this.loadInventario();
         } catch {
@@ -561,15 +605,24 @@ const AdminPanel = {
         }
 
         tbody.innerHTML = tickets.map(t => `
-            <tr>
+            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'suporte', ${t.id})">
                 <td>#${t.id}</td>
                 <td>${escapeHtml(t.autorNome || '-')}<br><small>${escapeHtml(t.autorEmail || '')}</small></td>
                 <td>${escapeHtml(t.assunto || '-')}</td>
                 <td>${this.createPillHtml(t.status)}</td>
                 <td>${t.dataCriacao ? new Date(t.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
                 <td class="admin-actions">
-                    <button class="btn-action" onclick="AdminPanel.responderSuporte(${t.id})">Responder</button>
-                    <button class="btn-action" onclick="AdminPanel.alterarStatusSuporte(${t.id})">Status</button>
+                    <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>
+                    <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id})">Status</button>
+                </td>
+            </tr>
+            <tr class="admin-detail-row" id="detail-suporte-${t.id}" style="display:none">
+                <td colspan="6">
+                    <div class="admin-detail-content">
+                        <p><strong>Mensagem:</strong> ${escapeHtml(t.mensagem || 'Não informada')}</p>
+                        ${t.resposta ? `<p><strong>Resposta:</strong> ${escapeHtml(t.resposta)}</p>` : ''}
+                        ${t.adminResponsavelNome ? `<p><strong>Admin responsável:</strong> ${escapeHtml(t.adminResponsavelNome)}${t.dataResolucao ? ' — ' + new Date(t.dataResolucao).toLocaleDateString('pt-BR') : ''}</p>` : ''}
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -882,11 +935,10 @@ const AdminPanel = {
             case 'solicitacoes': this.loadSolicitacoes(); break;
             case 'suporte': this.loadSuporte(); break;
             case 'usuarios': this.loadUsuarios(); break;
-            case 'gestaoAdmins': this.loadGestaoAdmins(); break;
         }
     },
 
-    // ==================== SUPER ADMIN — GESTÃO DE ADMINS ====================
+    // ==================== SUPER ADMIN — CRIAR/GERENCIAR ADMINS ====================
     setupSuperAdminEvents() {
         // Botão criar admin
         const btnCriar = document.getElementById('btn-criar-admin');
@@ -913,76 +965,6 @@ const AdminPanel = {
         }
     },
 
-    async loadGestaoAdmins() {
-        const { page, size } = this.pagination.gestaoAdmins;
-        const tbody = document.getElementById('gestao-admins-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = this.skeletonRows(7, 3);
-
-        try {
-            const res = await apiFetch(`/api/super-admin/admins?page=${page}&size=${size}`);
-            const data = await res.json();
-            this.pagination.gestaoAdmins.total = data.totalElements;
-
-            if (data.content.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum administrador encontrado.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = data.content.map(a => `
-                <tr>
-                    <td>${a.id}</td>
-                    <td>${escapeHtml(a.nome)}</td>
-                    <td>${escapeHtml(a.email)}</td>
-                    <td>${this.createTipoPessoaLabel(a.tipoPessoa)}</td>
-                    <td><span class="role-badge ${a.role === 'SUPER_ADMIN' ? 'role-super-admin' : 'role-admin'}">${escapeHtml(a.role)}</span></td>
-                    <td>
-                        <label class="toggle-active">
-                            <input type="checkbox" ${a.ativo ? 'checked' : ''} ${a.role === 'SUPER_ADMIN' ? '' : ''}
-                                data-toggle-status-id="${a.id}" data-toggle-status-ativo="${a.ativo}">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </td>
-                    <td class="admin-actions">
-                        ${a.role !== 'SUPER_ADMIN' ? `
-                            <button class="btn-action btn-sm" data-alterar-role-id="${a.id}" data-alterar-role-current="${escapeHtml(a.role)}">Alterar Role</button>
-                            <button class="btn-danger btn-sm" data-excluir-id="${a.id}" data-excluir-nome="${escapeHtml(a.nome)}">Excluir</button>
-                        ` : '<span class="text-muted">—</span>'}
-                    </td>
-                </tr>
-            `).join('');
-
-            // Event delegation para toggle de status
-            tbody.querySelectorAll('[data-toggle-status-id]').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const id = e.target.dataset.toggleStatusId;
-                    const novoAtivo = e.target.checked;
-                    const msg = novoAtivo ? 'Ativar este administrador?' : 'Desativar este administrador?';
-                    this.confirmAction(msg, () => this.alterarStatusAdmin(id, novoAtivo));
-                });
-            });
-            // Event delegation para alterar role
-            tbody.querySelectorAll('[data-alterar-role-id]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.alterarRoleId;
-                    const currentRole = btn.dataset.alterarRoleCurrent;
-                    this.alterarRoleAdmin(id, currentRole);
-                });
-            });
-            tbody.querySelectorAll('[data-excluir-id]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.excluirId;
-                    const nome = btn.dataset.excluirNome;
-                    this.confirmAction(`Excluir administrador ${nome}? Esta ação não pode ser desfeita.`, () => this.excluirAdmin(id));
-                });
-            });
-
-            this.renderPagination('gestao-admins-pagination', 'gestaoAdmins', data);
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Erro ao carregar administradores.</td></tr>';
-        }
-    },
-
     async criarAdmin() {
         const nome = document.getElementById('criar-admin-nome').value.trim();
         const email = document.getElementById('criar-admin-email').value.trim();
@@ -990,8 +972,8 @@ const AdminPanel = {
         const tipoPessoa = document.getElementById('criar-admin-tipo').value;
         const documento = document.getElementById('criar-admin-documento').value.trim();
 
-        if (!nome || !email) {
-            showToast('Nome e email são obrigatórios', 'error');
+        if (!nome || !email || !documento) {
+            showToast('Nome, email e documento são obrigatórios', 'error');
             return;
         }
 
@@ -1004,7 +986,7 @@ const AdminPanel = {
                     email,
                     senha: senha || null,
                     tipoPessoa,
-                    documento: documento || null,
+                    documento,
                     role: 'ADMIN'
                 })
             });
@@ -1015,34 +997,9 @@ const AdminPanel = {
             document.getElementById('criar-admin-email').value = '';
             document.getElementById('criar-admin-senha').value = '';
             document.getElementById('criar-admin-documento').value = '';
-            this.loadGestaoAdmins();
+            this.loadUsuarios();
         } catch (e) {
             showToast(e.message || 'Erro ao criar administrador', 'error');
-        }
-    },
-
-    async rebaixarAdmin(id) {
-        try {
-            await apiFetch(`/api/super-admin/admins/${id}/rebaixar`, { method: 'PUT' });
-            showToast('Administrador rebaixado para USER', 'success');
-            this.loadGestaoAdmins();
-        } catch (e) {
-            showToast(e.message || 'Erro ao rebaixar administrador', 'error');
-        }
-    },
-
-    async alterarStatusAdmin(id, ativo) {
-        try {
-            await apiFetch(`/api/super-admin/admins/${id}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ativo })
-            });
-            showToast(`Admin ${ativo ? 'ativado' : 'desativado'} com sucesso`, 'success');
-            this.loadGestaoAdmins();
-        } catch (e) {
-            showToast(e.message || 'Erro ao alterar status do admin', 'error');
-            this.loadGestaoAdmins(); // reload to reset toggle
         }
     },
 
@@ -1050,24 +1007,32 @@ const AdminPanel = {
         const select = document.getElementById('modal-role-usuario-select');
         select.innerHTML = '<option value="USER">USER</option><option value="ADMIN">ADMIN</option>';
         select.value = currentRole;
-        this._modalCallback = async () => {
+        const confirmBtn = document.getElementById('modal-role-usuario-confirm');
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        newBtn.addEventListener('click', async () => {
+            const novaRole = select.value;
+            if (novaRole === currentRole) {
+                showToast('Role já é ' + currentRole, 'error');
+                return;
+            }
             try {
-                const novaRole = select.value;
                 await apiFetch(`/api/super-admin/admins/${id}/role?novaRole=${novaRole}`, { method: 'PUT' });
                 showToast(`Role alterada para ${novaRole}`, 'success');
-                this.loadGestaoAdmins();
+                this.closeModal('modal-role-usuario');
+                this.loadUsuarios();
             } catch (e) {
                 showToast(e.message || 'Erro ao alterar role', 'error');
             }
-        };
+        });
         this.openModal('modal-role-usuario');
     },
 
     async excluirAdmin(id) {
         try {
             await apiFetch(`/api/super-admin/admins/${id}`, { method: 'DELETE' });
-            showToast('Administrador excluído', 'success');
-            this.loadGestaoAdmins();
+            showToast('Administrador desativado', 'success');
+            this.loadUsuarios();
         } catch (e) {
             showToast(e.message || 'Erro ao excluir administrador', 'error');
         }
@@ -1081,6 +1046,27 @@ const AdminPanel = {
     },
 
     // ==================== HELPERS ====================
+    toggleDetail(row, type, id) {
+        const detailRow = document.getElementById(`detail-${type}-${id}`);
+        if (!detailRow) return;
+        const isVisible = detailRow.style.display !== 'none';
+        // Fechar todos os outros detalhes da mesma tabela
+        const tbody = row.closest('tbody');
+        tbody.querySelectorAll('.admin-detail-row').forEach(r => {
+            if (r !== detailRow) r.style.display = 'none';
+        });
+        tbody.querySelectorAll('.admin-row-clickable').forEach(r => {
+            r.classList.remove('admin-row-active');
+        });
+        if (isVisible) {
+            detailRow.style.display = 'none';
+            row.classList.remove('admin-row-active');
+        } else {
+            detailRow.style.display = 'table-row';
+            row.classList.add('admin-row-active');
+        }
+    },
+
     skeletonRows(cols, rows = 3) {
         let html = '';
         for (let r = 0; r < rows; r++) {

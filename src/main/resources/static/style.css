@@ -1845,6 +1845,43 @@ body.perfil-page .login-box {
     color: var(--neutral-600);
 }
 
+/* Sobre Nós page */
+.about-content {
+    padding: 0 15px;
+}
+
+.about-text {
+    line-height: 1.8;
+    color: var(--neutral-600);
+}
+
+.about-list {
+    list-style-position: inside;
+    margin-top: 15px;
+    line-height: 1.8;
+    color: var(--neutral-600);
+}
+
+.about-list li {
+    margin-bottom: 8px;
+}
+
+.about-strong {
+    color: var(--primary-900);
+}
+
+html.dark-mode .about-text {
+    color: #9ca3af;
+}
+
+html.dark-mode .about-list {
+    color: #9ca3af;
+}
+
+html.dark-mode .about-strong {
+    color: var(--primary-400);
+}
+
 /* Support Options */
 .support-options {
     display: grid;
@@ -1922,6 +1959,10 @@ html.dark-mode .nav-links a::after {
 /* Hero Dark Mode */
 html.dark-mode .hero {
     background: linear-gradient(135deg, var(--dark-800) 0%, var(--dark-700) 100%);
+}
+
+html.dark-mode .hero::before {
+    opacity: 0;
 }
 
 html.dark-mode .about-short,
@@ -2735,6 +2776,11 @@ html.dark-mode .admin-subtitle { color: #aaa; }
     border-bottom: 2px solid var(--neutral-200, #e2e8f0);
     margin-bottom: 24px;
     overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.admin-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .admin-tab {
@@ -2959,6 +3005,63 @@ html.dark-mode .admin-table tr:hover td {
     flex-wrap: wrap;
 }
 
+/* Row expansion detail */
+.admin-row-clickable {
+    cursor: pointer;
+    transition: background var(--transition-fast, 0.15s ease);
+}
+
+.admin-row-clickable:hover {
+    background: rgba(37, 99, 235, 0.04);
+}
+
+.admin-row-clickable.admin-row-active {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.admin-detail-row td {
+    padding: 0 !important;
+    border-top: none;
+}
+
+.admin-detail-content {
+    padding: 16px 20px;
+    background: rgba(37, 99, 235, 0.03);
+    border-left: 3px solid var(--primary-500);
+    margin: 4px 8px 8px;
+    border-radius: 0 8px 8px 0;
+}
+
+.admin-detail-content p {
+    margin: 6px 0;
+    line-height: 1.6;
+    color: var(--neutral-700);
+}
+
+.admin-detail-content strong {
+    color: var(--neutral-900);
+}
+
+html.dark-mode .admin-row-clickable:hover {
+    background: rgba(37, 99, 235, 0.1);
+}
+
+html.dark-mode .admin-row-clickable.admin-row-active {
+    background: rgba(37, 99, 235, 0.15);
+}
+
+html.dark-mode .admin-detail-content {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+html.dark-mode .admin-detail-content p {
+    color: #9ca3af;
+}
+
+html.dark-mode .admin-detail-content strong {
+    color: #f3f4f6;
+}
+
 /* Action buttons */
 .btn-approve, .btn-reject, .btn-action {
     padding: 4px 12px;
@@ -2987,6 +3090,26 @@ html.dark-mode .admin-table tr:hover td {
     color: var(--primary-900, #0D47A1);
 }
 .btn-action:hover { background: #bbdefb; }
+
+/* Status select dropdown */
+.admin-status-select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border: 1px solid var(--neutral-300, #d1d5db);
+    background: var(--neutral-50, #fff);
+    color: var(--neutral-800, #1f2937);
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s ease);
+}
+.admin-status-select:hover { border-color: var(--primary-500, #2563eb); }
+.admin-status-select:focus { outline: 2px solid var(--primary-500, #2563eb); outline-offset: 1px; }
+html.dark-mode .admin-status-select {
+    background: var(--dark-700, #1f2937);
+    color: var(--dark-text, #f3f4f6);
+    border-color: var(--dark-600, #374151);
+}
 
 .btn-danger {
     padding: 5px 10px;
@@ -3253,43 +3376,6 @@ html.dark-mode .match-score.low { background: #b71c1c; color: #ef9a9a; }
 }
 
 /* Matching panel */
-.match-panel {
-    margin-top: 16px;
-    padding: 16px;
-    background: var(--primary-50, #F5F9FF);
-    border-radius: 10px;
-    border: 1px solid var(--primary-100, #E3F2FD);
-}
-
-html.dark-mode .match-panel {
-    background: var(--dark-700, #1f2937);
-    border-color: var(--dark-600, #1f2937);
-}
-
-.match-panel h3,
-.match-panel h4 {
-    font-size: 0.95rem;
-    margin-bottom: 12px;
-    color: var(--primary-900, #0D47A1);
-}
-
-.match-panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.match-panel-header h3 {
-    font-size: 1rem;
-    margin: 0;
-    color: var(--primary-900, #0D47A1);
-}
-
-html.dark-mode .match-panel h3,
-html.dark-mode .match-panel h4 { color: var(--primary-400, #42A5F5); }
-html.dark-mode .match-panel-header h3 { color: var(--primary-400, #42A5F5); }
-
 /* User toggle switch */
 .toggle-active {
     position: relative;

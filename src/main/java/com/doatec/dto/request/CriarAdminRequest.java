@@ -9,6 +9,6 @@ public record CriarAdminRequest(
     @Email @NotBlank String email,
     @Size(min = 6) String senha,
     @NotBlank String tipoPessoa,
-    String documento,
+    @NotBlank String documento,
     @NotBlank String role
 ) {}
