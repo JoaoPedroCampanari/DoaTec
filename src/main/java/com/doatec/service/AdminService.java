@@ -117,6 +117,8 @@ public class AdminService {
 
         Pessoa admin = validarAdmin(adminId);
 
+        validarTransicaoDoacao(doacao.getStatus(), StatusDoacao.FINALIZADO);
+
         doacao.setStatus(StatusDoacao.FINALIZADO);
         doacao.setAdminAvaliador(admin);
         doacao.setDataAvaliacao(LocalDateTime.now());
@@ -153,6 +155,8 @@ public class AdminService {
                 .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
+
+        validarTransicaoDoacao(doacao.getStatus(), StatusDoacao.REJEITADA);
 
         doacao.setStatus(StatusDoacao.REJEITADA);
         doacao.setAdminAvaliador(admin);

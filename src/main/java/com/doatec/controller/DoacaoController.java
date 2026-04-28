@@ -33,12 +33,8 @@ public class DoacaoController {
 
     @PostMapping
     public ResponseEntity<DoacaoResponse> createDonation(@Valid @RequestBody DoacaoRequest doacaoRequest) {
-        try {
-            Doacao novaDoacao = doacaoService.registrarDoacao(doacaoRequest);
-            DoacaoResponse response = DoacaoMapper.toResponse(novaDoacao);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        Doacao novaDoacao = doacaoService.registrarDoacao(doacaoRequest);
+        DoacaoResponse response = DoacaoMapper.toResponse(novaDoacao);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

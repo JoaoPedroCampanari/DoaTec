@@ -34,13 +34,9 @@ public class SuporteController {
 
     @PostMapping
     public ResponseEntity<SuporteResponse> receberFormulario(@Valid @RequestBody SuporteFormularioRequest dto) {
-        try {
-            SuporteFormulario ticket = suporteService.criarTicket(dto);
-            SuporteResponse response = SuporteMapper.toResponse(ticket);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        SuporteFormulario ticket = suporteService.criarTicket(dto);
+        SuporteResponse response = SuporteMapper.toResponse(ticket);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/meus-tickets")
