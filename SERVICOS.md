@@ -58,10 +58,12 @@ SUPER_ADMIN > ADMIN > USER
 | Metodo | Endpoint | Descricao |
 |---|---|---|
 | GET | /api/users/me | Dados do usuario logado |
-| GET | /api/users/{id} | Buscar usuario por ID |
-| PUT | /api/users/{id} | Atualizar usuario |
-| GET | /api/users/{id}/donations | Doacoes do usuario |
-| GET | /api/users/{id}/solicitacoes | Solicitacoes do usuario |
+| GET | /api/users/me/donations | Doacoes do usuario logado |
+| GET | /api/users/me/solicitacoes | Solicitacoes do usuario logado |
+| GET | /api/users/{id} | Buscar usuario por ID (requer ADMIN ou propria conta) |
+| PUT | /api/users/{id} | Atualizar usuario (requer ADMIN ou propria conta) |
+| GET | /api/users/{id}/donations | Doacoes do usuario (requer ADMIN ou propria conta) |
+| GET | /api/users/{id}/solicitacoes | Solicitacoes do usuario (requer ADMIN ou propria conta) |
 
 ### Doacoes (autenticado)
 
@@ -98,12 +100,13 @@ SUPER_ADMIN > ADMIN > USER
 
 | Metodo | Endpoint | Descricao |
 |---|---|---|
-| GET | /api/notificacoes/usuario/{id} | Notificacoes do usuario |
-| GET | /api/notificacoes/usuario/{id}/nao-lidas | Notificacoes nao lidas |
-| GET | /api/notificacoes/usuario/{id}/count | Contagem de nao lidas |
-| GET | /api/notificacoes/usuario/{id}/resumo | Resumo das notificacoes |
-| PUT | /api/notificacoes/{id}/ler | Marcar como lida |
-| PUT | /api/notificacoes/usuario/{id}/ler-todas | Marcar todas como lidas |
+| GET | /api/notificacoes | Todas as notificacoes do usuario logado |
+| GET | /api/notificacoes/nao-lidas | Notificacoes nao lidas |
+| GET | /api/notificacoes/count | Contagem de nao lidas |
+| GET | /api/notificacoes/resumo | Resumo das notificacoes |
+| PUT | /api/notificacoes/{id}/ler | Marcar como lida (apenas destinatario) |
+| PUT | /api/notificacoes/ler-todas | Marcar todas como lidas |
+| DELETE | /api/notificacoes/{id} | Deletar notificacao (apenas destinatario) |
 
 ### Admin (requer role ADMIN ou SUPER_ADMIN)
 
