@@ -41,6 +41,14 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    depends_on:
+      - db
+
 volumes:
   postgres_data:
   pgadmin_data:

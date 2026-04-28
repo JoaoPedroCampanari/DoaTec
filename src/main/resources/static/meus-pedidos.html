@@ -139,8 +139,8 @@
                     const pedidoCard = document.createElement('div');
                     pedidoCard.className = 'donation-card';
 
-                    const statusClass = getStatusClass(pedido.status);
-                    const statusText = translateStatus(pedido.status);
+                    const statusClass = DoaTec.getStatusClass(pedido.status);
+                    const statusText = DoaTec.translateStatus(pedido.status);
 
                     pedidoCard.innerHTML = `
                         <div class="donation-content" style="flex: 1;">

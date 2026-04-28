@@ -22,8 +22,6 @@ const AdminPanel = {
         usuariosRole: ''
     },
 
-    // Callback do modal de avaliação
-    _modalCallback: null,
     // Callback do modal de confirmação
     _confirmCallback: null,
 
@@ -325,7 +323,8 @@ const AdminPanel = {
             'EM_TRIAGEM': ['AGUARDANDO_COLETA', 'REJEITADA'],
             'AGUARDANDO_COLETA': ['RECEBIDO', 'REJEITADA'],
             'RECEBIDO': ['EM_ANALISE', 'REJEITADA'],
-            'EM_ANALISE': ['FINALIZADO', 'REJEITADA']
+            'EM_ANALISE': ['FINALIZADO', 'REJEITADA'],
+            'REJEITADA': ['EM_TRIAGEM']
         };
         return transicoes[status] || [];
     },
@@ -440,7 +439,8 @@ const AdminPanel = {
     getProximosStatusSolicitacao(status) {
         const transicoes = {
             'EM_ANALISE': ['APROVADA', 'REJEITADA'],
-            'APROVADA': ['CONCLUIDA', 'REJEITADA']
+            'APROVADA': ['CONCLUIDA', 'REJEITADA'],
+            'REJEITADA': ['EM_ANALISE']
         };
         return transicoes[status] || [];
     },
@@ -737,7 +737,12 @@ const AdminPanel = {
             return;
         }
 
-        tbody.innerHTML = usuarios.map(u => `
+        const currentUser = Auth.getUser();
+        const currentUserId = currentUser ? currentUser.id : null;
+
+        tbody.innerHTML = usuarios.map(u => {
+            const isSelf = u.id === currentUserId;
+            return `
             <tr>
                 <td>#${u.id}</td>
                 <td>${escapeHtml(u.nome || '-')}</td>
@@ -745,16 +750,20 @@ const AdminPanel = {
                 <td>${this.createTipoPessoaLabel(u.tipoPessoa)}</td>
                 <td><span class="role-badge ${u.role === 'ADMIN' ? 'role-admin' : u.role === 'SUPER_ADMIN' ? 'role-super-admin' : ''}">${escapeHtml(u.role)}</span></td>
                 <td>
-                    <label class="toggle-active">
-                        <input type="checkbox" ${u.ativo ? 'checked' : ''} data-toggle-user-id="${u.id}" data-toggle-user-ativo="${u.ativo}">
-                        <span class="toggle-slider"></span>
-                    </label>
+                    ${isSelf
+                        ? '<span style="color:#9ca3af;font-size:12px;font-style:italic;">Você</span>'
+                        : `<label class="toggle-active">
+                            <input type="checkbox" ${u.ativo ? 'checked' : ''} data-toggle-user-id="${u.id}" data-toggle-user-ativo="${u.ativo}">
+                            <span class="toggle-slider"></span>
+                        </label>`}
                 </td>
                 <td class="admin-actions">
-                    <button class="btn-action" data-user-id="${u.id}" data-user-role="${escapeHtml(u.role)}">Alterar Role</button>
+                    ${isSelf
+                        ? '<span style="color:#9ca3af;font-size:12px;font-style:italic;">—</span>'
+                        : `<button class="btn-action" data-user-id="${u.id}" data-user-role="${escapeHtml(u.role)}">Alterar Role</button>`}
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
 
         // Event delegation for alterar role buttons (safe from XSS)
         tbody.querySelectorAll('button[data-user-role]').forEach(btn => {

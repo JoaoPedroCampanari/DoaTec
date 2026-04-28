@@ -163,6 +163,19 @@
                 </div>
             </form>
         </div>
+
+        <!-- Meus Tickets -->
+        <div id="meusTicketsSection" style="display: none; margin-top: 40px;">
+            <div class="faq-card">
+                <h3 class="faq-heading">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Meus Tickets
+                </h3>
+                <div id="ticketsList"></div>
+            </div>
+        </div>
     </section>
 </main>
 
@@ -254,6 +267,54 @@
             }
         });
     });
-</script>
+
+        // Carregar Meus Tickets
+        async function carregarMeusTickets() {
+            if (!loggedInUser || !loggedInUser.id) return;
+            const section = document.getElementById('meusTicketsSection');
+            const list = document.getElementById('ticketsList');
+            try {
+                const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
+                if (!response.ok) {
+                    list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
+                    section.style.display = 'block';
+                    return;
+                }
+                const tickets = await response.json();
+                if (!tickets || tickets.length === 0) {
+                    list.innerHTML = '<p class="faq-text">Você ainda não enviou nenhum ticket de suporte.</p>';
+                    section.style.display = 'block';
+                    return;
+                }
+                let html = '';
+                for (const t of tickets) {
+                    const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
+                    const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
+                    const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
+                    const temResposta = t.resposta && t.resposta.trim().length > 0;
+                    html += `<div class="card-item">
+                        <div class="card-header">
+                            <span class="badge ${statusClass}">${statusLabel}</span>
+                            <span class="card-date">${dataCriacao}</span>
+                        </div>
+                        <div class="card-title">${t.assunto || 'Sem assunto'}</div>
+                        <div class="card-desc">${t.mensagem || ''}</div>
+                        ${temResposta ? `<div class="card-desc" style="margin-top:8px;padding:8px;border-left:3px solid #10b981;background:#f0fdf4;border-radius:4px;"><strong>Resposta do admin:</strong><br>${t.resposta}<br><small style="color:#6b7280">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small></div>` : '<div class="card-desc" style="color:#9ca3af;font-style:italic;margin-top:8px;">Aguardando resposta...</div>'}
+                    </div>`;
+                }
+                list.innerHTML = html;
+                section.style.display = 'block';
+            } catch (error) {
+                console.error('Erro ao carregar tickets:', error);
+                list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
+                section.style.display = 'block';
+            }
+        }
+
+        // Chama carregarMeusTickets se logado
+        if (loggedInUser && loggedInUser.id) {
+            carregarMeusTickets();
+        }
+    </script>
 </body>
 </html>

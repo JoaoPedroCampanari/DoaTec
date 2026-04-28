@@ -8,6 +8,7 @@
 | Super Admin (auto-criado) | http://localhost:8080/admin.html | admin@doatec.com / Admin@123 (**Troque a senha em produção!**) |
 | pgAdmin | http://localhost:5050 | admin@doatec.com / admin123 |
 | PostgreSQL | localhost:5432 | doatec_user / doatec_password |
+| Mailhog UI | http://localhost:8025 | (acesso direto ao painel) |
 
 ### Conectar ao banco via pgAdmin
 

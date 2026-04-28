@@ -442,6 +442,13 @@
             }
         }
 
+        function limparCamposEndereco() {
+            ['logradouro', 'bairro', 'cidade', 'estado', 'numero'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+
         function liberarCamposEndereco() {
             ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
                 const el = document.getElementById(id);
@@ -471,7 +478,8 @@
 
                 if (endereco.erro) {
                     DoaTec.showToast(endereco.erro, 'error');
-                    // Libera campos para edicao manual
+                    // Limpa campos e libera para edicao manual
+                    limparCamposEndereco();
                     liberarCamposEndereco();
                 } else {
                     // Preenche campos automaticamente
@@ -488,6 +496,10 @@
                         document.getElementById('numero').focus();
                     }
                 }
+            } else {
+                // CEP invalido (nao tem 8 digitos) — limpa campos
+                limparCamposEndereco();
+                liberarCamposEndereco();
             }
         });
 

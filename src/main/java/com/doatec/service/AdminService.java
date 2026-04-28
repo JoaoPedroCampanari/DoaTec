@@ -32,6 +32,8 @@ import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SolicitacaoHardwareRepository;
 import com.doatec.repository.SuporteFormularioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminService.class);
 
     @Autowired
     private DoacaoRepository doacaoRepository;
@@ -64,6 +68,9 @@ public class AdminService {
 
     @Autowired
     private NotificacaoService notificacaoService;
+
+    @Autowired
+    private EmailService emailService;
 
     // ==================== DASHBOARD ====================
 
@@ -225,7 +232,7 @@ public class AdminService {
         if (atual == novo) {
             throw new BusinessException("Doação já está com status " + atual.name());
         }
-        if (atual == StatusDoacao.FINALIZADO || atual == StatusDoacao.REJEITADA) {
+        if (atual == StatusDoacao.FINALIZADO) {
             throw new BusinessException("Doação com status " + atual.name() + " não pode ser alterada.");
         }
 
@@ -234,6 +241,7 @@ public class AdminService {
             case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
             case RECEBIDO -> novo == StatusDoacao.EM_ANALISE || novo == StatusDoacao.REJEITADA;
             case EM_ANALISE -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
+            case REJEITADA -> novo == StatusDoacao.EM_TRIAGEM;
             default -> false;
         };
 
@@ -379,6 +387,19 @@ public class AdminService {
         SuporteFormulario ticketAtualizado = suporteRepository.save(ticket);
 
         registrarLog(admin, AcaoTipo.RESPONDER_SUPORTE, "SuporteFormulario", id, "Ticket respondido");
+
+        // Enviar email de notificacao ao usuario
+        try {
+            emailService.enviarSuporteResposta(
+                    ticket.getAutor().getEmail(),
+                    ticket.getAutor().getNome(),
+                    ticket.getAssunto(),
+                    request.resposta()
+            );
+        } catch (Exception e) {
+            // Log the error but don't fail the ticket response
+            log.warn("Falha ao enviar email de resposta para ticket {}: {}", id, e.getMessage());
+        }
 
         return SuporteMapper.toResponse(ticketAtualizado);
     }

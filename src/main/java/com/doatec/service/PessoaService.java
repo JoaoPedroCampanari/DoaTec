@@ -284,6 +284,10 @@ public class PessoaService {
             throw new BusinessException("Apenas administradores podem alterar status de usuários.");
         }
 
+        if (id.equals(adminId)) {
+            throw new BusinessException("Você não pode alterar seu próprio status.");
+        }
+
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
