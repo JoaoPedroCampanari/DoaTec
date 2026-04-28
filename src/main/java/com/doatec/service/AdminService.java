@@ -442,6 +442,10 @@ public class AdminService {
     public UsuarioAdminResponse alterarStatusUsuario(Integer id, Boolean ativo, Integer adminId) {
         Pessoa admin = validarAdmin(adminId);
 
+        if (id.equals(adminId)) {
+            throw new BusinessException("Você não pode alterar seu próprio status.");
+        }
+
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
