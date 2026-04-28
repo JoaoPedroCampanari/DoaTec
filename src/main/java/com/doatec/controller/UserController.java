@@ -71,8 +71,29 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserLoginResponse> getUserById(@PathVariable Integer id) {
-        Pessoa pessoa = pessoaService.findById(id);
+    public ResponseEntity<UserLoginResponse> getUserById(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Integer authUserId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+
+        // Usuários normais só podem ver seus próprios dados; admins podem ver qualquer um
+        Pessoa pessoa = null;
+        if (authUserId.equals(id)) {
+            pessoa = pessoaService.findById(id);
+        } else {
+            // Check if user is admin
+            Pessoa currentUser = pessoaService.findById(authUserId);
+            if (currentUser != null && currentUser.isAdmin()) {
+                pessoa = pessoaService.findById(id);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         if (pessoa != null) {
             long totalDoacoes = doacaoRepository.countByDoadorId(pessoa.getId());
             long totalSolicitacoes = solicitacaoHardwareRepository.countByAlunoId(pessoa.getId());
@@ -85,7 +106,23 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateUser(@PathVariable Integer id, @Valid @RequestBody PessoaUpdateRequest dto) {
+    public ResponseEntity<String> updateUser(@PathVariable Integer id, @AuthenticationPrincipal User userDetails, @Valid @RequestBody PessoaUpdateRequest dto) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Integer authUserId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+
+        // Usuários só podem editar seus próprios dados; admins podem editar qualquer um
+        if (!authUserId.equals(id)) {
+            Pessoa currentUser = pessoaService.findById(authUserId);
+            if (currentUser == null || !currentUser.isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         try {
             Pessoa pessoaAtualizada = pessoaService.updatePessoaProfile(id, dto);
             return ResponseEntity.ok("Perfil atualizado com sucesso para " + pessoaAtualizada.getEmail());
@@ -96,14 +133,70 @@ public class UserController {
         }
     }
 
+    @GetMapping("/me/donations")
+    public ResponseEntity<List<DoacaoResponse>> getMyDonations(@AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Integer userId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+        List<DoacaoResponse> doacoes = doacaoService.findDoacoesByDoadorId(userId);
+        return ResponseEntity.ok(doacoes);
+    }
+
+    @GetMapping("/me/solicitacoes")
+    public ResponseEntity<List<SolicitacaoResponse>> getMySolicitacoes(@AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Integer userId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+        List<SolicitacaoResponse> solicitacoes = solicitacaoService.findSolicitacoesByAlunoId(userId);
+        return ResponseEntity.ok(solicitacoes);
+    }
+
     @GetMapping("/{id}/donations")
-    public ResponseEntity<List<DoacaoResponse>> getUserDonations(@PathVariable Integer id) {
+    public ResponseEntity<List<DoacaoResponse>> getUserDonations(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Integer authUserId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+
+        // Usuários só podem ver suas próprias doações; admins podem ver qualquer uma
+        if (!authUserId.equals(id)) {
+            Pessoa currentUser = pessoaService.findById(authUserId);
+            if (currentUser == null || !currentUser.isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         List<DoacaoResponse> doacoes = doacaoService.findDoacoesByDoadorId(id);
         return ResponseEntity.ok(doacoes);
     }
 
     @GetMapping("/{id}/solicitacoes")
-    public ResponseEntity<List<SolicitacaoResponse>> getUserSolicitacoes(@PathVariable Integer id) {
+    public ResponseEntity<List<SolicitacaoResponse>> getUserSolicitacoes(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Integer authUserId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+
+        // Usuários só podem ver suas próprias solicitações; admins podem ver qualquer uma
+        if (!authUserId.equals(id)) {
+            Pessoa currentUser = pessoaService.findById(authUserId);
+            if (currentUser == null || !currentUser.isAdmin()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         List<SolicitacaoResponse> solicitacoes = solicitacaoService.findSolicitacoesByAlunoId(id);
         return ResponseEntity.ok(solicitacoes);
     }

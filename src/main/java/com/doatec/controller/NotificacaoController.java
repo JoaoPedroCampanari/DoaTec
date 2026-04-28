@@ -1,9 +1,14 @@
 package com.doatec.controller;
 
 import com.doatec.dto.response.NotificacaoResponse;
+import com.doatec.model.account.Pessoa;
+import com.doatec.repository.PessoaRepository;
 import com.doatec.service.NotificacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,77 +23,68 @@ public class NotificacaoController {
     @Autowired
     private NotificacaoService notificacaoService;
 
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    private Integer getAuthenticatedUserId(User userDetails) {
+        return pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+    }
+
     /**
-     * Lista todas as notificações de um usuário.
+     * Lista todas as notificações do usuário autenticado.
      */
-    @GetMapping("/usuario/{usuarioId}")
+    @GetMapping
     public ResponseEntity<List<NotificacaoResponse>> listarNotificacoes(
-            @PathVariable Integer usuarioId) {
-        List<NotificacaoResponse> notificacoes = notificacaoService.listarPorDestinatario(usuarioId);
+            @AuthenticationPrincipal User userDetails) {
+        Integer userId = getAuthenticatedUserId(userDetails);
+        List<NotificacaoResponse> notificacoes = notificacaoService.listarPorDestinatario(userId);
         return ResponseEntity.ok(notificacoes);
     }
 
     /**
-     * Lista apenas notificações não lidas de um usuário.
+     * Lista apenas notificações não lidas do usuário autenticado.
      */
-    @GetMapping("/usuario/{usuarioId}/nao-lidas")
+    @GetMapping("/nao-lidas")
     public ResponseEntity<List<NotificacaoResponse>> listarNaoLidas(
-            @PathVariable Integer usuarioId) {
-        List<NotificacaoResponse> notificacoes = notificacaoService.listarNaoLidas(usuarioId);
+            @AuthenticationPrincipal User userDetails) {
+        Integer userId = getAuthenticatedUserId(userDetails);
+        List<NotificacaoResponse> notificacoes = notificacaoService.listarNaoLidas(userId);
         return ResponseEntity.ok(notificacoes);
     }
 
     /**
-     * Conta notificações não lidas (para badge no frontend).
+     * Conta notificações não lidas do usuário autenticado (para badge no frontend).
      */
-    @GetMapping("/usuario/{usuarioId}/count")
-    public ResponseEntity<Long> contarNaoLidas(@PathVariable Integer usuarioId) {
-        Long count = notificacaoService.contarNaoLidas(usuarioId);
+    @GetMapping("/count")
+    public ResponseEntity<Long> contarNaoLidas(@AuthenticationPrincipal User userDetails) {
+        Long count = notificacaoService.contarNaoLidas(getAuthenticatedUserId(userDetails));
         return ResponseEntity.ok(count);
     }
 
     /**
-     * Retorna resumo de notificações (count + últimas 5).
+     * Marca todas as notificações do usuário autenticado como lidas.
      */
-    @GetMapping("/usuario/{usuarioId}/resumo")
-    public ResponseEntity<NotificacaoSummaryResponse> resumoNotificacoes(
-            @PathVariable Integer usuarioId) {
-        Long totalNaoLidas = notificacaoService.contarNaoLidas(usuarioId);
-        List<NotificacaoResponse> ultimas = notificacaoService.listarUltimas(usuarioId, 5);
-
-        NotificacaoSummaryResponse summary = NotificacaoSummaryResponse.builder()
-                .totalNaoLidas(totalNaoLidas)
-                .ultimasNotificacoes(ultimas)
-                .build();
-
-        return ResponseEntity.ok(summary);
-    }
-
-    /**
-     * Marca uma notificação como lida.
-     */
-    @PutMapping("/{id}/ler")
-    public ResponseEntity<Void> marcarComoLida(@PathVariable Integer id) {
-        notificacaoService.marcarComoLida(id);
+    @PutMapping("/ler-todas")
+    public ResponseEntity<Void> marcarComoLidas(@AuthenticationPrincipal User userDetails) {
+        Integer userId = getAuthenticatedUserId(userDetails);
+        notificacaoService.marcarTodasComoLidas(userId);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Marca todas as notificações de um usuário como lidas.
+     * Deleta uma notificação se pertencer ao usuário autenticado.
      */
-    @PutMapping("/usuario/{usuarioId}/ler-todas")
-    public ResponseEntity<Void> marcarTodasComoLidas(@PathVariable Integer usuarioId) {
-        notificacaoService.marcarTodasComoLidas(usuarioId);
-        return ResponseEntity.ok().build();
-    }
-
-    /**
-     * DTO para resumo de notificações.
-     */
-    @lombok.Builder
-    @lombok.Data
-    public static class NotificacaoSummaryResponse {
-        private Long totalNaoLidas;
-        private List<NotificacaoResponse> ultimasNotificacoes;
+    @DeleteMapping("/{notificacaoId}")
+    public ResponseEntity<Void> deletarNotificacao(
+            @PathVariable Integer notificacaoId,
+            @AuthenticationPrincipal User userDetails) {
+        Integer userId = getAuthenticatedUserId(userDetails);
+        boolean deleted = notificacaoService.deleteByIdAndDestinatario(notificacaoId, userId);
+        if (deleted) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }

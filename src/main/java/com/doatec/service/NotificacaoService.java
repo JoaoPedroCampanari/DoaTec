@@ -133,4 +133,17 @@ public class NotificacaoService {
                 .map(NotificacaoResponse::from)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Deleta uma notificação apenas se pertencer ao usuário autenticado (proteção contra IDOR).
+     */
+    @Transactional
+    public boolean deleteByIdAndDestinatario(Integer notificacaoId, Integer destinatarioId) {
+        return notificacaoRepository.findByIdAndDestinatarioId(notificacaoId, destinatarioId)
+                .map(notificacao -> {
+                    notificacaoRepository.deleteById(notificacaoId);
+                    return true;
+                })
+                .orElse(false);
+    }
 }

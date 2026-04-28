@@ -60,7 +60,7 @@ const Notifications = {
         }
 
         try {
-            const response = await fetch(`/api/notificacoes/usuario/${user.id}/count`, {
+            const response = await fetch('/api/notificacoes/count', {
                 method: 'GET',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' }
@@ -85,7 +85,7 @@ const Notifications = {
         if (!user || !user.id) return [];
 
         try {
-            const response = await fetch(`/api/notificacoes/usuario/${user.id}`, {
+            const response = await fetch('/api/notificacoes', {
                 method: 'GET',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' }
@@ -214,7 +214,7 @@ const Notifications = {
         if (!user || !user.id) return;
 
         try {
-            const response = await apiFetch(`/api/notificacoes/usuario/${user.id}/ler-todas`, {
+            const response = await apiFetch('/api/notificacoes/ler-todas', {
                 method: 'PUT',
                 credentials: 'include'
             });

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository para a entidade Notificacao.
@@ -43,4 +44,9 @@ public interface NotificacaoRepository extends JpaRepository<Notificacao, Intege
      */
     @Query("SELECT n FROM Notificacao n WHERE n.destinatario.id = :destinatarioId ORDER BY n.dataCriacao DESC LIMIT :limit")
     List<Notificacao> findTopByDestinatarioId(@Param("destinatarioId") Integer destinatarioId, @Param("limit") int limit);
+
+    /**
+     * Busca notificação por ID se pertencer ao destinatário informado (proteção IDOR).
+     */
+    Optional<Notificacao> findByIdAndDestinatarioId(Integer notificacaoId, Integer destinatarioId);
 }
