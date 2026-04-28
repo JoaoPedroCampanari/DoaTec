@@ -191,6 +191,64 @@
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js"></script>
 <script>
+    let loggedInUser = null;
+
+    async function preencherDadosSuporte(supportNameInput, supportEmailInput) {
+        try {
+            const response = await apiFetch('/api/users/me', { credentials: 'include' });
+            if (!response.ok) throw new Error('Falha ao carregar dados do usuário logado.');
+            const userData = await response.json();
+            supportNameInput.value = userData.nome || '';
+            supportEmailInput.value = userData.email || '';
+        } catch (error) {
+            console.error('Erro ao preencher dados de suporte:', error);
+            supportNameInput.disabled = false;
+            supportEmailInput.disabled = false;
+        }
+    }
+
+    async function carregarMeusTickets() {
+        if (!loggedInUser) return;
+        const section = document.getElementById('meusTicketsSection');
+        const list = document.getElementById('ticketsList');
+        try {
+            const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
+            if (!response.ok) {
+                list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
+                section.style.display = 'block';
+                return;
+            }
+            const tickets = await response.json();
+            if (!tickets || tickets.length === 0) {
+                list.innerHTML = '<p class="faq-text">Você ainda não enviou nenhum ticket de suporte.</p>';
+                section.style.display = 'block';
+                return;
+            }
+            let html = '';
+            for (const t of tickets) {
+                const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
+                const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
+                const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
+                const temResposta = t.resposta && t.resposta.trim().length > 0;
+                html += `<div class="card-item">
+                    <div class="card-header">
+                        <span class="badge ${statusClass}">${statusLabel}</span>
+                        <span class="card-date">${dataCriacao}</span>
+                    </div>
+                    <div class="card-title">${t.assunto || 'Sem assunto'}</div>
+                    <div class="card-desc">${t.mensagem || ''}</div>
+                    ${temResposta ? `<div class="card-desc" style="margin-top:8px;padding:8px;border-left:3px solid #10b981;background:#f0fdf4;border-radius:4px;"><strong>Resposta do admin:</strong><br>${t.resposta}<br><small style="color:#6b7280">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small></div>` : '<div class="card-desc" style="color:#9ca3af;font-style:italic;margin-top:8px;">Aguardando resposta...</div>'}
+                </div>`;
+            }
+            list.innerHTML = html;
+            section.style.display = 'block';
+        } catch (error) {
+            console.error('Erro ao carregar tickets:', error);
+            list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
+            section.style.display = 'block';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', async function() {
         const supportForm = document.getElementById('supportForm');
         const supportNameInput = document.getElementById('supportName');
@@ -199,27 +257,12 @@
         const formFields = document.getElementById('formFields');
 
         // Verifica sessão com backend
-        const loggedInUser = await Auth.checkSession();
+        loggedInUser = await Auth.checkSession();
 
-        if (loggedInUser && loggedInUser.id) {
-            // Usuário logado - mostra o formulário
-            fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Falha ao carregar dados do usuário logado.');
-                })
-                .then(userData => {
-                    supportNameInput.value = userData.nome || '';
-                    supportEmailInput.value = userData.email || '';
-                })
-                .catch(error => {
-                    console.error('Erro ao preencher dados de suporte:', error);
-                    // Mostra mensagem de erro, mas mantém o formulário
-                    supportNameInput.disabled = false;
-                    supportEmailInput.disabled = false;
-                });
+        if (loggedInUser) {
+            // Usuário logado - preenche dados e mostra tickets
+            await preencherDadosSuporte(supportNameInput, supportEmailInput);
+            await carregarMeusTickets();
         } else {
             // Usuário não logado - mostra mensagem de login, esconde formulário
             loginRequiredMessage.style.display = 'block';
@@ -253,9 +296,8 @@
                 if (response.ok) {
                     supportForm.reset();
                     // Recarrega dados do usuário
-                    if (loggedInUser && loggedInUser.id) {
-                        supportNameInput.value = loggedInUser.nome || '';
-                        supportEmailInput.value = loggedInUser.email || '';
+                    if (loggedInUser) {
+                        await preencherDadosSuporte(supportNameInput, supportEmailInput);
                     }
                 }
 
@@ -267,54 +309,6 @@
             }
         });
     });
-
-        // Carregar Meus Tickets
-        async function carregarMeusTickets() {
-            if (!loggedInUser || !loggedInUser.id) return;
-            const section = document.getElementById('meusTicketsSection');
-            const list = document.getElementById('ticketsList');
-            try {
-                const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
-                if (!response.ok) {
-                    list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
-                    section.style.display = 'block';
-                    return;
-                }
-                const tickets = await response.json();
-                if (!tickets || tickets.length === 0) {
-                    list.innerHTML = '<p class="faq-text">Você ainda não enviou nenhum ticket de suporte.</p>';
-                    section.style.display = 'block';
-                    return;
-                }
-                let html = '';
-                for (const t of tickets) {
-                    const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
-                    const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
-                    const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
-                    const temResposta = t.resposta && t.resposta.trim().length > 0;
-                    html += `<div class="card-item">
-                        <div class="card-header">
-                            <span class="badge ${statusClass}">${statusLabel}</span>
-                            <span class="card-date">${dataCriacao}</span>
-                        </div>
-                        <div class="card-title">${t.assunto || 'Sem assunto'}</div>
-                        <div class="card-desc">${t.mensagem || ''}</div>
-                        ${temResposta ? `<div class="card-desc" style="margin-top:8px;padding:8px;border-left:3px solid #10b981;background:#f0fdf4;border-radius:4px;"><strong>Resposta do admin:</strong><br>${t.resposta}<br><small style="color:#6b7280">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small></div>` : '<div class="card-desc" style="color:#9ca3af;font-style:italic;margin-top:8px;">Aguardando resposta...</div>'}
-                    </div>`;
-                }
-                list.innerHTML = html;
-                section.style.display = 'block';
-            } catch (error) {
-                console.error('Erro ao carregar tickets:', error);
-                list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
-                section.style.display = 'block';
-            }
-        }
-
-        // Chama carregarMeusTickets se logado
-        if (loggedInUser && loggedInUser.id) {
-            carregarMeusTickets();
-        }
     </script>
 </body>
 </html>

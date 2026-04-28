@@ -227,7 +227,7 @@
             avatarInitial.textContent = name.charAt(0).toUpperCase();
             profileAvatar.style.backgroundColor = getAvatarColor(name);
 
-            fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
+            fetch('/api/users/me', { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -356,7 +356,7 @@
                 };
 
                 try {
-                    const response = await apiFetch(`/api/users/${loggedInUser.id}`, {
+                    const response = await apiFetch('/api/users/me', {
                         method: 'PUT',
                         credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
@@ -391,7 +391,7 @@
                 };
 
                 try {
-                    const response = await apiFetch(`/api/users/${loggedInUser.id}`, {
+                    const response = await apiFetch('/api/users/me', {
                         method: 'PUT',
                         credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },

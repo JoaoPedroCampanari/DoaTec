@@ -97,7 +97,7 @@
         }
 
         // Fetch donations
-        fetch(`/api/users/${loggedInUser.id}/donations`, { credentials: 'include' })
+        fetch('/api/users/me/donations', { credentials: 'include' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Falha ao buscar doações.');

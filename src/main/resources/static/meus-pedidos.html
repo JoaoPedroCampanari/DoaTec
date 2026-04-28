@@ -111,7 +111,7 @@
             return;
         }
 
-        fetch(`/api/users/${loggedInUser.id}/solicitacoes`, { credentials: 'include' })
+        fetch('/api/users/me/solicitacoes', { credentials: 'include' })
             .then(response => {
                 if (!response.ok) throw new Error('Falha ao buscar seus pedidos.');
                 return response.json();
