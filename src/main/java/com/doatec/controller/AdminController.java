@@ -128,6 +128,17 @@ public class AdminController {
         return ResponseEntity.ok(solicitacao);
     }
 
+    @PutMapping("/solicitacoes/{id}/status")
+    public ResponseEntity<SolicitacaoResponse> alterarStatusSolicitacao(
+            @PathVariable Integer id,
+            @RequestParam StatusSolicitacao novoStatus,
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody(required = false) AvaliacaoRequest request) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
+        SolicitacaoResponse solicitacao = adminService.alterarStatusSolicitacao(id, novoStatus, adminId, request);
+        return ResponseEntity.ok(solicitacao);
+    }
+
     @PutMapping("/solicitacoes/{id}/concluir")
     public ResponseEntity<SolicitacaoResponse> concluirSolicitacao(
             @PathVariable Integer id,

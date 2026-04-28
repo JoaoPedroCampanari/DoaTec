@@ -261,12 +261,27 @@ public class AdminService {
         return solicitacoes.map(SolicitacaoMapper::toResponse);
     }
 
+    private void validarTransicaoSolicitacao(StatusSolicitacao atual, StatusSolicitacao novo) {
+        boolean transicaoValida = switch (atual) {
+            case EM_ANALISE -> novo == StatusSolicitacao.APROVADA || novo == StatusSolicitacao.REJEITADA;
+            case APROVADA -> novo == StatusSolicitacao.CONCLUIDA;
+            case REJEITADA -> novo == StatusSolicitacao.EM_ANALISE;
+            case CONCLUIDA -> false;
+        };
+
+        if (!transicaoValida) {
+            throw new BusinessException(
+                    "Transição de status inválida para solicitação: " + atual + " -> " + novo);
+        }
+    }
+
     @Transactional
     public SolicitacaoResponse aprovarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
+        validarTransicaoSolicitacao(solicitacao.getStatus(), StatusSolicitacao.APROVADA);
 
         solicitacao.setStatus(StatusSolicitacao.APROVADA);
         solicitacao.setAdminAvaliador(admin);
@@ -298,6 +313,7 @@ public class AdminService {
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
+        validarTransicaoSolicitacao(solicitacao.getStatus(), StatusSolicitacao.REJEITADA);
 
         solicitacao.setStatus(StatusSolicitacao.REJEITADA);
         solicitacao.setAdminAvaliador(admin);
@@ -333,10 +349,7 @@ public class AdminService {
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
-
-        if (solicitacao.getStatus() != StatusSolicitacao.APROVADA) {
-            throw new BusinessException("Apenas solicitações aprovadas podem ser concluídas. Status atual: " + solicitacao.getStatus().name());
-        }
+        validarTransicaoSolicitacao(solicitacao.getStatus(), StatusSolicitacao.CONCLUIDA);
 
         solicitacao.setStatus(StatusSolicitacao.CONCLUIDA);
         solicitacao.setAdminAvaliador(admin);
@@ -357,6 +370,41 @@ public class AdminService {
         );
 
         registrarLog(admin, AcaoTipo.CONCLUIR_SOLICITACAO, "SolicitacaoHardware", id, "Solicitação concluída");
+
+        return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
+    }
+
+    @Transactional
+    public SolicitacaoResponse alterarStatusSolicitacao(Integer id, StatusSolicitacao novoStatus, Integer adminId, AvaliacaoRequest request) {
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
+
+        Pessoa admin = validarAdmin(adminId);
+        validarTransicaoSolicitacao(solicitacao.getStatus(), novoStatus);
+
+        StatusSolicitacao statusAnterior = solicitacao.getStatus();
+        solicitacao.setStatus(novoStatus);
+        solicitacao.setAdminAvaliador(admin);
+        solicitacao.setDataAvaliacao(LocalDateTime.now());
+        if (request != null && request.observacao() != null) {
+            solicitacao.setObservacaoAdmin(request.observacao());
+        }
+
+        SolicitacaoHardware solicitacaoAtualizada = solicitacaoRepository.save(solicitacao);
+
+        notificacaoService.criarNotificacao(
+                solicitacao.getAluno().getId(),
+                "Status da Solicitação Atualizado",
+                "O status da sua solicitação #" + solicitacao.getId() + " foi alterado de " + statusAnterior.name() + " para " + novoStatus.name() + ".",
+                novoStatus == StatusSolicitacao.REJEITADA ? TipoNotificacao.SOLICITACAO_REJEITADA
+                        : novoStatus == StatusSolicitacao.CONCLUIDA ? TipoNotificacao.SOLICITACAO_CONCLUIDA
+                        : TipoNotificacao.SOLICITACAO_STATUS_ATUALIZADO,
+                solicitacao.getId(),
+                "SOLICITACAO"
+        );
+
+        registrarLog(admin, AcaoTipo.ALTERAR_STATUS_SOLICITACAO, "SolicitacaoHardware", id,
+                "Status da solicitação alterado de " + statusAnterior.name() + " para " + novoStatus.name());
 
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
     }

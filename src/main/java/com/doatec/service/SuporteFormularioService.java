@@ -1,6 +1,7 @@
 package com.doatec.service;
 
 import com.doatec.dto.request.SuporteFormularioRequest;
+import com.doatec.dto.response.SuporteResponse;
 import com.doatec.mapper.SuporteMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.suporte.SuporteFormulario;
@@ -9,6 +10,8 @@ import com.doatec.repository.SuporteFormularioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Service
@@ -32,5 +35,12 @@ public class SuporteFormularioService {
         SuporteFormulario novoTicket = SuporteMapper.toSuporteFormulario(dto, autor);
 
         return suporteRepository.save(novoTicket);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SuporteResponse> getTicketsByAutorId(Integer autorId) {
+        return suporteRepository.findByAutorId(autorId).stream()
+                .map(SuporteMapper::toResponse)
+                .toList();
     }
 }

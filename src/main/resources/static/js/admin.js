@@ -447,19 +447,13 @@ const AdminPanel = {
 
     alterarStatusSolicitacao(id, novoStatus) {
         if (!novoStatus) return;
-        const isRejeicao = novoStatus === 'REJEITADA';
         this.openAvaliacaoModal(
             'Alterar Status — Solicitação #' + id,
-            isRejeicao ? 'Informe o motivo da rejeição.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
-            isRejeicao,
+            'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            false,
             async (observacao) => {
                 try {
-                    const endpoint = novoStatus === 'CONCLUIDA'
-                        ? '/api/admin/solicitacoes/' + id + '/concluir'
-                        : (novoStatus === 'APROVADA'
-                            ? '/api/admin/solicitacoes/' + id + '/aprovar'
-                            : '/api/admin/solicitacoes/' + id + '/rejeitar');
-                    const res = await apiFetch(endpoint, {
+                    const res = await apiFetch('/api/admin/solicitacoes/' + id + '/status?novoStatus=' + novoStatus, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ observacao })
