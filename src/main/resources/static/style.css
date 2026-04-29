@@ -2748,9 +2748,14 @@ html.dark-mode .admin-page h1 {
     max-width: 1200px;
     margin: 24px auto 40px;
     padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 140px);
+    overflow: hidden;
 }
 
 .admin-header {
+    flex-shrink: 0;
     margin-bottom: 24px;
 }
 
@@ -2840,7 +2845,12 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
 
 /* Tab content */
 .admin-tab-content { display: none; }
-.admin-tab-content.active { display: block; min-height: 500px; }
+.admin-tab-content.active {
+    display: block;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
 
 .admin-subtab-content { display: none; }
 .admin-subtab-content.active { display: block; }
