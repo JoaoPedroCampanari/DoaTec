@@ -2745,13 +2745,23 @@ html.dark-mode .admin-page h1 {
 }
 
 .admin-container {
+    width: 100%;
     max-width: 1200px;
     margin: 24px auto 40px;
     padding: 0 24px;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 140px);
+    height: calc(100vh - 120px);
+    box-sizing: border-box;
     overflow: hidden;
+}
+
+.admin-tab-panels {
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .admin-header {
@@ -2847,9 +2857,6 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
 .admin-tab-content { display: none; }
 .admin-tab-content.active {
     display: block;
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
 }
 
 .admin-subtab-content { display: none; }
