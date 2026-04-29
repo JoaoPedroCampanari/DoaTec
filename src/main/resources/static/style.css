@@ -2840,7 +2840,7 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
 
 /* Tab content */
 .admin-tab-content { display: none; }
-.admin-tab-content.active { display: block; }
+.admin-tab-content.active { display: block; min-height: 500px; }
 
 .admin-subtab-content { display: none; }
 .admin-subtab-content.active { display: block; }
