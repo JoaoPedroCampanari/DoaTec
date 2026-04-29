@@ -16,6 +16,7 @@ function getCsrfToken() {
  * e adiciona timeout (10s por padrão)
  */
 async function apiFetch(url, options = {}) {
+    options.credentials = options.credentials || 'include';
     const method = (options.method || 'GET').toUpperCase();
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
         const token = getCsrfToken();

@@ -112,10 +112,7 @@
         }
 
         apiFetch('/api/users/me/solicitacoes')
-            .then(response => {
-                if (!response.ok) throw new Error('Falha ao buscar seus pedidos.');
-                return response.json();
-            })
+            .then(response => response.json())
             .then(pedidos => {
                 if (pedidos.length === 0) {
                     pedidosContainer.innerHTML = `

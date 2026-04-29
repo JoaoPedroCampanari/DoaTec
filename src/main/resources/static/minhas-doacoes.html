@@ -98,12 +98,7 @@
 
         // Fetch donations
         apiFetch('/api/users/me/donations')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar doações.');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(donations => {
                 if (donations.length === 0) {
                     // Create empty state
