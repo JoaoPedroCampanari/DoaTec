@@ -5,11 +5,7 @@
 
 /* ==================== PAGE TRANSITIONS ==================== */
 body {
-    opacity: 0;
     transition: opacity 0.15s ease;
-}
-body.page-ready {
-    opacity: 1;
 }
 body.page-leaving {
     opacity: 0;

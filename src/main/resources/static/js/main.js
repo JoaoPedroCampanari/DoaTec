@@ -472,10 +472,6 @@ style.textContent = `
 document.head.appendChild(style);
 
 // ==================== PAGE TRANSITIONS ====================
-document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('page-ready');
-});
-
 document.addEventListener('click', (e) => {
     const link = e.target.closest('a[href]');
     if (!link) return;
