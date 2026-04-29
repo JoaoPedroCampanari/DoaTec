@@ -181,12 +181,19 @@
                     body: JSON.stringify(requestData)
                 });
 
-                const message = await response.text();
-                DoaTec.showToast(message, response.ok ? 'success' : 'error');
-
                 if (response.ok) {
+                    DoaTec.showToast('A requisição para recebimento do equipamento foi realizada!', 'success');
                     form.reset();
                     setTimeout(() => window.location.href = 'meus-pedidos.html', 1500);
+                } else {
+                    let errorMessage = 'Erro desconhecido.';
+                    try {
+                        const errorJson = await response.json();
+                        errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+                    } catch (e) {
+                        errorMessage = await response.text();
+                    }
+                    DoaTec.showToast('Erro ao registrar solicitação: ' + errorMessage, 'error');
                 }
 
             } catch (error) {

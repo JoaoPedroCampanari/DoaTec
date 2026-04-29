@@ -277,8 +277,7 @@
                 });
 
                 if (response.ok) {
-                    const message = await response.text();
-                    DoaTec.showToast(message, 'success');
+                    DoaTec.showToast('A doação foi realizada!', 'success');
                     setTimeout(() => window.location.href = 'minhas-doacoes.html', 1500);
                 } else {
                     let errorMessage = 'Erro desconhecido.';
