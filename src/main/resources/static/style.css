@@ -2777,6 +2777,7 @@ html.dark-mode .admin-subtitle { color: #aaa; }
     margin-bottom: 24px;
     overflow-x: auto;
     scrollbar-width: none;
+    flex-shrink: 0;
 }
 
 .admin-tabs::-webkit-scrollbar {
@@ -2795,6 +2796,7 @@ html.dark-mode .admin-subtitle { color: #aaa; }
     margin-bottom: -2px;
     transition: all var(--transition-base, 0.3s ease);
     white-space: nowrap;
+    min-height: 38px;
 }
 
 .admin-tab:hover {

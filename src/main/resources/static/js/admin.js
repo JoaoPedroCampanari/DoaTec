@@ -42,7 +42,6 @@ const AdminPanel = {
         if (btnCriarAdmin) btnCriarAdmin.style.display = isSuperAdmin ? '' : 'none';
 
         this.setupTabs();
-        this.setupSubTabs();
         this.setupFilters();
         this.setupSuperAdminEvents();
         this.loadDashboard();
@@ -64,24 +63,9 @@ const AdminPanel = {
                     case 'doacoes': this.loadDoacoes(); break;
                     case 'solicitacoes': this.loadSolicitacoes(); break;
                     case 'inventario': this.loadInventario(); break;
-                    case 'suporte-usuarios': this.loadSuporte(); break;
+                    case 'suporte': this.loadSuporte(); break;
+                    case 'usuarios': this.loadUsuarios(); break;
                 }
-            });
-        });
-    },
-
-    setupSubTabs() {
-        document.querySelectorAll('.admin-subtab').forEach(subtab => {
-            subtab.addEventListener('click', () => {
-                const parent = subtab.closest('.admin-tab-content');
-                parent.querySelectorAll('.admin-subtab').forEach(s => s.classList.remove('active'));
-                parent.querySelectorAll('.admin-subtab-content').forEach(c => c.classList.remove('active'));
-                subtab.classList.add('active');
-                const target = document.getElementById('subtab-' + subtab.dataset.subtab);
-                if (target) target.classList.add('active');
-
-                if (subtab.dataset.subtab === 'suporte') this.loadSuporte();
-                if (subtab.dataset.subtab === 'usuarios') this.loadUsuarios();
             });
         });
     },

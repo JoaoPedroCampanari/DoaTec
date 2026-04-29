@@ -68,7 +68,8 @@
         <button class="admin-tab" data-tab="doacoes">Doações</button>
         <button class="admin-tab" data-tab="solicitacoes">Solicitações</button>
         <button class="admin-tab" data-tab="inventario">Inventário</button>
-        <button class="admin-tab" data-tab="suporte-usuarios">Suporte & Usuários</button>
+        <button class="admin-tab" data-tab="suporte">Suporte</button>
+        <button class="admin-tab" data-tab="usuarios">Usuários</button>
     </div>
 
     <!-- ==================== DASHBOARD ==================== -->
@@ -197,59 +198,51 @@
         </div>
     </div>
 
-    <!-- ==================== SUPORTE & USUÁRIOS ==================== -->
-    <div id="tab-suporte-usuarios" class="admin-tab-content">
-        <div class="admin-subtabs">
-            <button class="admin-subtab active" data-subtab="suporte">Suporte</button>
-            <button class="admin-subtab" data-subtab="usuarios">Usuários</button>
+    <!-- ==================== SUPORTE ==================== -->
+    <div id="tab-suporte" class="admin-tab-content">
+        <div class="admin-filter-bar" id="suporte-filters"></div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Autor</th>
+                        <th>Assunto</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="suporte-tbody"></tbody>
+            </table>
         </div>
+        <div class="admin-pagination" id="suporte-pagination"></div>
+    </div>
 
-        <!-- Sub-tab Suporte -->
-        <div id="subtab-suporte" class="admin-subtab-content active">
-            <div class="admin-filter-bar" id="suporte-filters"></div>
-            <div class="admin-table-wrapper">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Autor</th>
-                            <th>Assunto</th>
-                            <th>Status</th>
-                            <th>Data</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="suporte-tbody"></tbody>
-                </table>
-            </div>
-            <div class="admin-pagination" id="suporte-pagination"></div>
+    <!-- ==================== USUÁRIOS ==================== -->
+    <div id="tab-usuarios" class="admin-tab-content">
+        <div class="admin-section-header">
+            <h3>Usuários</h3>
+            <button class="btn-approve" id="btn-criar-admin" style="display:none;">+ Novo Admin</button>
         </div>
-
-        <!-- Sub-tab Usuários -->
-        <div id="subtab-usuarios" class="admin-subtab-content">
-            <div class="admin-section-header">
-                <h3>Usuários</h3>
-                <button class="btn-approve" id="btn-criar-admin" style="display:none;">+ Novo Admin</button>
-            </div>
-            <div class="admin-filter-bar" id="usuarios-filters"></div>
-            <div class="admin-table-wrapper">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th>Email</th>
-                            <th>Tipo</th>
-                            <th>Role</th>
-                            <th>Ativo</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usuarios-tbody"></tbody>
-                </table>
-            </div>
-            <div class="admin-pagination" id="usuarios-pagination"></div>
+        <div class="admin-filter-bar" id="usuarios-filters"></div>
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Tipo</th>
+                        <th>Role</th>
+                        <th>Ativo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="usuarios-tbody"></tbody>
+            </table>
         </div>
+        <div class="admin-pagination" id="usuarios-pagination"></div>
     </div>
 
 </main>
