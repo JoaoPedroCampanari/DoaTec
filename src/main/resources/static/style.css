@@ -3,14 +3,6 @@
    Estilos principais com Design System moderno
    ============================================ */
 
-/* ==================== PAGE TRANSITIONS ==================== */
-body {
-    transition: opacity 0.15s ease;
-}
-body.page-leaving {
-    opacity: 0;
-}
-
 /* ==================== GOOGLE FONTS ==================== */
 /* Fontes carregadas via link preload no HTML para melhor performance */
 

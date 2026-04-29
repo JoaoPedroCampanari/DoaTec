@@ -471,13 +471,3 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ==================== PAGE TRANSITIONS ====================
-document.addEventListener('click', (e) => {
-    const link = e.target.closest('a[href]');
-    if (!link) return;
-    const href = link.getAttribute('href');
-    if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto') || link.target === '_blank') return;
-    e.preventDefault();
-    document.body.classList.add('page-leaving');
-    setTimeout(() => { window.location.href = href; }, 150);
-});
