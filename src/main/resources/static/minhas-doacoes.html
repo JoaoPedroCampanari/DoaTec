@@ -124,8 +124,8 @@
 
                 // Create cards for each donation
                 donations.forEach(donation => {
-                    const statusClass = DoaTec.getStatusClass(donation.status);
-                    const statusText = DoaTec.translateStatus(donation.status);
+                    const statusClass = getStatusClass(donation.status);
+                    const statusText = translateStatus(donation.status);
 
                     const donationCard = document.createElement('div');
                     donationCard.className = 'donation-card';
@@ -186,7 +186,7 @@
 
 
 
-    const escapeHtml = DoaTec.escapeHtml;
+
 </script>
 </body>
 
