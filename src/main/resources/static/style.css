@@ -95,6 +95,7 @@
 /* ==================== HTML & BODY BASE (Dark Mode Ready) ==================== */
 html {
     background-color: var(--neutral-50);
+    scroll-behavior: smooth;
 }
 
 html.dark-mode {
@@ -110,12 +111,10 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    margin: 0;
-    padding: 0;
 }
 
 html.dark-mode body {
-    color: #f3f4f6;
+    color: var(--neutral-100);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -701,7 +700,6 @@ footer p {
 }
 
 .application-form fieldset {
-    border: none;
     background: #fff;
     border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
@@ -1001,13 +999,6 @@ body.perfil-page {
     font-weight: 500;
 }
 
-/* Profile Content Wrapper */
-.profile-content {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: var(--spacing-md);
-}
-
 /* Legacy Profile Page Support */
 body.perfil-page .login-container {
     max-width: 950px;
@@ -1017,118 +1008,6 @@ body.perfil-page .login-container {
 body.perfil-page .login-box {
     max-width: none;
     padding: var(--spacing-xl);
-}
-
-/* Profile Header (Legacy) */
-.profile-header {
-    text-align: center;
-    margin-bottom: var(--spacing-xl);
-}
-
-.profile-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: var(--primary-100);
-    color: var(--primary-600);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0 auto var(--spacing-md);
-    font-family: var(--font-heading);
-}
-
-.profile-name {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--neutral-900);
-}
-
-.profile-role {
-    color: var(--neutral-600);
-    font-size: 0.95rem;
-}
-
-.profile-sections-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xl);
-    margin-bottom: var(--spacing-lg);
-    justify-content: center;
-}
-
-.profile-readonly-section,
-.profile-editable-form {
-    flex: 1;
-    min-width: 300px;
-    padding: var(--spacing-lg);
-    border: 1px solid var(--neutral-100);
-    border-radius: var(--radius-xl);
-    background-color: #fff;
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow var(--transition-base);
-}
-
-.profile-readonly-section:hover,
-.profile-editable-form:hover {
-    box-shadow: var(--shadow-md);
-}
-
-.profile-editable-form fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-    box-shadow: none;
-    margin-bottom: var(--spacing-lg);
-}
-
-.profile-editable-form fieldset:last-child {
-    margin-bottom: 0;
-}
-
-.profile-readonly-section h2,
-.profile-editable-form legend {
-    color: var(--primary-900);
-    font-size: 1.2rem;
-    margin-bottom: var(--spacing-md);
-    text-align: left;
-    padding: 0;
-    border-bottom: 2px solid var(--primary-100);
-    padding-bottom: var(--spacing-sm);
-    font-family: var(--font-heading);
-}
-
-.profile-fields-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
-}
-
-.profile-fields-grid .form-group.full-width {
-    grid-column: 1 / -1;
-}
-
-.profile-bottom-buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: var(--spacing-lg);
-    gap: var(--spacing-md);
-    flex-wrap: wrap;
-    width: 100%;
-}
-
-.profile-bottom-buttons .btn {
-    flex: 1;
-    min-width: 150px;
-    min-height: 45px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: var(--spacing-md);
 }
 
 /* ==================== DONATION CARDS ==================== */
@@ -1230,32 +1109,6 @@ body.perfil-page .login-box {
     letter-spacing: 0.5px;
 }
 
-.status-triage {
-    background: var(--status-triage-bg);
-    color: var(--status-triage-text);
-}
-
-.status-approved {
-    background: var(--status-approved-bg);
-    color: var(--status-approved-text);
-}
-
-.status-rejected {
-    background: var(--status-rejected-bg);
-    color: var(--status-rejected-text);
-}
-
-.status-pending {
-    background: var(--status-pending-bg);
-    color: var(--status-pending-text);
-}
-
-.status-completed {
-    background: var(--status-completed-bg);
-    color: var(--status-completed-text);
-}
-
-/* Portuguese translations for status */
 .status-triagem { background: var(--status-triage-bg); color: var(--status-triage-text); }
 .status-aprovado { background: var(--status-approved-bg); color: var(--status-approved-text); }
 .status-reprovado, .status-recusado { background: var(--status-rejected-bg); color: var(--status-rejected-text); }
@@ -1289,13 +1142,6 @@ body.perfil-page .login-box {
 .empty-state p {
     color: var(--neutral-500);
     margin-bottom: var(--spacing-lg);
-}
-
-.no-donations {
-    text-align: center;
-    padding: 40px;
-    font-size: 1.2rem;
-    color: var(--neutral-600);
 }
 
 /* ==================== DROPDOWNS ==================== */
@@ -1691,6 +1537,16 @@ body.perfil-page .login-box {
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
 /* Form Navigation */
 .form-navigation {
     display: flex;
@@ -1732,17 +1588,6 @@ body.perfil-page .login-box {
     border-color: var(--color-danger) !important;
 }
 
-.edit-address-btn {
-    font-size: 0.75rem;
-    color: var(--primary-600);
-    cursor: pointer;
-    text-decoration: underline;
-    margin-left: var(--spacing-xs);
-}
-
-.edit-address-btn:hover {
-    color: var(--primary-900);
-}
 
 /* ==================== VALIDATION ==================== */
 .is-invalid {
@@ -1880,45 +1725,6 @@ html.dark-mode .about-list {
 
 html.dark-mode .about-strong {
     color: var(--primary-400);
-}
-
-/* Support Options */
-.support-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-}
-
-.support-option {
-    padding: var(--spacing-md);
-    border: 2px solid var(--neutral-100);
-    border-radius: var(--radius-lg);
-    text-align: center;
-    cursor: pointer;
-    transition: border-color var(--transition-base), background var(--transition-base);
-}
-
-.support-option:hover {
-    border-color: var(--primary-400);
-    background: var(--primary-50);
-}
-
-.support-option.selected {
-    border-color: var(--primary-600);
-    background: var(--primary-50);
-}
-
-.support-option-icon {
-    width: 32px;
-    height: 32px;
-    margin: 0 auto var(--spacing-sm);
-    color: var(--primary-600);
-}
-
-.support-option-label {
-    font-weight: 500;
-    color: var(--neutral-900);
 }
 
 /* ==================== DARK MODE ==================== */
@@ -2111,8 +1917,7 @@ html.dark-mode .donation-title {
 }
 
 html.dark-mode .donation-meta-item,
-html.dark-mode .donation-item,
-html.dark-mode .no-donations {
+html.dark-mode .donation-item {
     color: #d1d5db;
 }
 
@@ -2121,32 +1926,27 @@ html.dark-mode .donation-items {
 }
 
 /* Status Pills Dark Mode */
-html.dark-mode .status-triage,
 html.dark-mode .status-triagem {
     background: rgba(66, 165, 245, 0.15);
     color: #64B5F6;
 }
 
-html.dark-mode .status-approved,
 html.dark-mode .status-aprovado {
     background: rgba(76, 175, 80, 0.15);
     color: #81C784;
 }
 
-html.dark-mode .status-rejected,
 html.dark-mode .status-reprovado,
 html.dark-mode .status-recusado {
     background: rgba(239, 83, 80, 0.15);
     color: #EF5350;
 }
 
-html.dark-mode .status-pending,
 html.dark-mode .status-pendente {
     background: rgba(255, 152, 0, 0.15);
     color: #FFB74D;
 }
 
-html.dark-mode .status-completed,
 html.dark-mode .status-concluido,
 html.dark-mode .status-entregue {
     background: rgba(0, 150, 136, 0.15);
@@ -2212,30 +2012,6 @@ html.dark-mode .profile-info-item label {
 
 html.dark-mode .profile-info-item span {
     color: #f3f4f6;
-}
-
-/* Legacy Profile Dark Mode */
-html.dark-mode .profile-readonly-section,
-html.dark-mode .profile-editable-form {
-    background-color: var(--dark-800);
-    border-color: var(--dark-700);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-html.dark-mode .profile-readonly-section h2,
-html.dark-mode .profile-editable-form legend {
-    color: var(--primary-400);
-    border-bottom-color: var(--dark-700);
-}
-
-html.dark-mode .profile-readonly-section label,
-html.dark-mode .profile-readonly-section input[type="text"] {
-    color: #f3f4f6;
-}
-
-html.dark-mode .profile-readonly-section input[type="text"] {
-    background-color: var(--dark-700);
-    border-color: var(--dark-600);
 }
 
 html.dark-mode .viacep-auto {
@@ -2559,34 +2335,6 @@ html.dark-mode .login-box textarea:focus {
         flex-direction: column;
     }
 
-    /* Profile Mobile */
-    .profile-sections-container {
-        flex-direction: column;
-        gap: var(--spacing-md);
-    }
-
-    .profile-fields-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .profile-fields-grid .form-group.full-width {
-        grid-column: auto;
-    }
-
-    .profile-bottom-buttons {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .profile-bottom-buttons .btn {
-        width: 100%;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .profile-bottom-buttons .btn:last-child {
-        margin-bottom: 0;
-    }
-
     /* Profile Hero Mobile */
     .profile-hero {
         padding: 50px 0 65px;
@@ -2706,10 +2454,6 @@ html.dark-mode .login-box textarea:focus {
 }
 
 /* ==================== ANIMAÇÕES GLOBAIS ==================== */
-/* Smooth scroll */
-html {
-    scroll-behavior: smooth;
-}
 
 /* Selection color */
 ::selection {

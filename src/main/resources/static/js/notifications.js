@@ -60,11 +60,7 @@ const Notifications = {
         }
 
         try {
-            const response = await fetch('/api/notificacoes/count', {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            const response = await apiFetch('/api/notificacoes/count');
 
             if (response.ok) {
                 const count = await response.json();
@@ -85,11 +81,7 @@ const Notifications = {
         if (!user || !user.id) return [];
 
         try {
-            const response = await fetch('/api/notificacoes', {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            const response = await apiFetch('/api/notificacoes');
 
             if (response.ok) {
                 return await response.json();
@@ -255,47 +247,15 @@ const Notifications = {
      * Obtém usuário logado do localStorage
      */
     getUser() {
-        if (window.Auth && window.Auth.getUser) {
-            return window.Auth.getUser();
-        }
-        const stored = localStorage.getItem('loggedInUser');
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                return null;
-            }
-        }
-        return null;
+        return window.Auth ? window.Auth.getUser() : null;
     },
 
-    /**
-     * Escapa HTML para prevenir XSS
-     */
     escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        return window.DoaTec ? window.DoaTec.escapeHtml(text) : (text || '');
     },
 
-    /**
-     * Formata data para exibição
-     */
     formatDate(dateStr) {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diff = now - date;
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-
-        if (minutes < 1) return 'Agora mesmo';
-        if (minutes < 60) return `${minutes} min atrás`;
-        if (hours < 24) return `${hours}h atrás`;
-        if (days < 7) return `${days}d atrás`;
-        return date.toLocaleDateString('pt-BR');
+        return window.DoaTec ? window.DoaTec.formatRelativeDate(dateStr) : (dateStr || '');
     }
 };
 
