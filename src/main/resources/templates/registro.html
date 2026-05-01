@@ -1,29 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - DoaTec</title>
-    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="js/vendor/imask.min.js"></script>
-    <script src="js/main.js?v=2"></script>
-    <script src="js/auth.js?v=2"></script>
-</head>
-
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Registro - DoaTec')}"></head>
 <body class="login-page">
 
 <div class="back-button-container">
-    <a href="login.html" class="btn btn-secondary">← Voltar ao Login</a>
+    <a th:href="@{/login}" class="btn btn-secondary">&larr; Voltar ao Login</a>
 </div>
 
 <div class="login-container">
     <div class="login-box" style="max-width: 500px;">
         <div class="logo">
-            <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
+            <a th:href="@{/index}"><img th:src="@{/doatec_logo.png}" width="200" alt="Logo DoaTec"></a>
         </div>
         <h1>Crie sua Conta</h1>
 
@@ -157,16 +144,17 @@
 
             <!-- Botoes de Navegacao -->
             <div class="form-navigation">
-                <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">← Voltar</button>
-                <button type="button" class="btn btn-primary" id="nextBtn">Próximo →</button>
+                <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">&larr; Voltar</button>
+                <button type="button" class="btn btn-primary" id="nextBtn">Próximo &rarr;</button>
                 <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="display: none;">Registrar</button>
             </div>
         </form>
 
-        <p class="footer-link" style="margin-top: 24px; text-align: center;">Já tem uma conta? <a href="login.html" style="color: var(--primary-600); font-weight: 500;">Faça o login</a></p>
+        <p class="footer-link" style="margin-top: 24px; text-align: center;">Já tem uma conta? <a th:href="@{/login}" style="color: var(--primary-600); font-weight: 500;">Faça o login</a></p>
     </div>
 </div>
 
+<th:block th:replace="~{fragments/scripts :: scripts('imask,viacep')}"></th:block>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         // ==================== VARIAVEIS GLOBAIS ====================
@@ -221,20 +209,17 @@
             const email = this.value.trim();
 
             if (email === '') {
-                // Campo vazio - remove estilos
                 this.classList.remove('is-valid', 'is-invalid');
                 emailFeedback.textContent = '';
                 emailFeedback.classList.remove('valid', 'invalid');
                 emailValido = false;
             } else if (validateEmail(email)) {
-                // Email valido
                 this.classList.remove('is-invalid');
                 this.classList.add('is-valid');
                 emailFeedback.textContent = '';
                 emailFeedback.classList.remove('invalid');
                 emailValido = true;
             } else {
-                // Email invalido
                 this.classList.remove('is-valid');
                 this.classList.add('is-invalid');
                 emailFeedback.textContent = 'Insira um e-mail valido';
@@ -252,28 +237,21 @@
 
         // ==================== STEPPER - NAVEGACAO ====================
         function showStep(step) {
-            // Esconde todas as etapas
             document.querySelectorAll('.form-step').forEach(s => s.style.display = 'none');
-
-            // Mostra a etapa atual
             document.querySelector(`.form-step[data-step="${step}"]`).style.display = 'block';
 
-            // Atualiza indicadores de progresso
             document.querySelectorAll('.step').forEach((s, i) => {
                 s.classList.remove('active', 'completed');
                 if (i + 1 < step) s.classList.add('completed');
                 if (i + 1 === step) s.classList.add('active');
             });
 
-            // Atualiza botoes
             prevBtn.style.display = step === 1 ? 'none' : 'block';
             nextBtn.style.display = step === totalSteps ? 'none' : 'block';
             submitBtn.style.display = step === totalSteps ? 'block' : 'none';
 
-            // Atualiza estado do botao ao mudar de etapa
             atualizarEstadoBotaoProximo();
 
-            // Atualiza campos visiveis baseado no tipo de usuario (na etapa 2)
             if (step === 2) {
                 updateUserForm();
             }
@@ -285,21 +263,16 @@
             let valid = true;
 
             inputs.forEach(input => {
-                // Remove marcacao de erro anterior
                 input.classList.remove('viacep-error');
-
                 if (!input.value.trim()) {
                     input.classList.add('viacep-error');
                     valid = false;
                 }
             });
 
-            // Valida especificos
             if (step === 1) {
-                // Validar email com regex estrita
                 const email = emailInput.value.trim();
                 if (!validateEmail(email)) {
-                    // Ja tratado pelo event listener
                     emailInput.focus();
                     return false;
                 }
@@ -316,7 +289,6 @@
                 }
             }
 
-            // Valida etapa 3 - Endereco
             if (step === 3) {
                 const cep = document.getElementById('cep');
                 const cepLimpo = cep.value.replace(/\D/g, '');
@@ -373,7 +345,6 @@
         function updateUserForm() {
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
 
-            // Remove required de todos os campos especificos
             document.getElementById('fullNamePf').removeAttribute('required');
             document.getElementById('cpf').removeAttribute('required');
             document.getElementById('companyName').removeAttribute('required');
@@ -386,7 +357,6 @@
             pjFields.style.display = 'none';
             alunoFields.style.display = 'none';
 
-            // Limpa valores
             cpfMask.value = '';
             cnpjMask.value = '';
             raMask.value = '';
@@ -416,92 +386,14 @@
         });
 
         // ==================== VIACEP - BUSCA DE ENDERECO ====================
-        async function buscarCEP(cep) {
-            const cepLimpo = cep.replace(/\D/g, '');
-
-            if (cepLimpo.length !== 8) {
-                return { erro: 'CEP deve ter 8 dígitos' };
-            }
-
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-                const data = await response.json();
-
-                if (data.erro) {
-                    return { erro: 'CEP não encontrado' };
-                }
-
-                return {
-                    logradouro: data.logradouro || '',
-                    bairro: data.bairro || '',
-                    cidade: data.localidade || '',
-                    estado: data.uf || ''
-                };
-            } catch (error) {
-                return { erro: 'Erro ao buscar CEP. Verifique sua conexao.' };
-            }
-        }
-
-        function limparCamposEndereco() {
-            ['logradouro', 'bairro', 'cidade', 'estado', 'numero'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-        }
-
-        function liberarCamposEndereco() {
-            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
-                const el = document.getElementById(id);
-                el.removeAttribute('readonly');
-                el.classList.remove('viacep-auto');
-            });
-        }
-
-        function travarCamposEndereco() {
-            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
-                const el = document.getElementById(id);
-                el.setAttribute('readonly', 'readonly');
-                el.classList.add('viacep-auto');
-            });
-        }
-
-        document.getElementById('cep').addEventListener('blur', async function() {
-            const cep = cepMask.unmaskedValue;
-
-            if (cep.length === 8) {
-                // Mostra loading
-                this.classList.add('viacep-loading');
-
-                const endereco = await buscarCEP(cep);
-
-                this.classList.remove('viacep-loading');
-
-                if (endereco.erro) {
-                    DoaTec.showToast(endereco.erro, 'error');
-                    // Limpa campos e libera para edicao manual
-                    limparCamposEndereco();
-                    liberarCamposEndereco();
-                } else {
-                    // Preenche campos automaticamente
-                    document.getElementById('logradouro').value = endereco.logradouro;
-                    document.getElementById('bairro').value = endereco.bairro;
-                    document.getElementById('cidade').value = endereco.cidade;
-                    document.getElementById('estado').value = endereco.estado;
-
-                    // Marca como preenchido automaticamente
-                    travarCamposEndereco();
-
-                    // Foca no campo numero se logradouro foi preenchido
-                    if (endereco.logradouro) {
-                        document.getElementById('numero').focus();
-                    }
-                }
-            } else {
-                // CEP invalido (nao tem 8 digitos) — limpa campos
-                limparCamposEndereco();
-                liberarCamposEndereco();
-            }
-        });
+        const viacepFields = {
+            logradouro: document.getElementById('logradouro'),
+            bairro: document.getElementById('bairro'),
+            cidade: document.getElementById('cidade'),
+            estado: document.getElementById('estado'),
+            numero: document.getElementById('numero')
+        };
+        DoaTec.initViaCEP(document.getElementById('cep'), viacepFields, { cepMask });
 
         // ==================== ENVIO DO FORMULARIO ====================
         registerForm.addEventListener('submit', async (event) => {
@@ -511,7 +403,6 @@
                 return;
             }
 
-            const submitBtn = document.getElementById('submitBtn');
             DoaTec.setButtonLoading(submitBtn, true);
 
             const selectedType = document.querySelector('input[name="userType"]:checked').value;
@@ -586,7 +477,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                 } else {
                     let errorMsg = 'Erro no registro';
                     try {
@@ -619,13 +510,9 @@
 
         // Inicializa na etapa 1
         showStep(1);
-
-        // Estado inicial do botao Proximo (desabilitado ate email e senhas validos)
         nextBtn.disabled = true;
         atualizarEstadoBotaoProximo();
     });
 </script>
-<script src="js/theme-switcher.js"></script>
 </body>
-
 </html>

@@ -47,8 +47,8 @@ public class SecurityConfig {
                         // 1. RECURSOS ESTÁTICOS E IMAGENS (Sempre Públicos)
                         .requestMatchers("/style.css", "/doatec_logo.png", "/js/**", "/css/**", "/images/**", "/uploads/**").permitAll()
 
-                        // 2. PÁGINAS HTML PÚBLICAS
-                        .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/sobre.html", "/suporte.html").permitAll()
+                        // 2. PÁGINAS PÚBLICAS (Thymeleaf routes + legacy .html)
+                        .requestMatchers("/", "/index", "/index.html", "/login", "/login.html", "/registro", "/registro.html", "/sobre", "/sobre.html", "/suporte", "/suporte.html").permitAll()
 
                         // 3. APIs PÚBLICAS
                         .requestMatchers("/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/dashboard/stats", "/api/suporte").permitAll()
@@ -56,8 +56,8 @@ public class SecurityConfig {
                         // 4. H2 CONSOLE
                         .requestMatchers("/h2-console/**").permitAll()
 
-                        // 5. PROTEÇÃO DE PÁGINAS PRIVADAS (Exige Login)
-                        .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html", "/admin.html").authenticated()
+                        // 5. PROTEÇÃO DE PÁGINAS PRIVADAS (Exige Login) — Thymeleaf routes + legacy .html
+                        .requestMatchers("/perfil", "/perfil.html", "/aluno", "/aluno.html", "/donate", "/donate.html", "/minhas-doacoes", "/minhas-doacoes.html", "/meus-pedidos", "/meus-pedidos.html", "/admin", "/admin.html").authenticated()
 
                         // 6. PROTEÇÃO DE APIs (Exige Role Específica)
                         .requestMatchers("/api/super-admin/**").hasRole("SUPER_ADMIN")
@@ -87,13 +87,14 @@ public class SecurityConfig {
             String requestURI = request.getRequestURI();
             String acceptHeader = request.getHeader("Accept");
 
-            // Verifica se é uma requisição de página HTML
+            // Verifica se é uma requisição de página HTML (Thymeleaf ou .html legado)
             boolean isHtmlRequest = requestURI.endsWith(".html") ||
+                    (!requestURI.startsWith("/api/") && !requestURI.startsWith("/h2-console") && !requestURI.contains(".")) ||
                     (acceptHeader != null && acceptHeader.contains("text/html"));
 
             if (isHtmlRequest) {
-                // Redireciona para login.html para páginas HTML
-                response.sendRedirect("/login.html");
+                // Redireciona para login page
+                response.sendRedirect("/login");
             } else {
                 // Retorna 401 para APIs (JSON)
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

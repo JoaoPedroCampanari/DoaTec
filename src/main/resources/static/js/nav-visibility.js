@@ -44,22 +44,26 @@ function setupMobileMenu() {
 document.addEventListener('DOMContentLoaded', setupMobileMenu);
 
 // ==================== SESSION & NAVIGATION ====================
-document.addEventListener('DOMContentLoaded', async () => {
-    // Verifica sessão com backend
+document.addEventListener('DOMContentLoaded', () => {
+    // Usa cache síncrono do localStorage para evitar flash de elementos ocultos
+    // A validação real da sessão é feita por cada página individualmente
     let loggedInUser = null;
     if (window.Auth) {
-        loggedInUser = await Auth.checkSession();
-        console.log('nav-visibility: Usuário retornado do Auth.checkSession:', loggedInUser);
+        loggedInUser = Auth.getUser();
     } else {
         const stored = localStorage.getItem('loggedInUser');
         if (stored) {
             try {
                 loggedInUser = JSON.parse(stored);
-                console.log('nav-visibility: Usuário carregado do localStorage:', loggedInUser);
             } catch (e) {
                 loggedInUser = null;
             }
         }
+    }
+
+    // Atualiza cache do backend em segundo plano (não bloqueia a UI)
+    if (window.Auth) {
+        Auth.checkSession();
     }
 
     const queroDoarDropdownItem = document.getElementById('queroDoarDropdownItem');
@@ -118,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             profileButton.textContent = 'Entrar';
             profileButton.style.display = 'inline-block';
             profileButton.onclick = () => {
-                window.location.href = 'login.html';
+                window.location.href = '/login';
             };
         }
     }
@@ -133,8 +137,8 @@ function populateQueroDoarDropdown(dropdownItem) {
 
     dropdownMenu.innerHTML = '';
 
-    addDropdownItem(dropdownMenu, 'Nova Doação', 'donate.html');
-    addDropdownItem(dropdownMenu, 'Minhas Doações ⭐', 'minhas-doacoes.html');
+    addDropdownItem(dropdownMenu, 'Nova Doação', '/donate');
+    addDropdownItem(dropdownMenu, 'Minhas Doações ⭐', '/minhas-doacoes');
 
     console.log('nav-visibility: Dropdown Quero Doar populado');
 }
@@ -148,8 +152,8 @@ function populateSolicitarDoacaoDropdown(dropdownItem) {
 
     dropdownMenu.innerHTML = '';
 
-    addDropdownItem(dropdownMenu, 'Solicitar Equipamento', 'aluno.html');
-    addDropdownItem(dropdownMenu, 'Meus Pedidos', 'meus-pedidos.html');
+    addDropdownItem(dropdownMenu, 'Solicitar Equipamento', '/aluno');
+    addDropdownItem(dropdownMenu, 'Meus Pedidos', '/meus-pedidos');
 
     console.log('nav-visibility: Dropdown Solicitar Doação populado');
 }
@@ -165,7 +169,7 @@ function populateMinhaContaDropdown(dropdownItem, isAdmin) {
 
     // Painel Admin (se for admin)
     if (isAdmin) {
-        addDropdownItem(dropdownMenu, 'Painel Admin', 'admin.html');
+        addDropdownItem(dropdownMenu, 'Painel Admin', '/admin');
 
         // Separador
         const separator = document.createElement('li');
@@ -174,7 +178,7 @@ function populateMinhaContaDropdown(dropdownItem, isAdmin) {
     }
 
     // Meu Perfil
-    addDropdownItem(dropdownMenu, 'Meu Perfil', 'perfil.html');
+    addDropdownItem(dropdownMenu, 'Meu Perfil', '/perfil');
 
     // Separador
     const separator = document.createElement('li');
@@ -190,10 +194,10 @@ function populateMinhaContaDropdown(dropdownItem, isAdmin) {
         e.preventDefault();
         e.stopPropagation();
         if (window.Auth) {
-            await Auth.logout('index.html');
+            await Auth.logout('/index');
         } else {
             localStorage.removeItem('loggedInUser');
-            window.location.href = 'index.html';
+            window.location.href = '/index';
         }
     });
     logoutItem.appendChild(logoutLink);

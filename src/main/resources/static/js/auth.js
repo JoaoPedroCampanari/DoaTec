@@ -68,13 +68,7 @@ const Auth = {
         }
 
         try {
-            const response = await fetch('/api/users/me', {
-                method: 'GET',
-                credentials: 'include', // Envia cookies de sessão
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await apiFetch('/api/users/me');
 
             if (response.ok) {
                 this.currentUser = await response.json();
@@ -130,7 +124,7 @@ const Auth = {
      * @param {string} redirectUrl - URL para redirecionar após logout (padrão: index.html)
      * @returns {Promise<boolean>}
      */
-    async logout(redirectUrl = 'index.html') {
+    async logout(redirectUrl = '/index') {
         try {
             const response = await apiFetch('/api/logout', {
                 method: 'POST',
@@ -202,7 +196,7 @@ const Auth = {
      * Protege uma página - redireciona para login se não autenticado
      * @param {string} redirectUrl - URL para redirecionar após login (opcional)
      */
-    async requireAuth(redirectUrl = 'login.html') {
+    async requireAuth(redirectUrl = '/login') {
         const user = await this.checkSession();
         if (!user) {
             window.location.href = redirectUrl;

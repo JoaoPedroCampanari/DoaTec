@@ -1,69 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil - DoaTec</title>
-    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="doatec_logo.png" type="image/png">
-    <script src="js/vendor/imask.min.js"></script>
-</head>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Meu Perfil - DoaTec')}"></head>
 <body class="perfil-page">
-<header>
-    <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
-        <ul class="nav-links">
-            <li><a href="index.html">Início</a></li>
-            <li id="queroDoarDropdownItem" class="nav-dropdown">
-                <a href="#">Quero Doar</a>
-                <ul class="dropdown-menu"></ul>
-            </li>
-            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
-                <a href="#">Solicitar Doação</a>
-                <ul class="dropdown-menu"></ul>
-            </li>
-            <li><a href="suporte.html">Suporte</a></li>
-            <li><a href="sobre.html">Sobre Nós</a></li>
-        </ul>
-        <div class="navbar-right">
-            <!-- Notificações -->
-            <div id="notificationsContainer" class="notification-container">
-                <button class="notification-bell" title="Notificações">🔔</button>
-                <span class="notification-badge"></span>
-                <div class="notification-dropdown">
-                    <div class="notification-header">
-                        <h4>Notificações</h4>
-                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
-                    </div>
-                    <div class="notifications-list"></div>
-                </div>
-            </div>
-            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
-            <ul class="nav-links-account">
-                <li id="minhaContaDropdownItem" class="nav-dropdown">
-                    <a href="#">Minha Conta</a>
-                    <ul class="dropdown-menu"></ul>
-                </li>
-            </ul>
-            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
-            <div class="menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
-</header>
+<header th:replace="~{fragments/nav :: nav('perfil')}"></header>
 
 <main>
     <!-- Profile Hero -->
     <section class="profile-hero">
         <div class="profile-back-link">
-            <a href="index.html">← Voltar para o Início</a>
+            <a th:href="@{/index}">← Voltar para o Início</a>
         </div>
         <div class="container">
             <div class="profile-hero-avatar" id="profileAvatar">
@@ -174,17 +119,9 @@
     </div>
 </main>
 
-<footer>
-    <div class="container">
-        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
-    </div>
-</footer>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<script src="js/main.js?v=2"></script>
-<script src="js/auth.js?v=2"></script>
-<script src="js/notifications.js?v=2"></script>
-<script src="js/theme-switcher.js"></script>
-<script src="js/nav-visibility.js"></script>
+<th:block th:replace="~{fragments/scripts :: scripts('imask,viacep,notifications,nav')}"></th:block>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         // Form elements
@@ -227,7 +164,7 @@
             avatarInitial.textContent = name.charAt(0).toUpperCase();
             profileAvatar.style.backgroundColor = getAvatarColor(name);
 
-            fetch('/api/users/me', { credentials: 'include' })
+            apiFetch('/api/users/me')
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -279,58 +216,19 @@
                     console.error('Erro ao carregar perfil:', error);
                     DoaTec.showToast('Não foi possível carregar os dados do seu perfil.', 'error');
                     setTimeout(() => {
-                        window.location.href = 'login.html';
+                        window.location.href = '/login';
                     }, 2000);
                 });
 
-            // Busca CEP ViaCEP
-            profileCepInput.addEventListener('blur', async function() {
-                const cep = cepMask.unmaskedValue;
-
-                if (cep.length === 8) {
-                    this.classList.add('viacep-loading');
-
-                    try {
-                        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                        const data = await response.json();
-
-                        this.classList.remove('viacep-loading');
-
-                        if (data.erro) {
-                            DoaTec.showToast('CEP não encontrado', 'warning');
-                            // Libera campos para edicao manual
-                            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
-                                const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
-                                if (el) {
-                                    el.removeAttribute('readonly');
-                                    el.classList.remove('viacep-auto');
-                                }
-                            });
-                        } else {
-                            profileLogradouroInput.value = data.logradouro || '';
-                            profileBairroInput.value = data.bairro || '';
-                            profileCidadeInput.value = data.localidade || '';
-                            profileEstadoInput.value = data.uf || '';
-
-                            // Marca como preenchido automaticamente
-                            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
-                                const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
-                                if (el) {
-                                    el.setAttribute('readonly', 'readonly');
-                                    el.classList.add('viacep-auto');
-                                }
-                            });
-
-                            if (data.logradouro) {
-                                profileNumeroInput.focus();
-                            }
-                        }
-                    } catch (err) {
-                        this.classList.remove('viacep-loading');
-                        DoaTec.showToast('Erro ao buscar CEP. Verifique sua conexão.', 'error');
-                    }
-                }
-            });
+            // ViaCEP auto-fill (using shared utility)
+            const viacepFields = {
+                logradouro: profileLogradouroInput,
+                bairro: profileBairroInput,
+                cidade: profileCidadeInput,
+                estado: profileEstadoInput,
+                numero: profileNumeroInput
+            };
+            DoaTec.initViaCEP(profileCepInput, viacepFields, { cepMask });
 
             // Contact form submit
             contactForm.addEventListener('submit', async (event) => {
@@ -411,36 +309,14 @@
             });
 
         } else {
-            window.location.href = 'login.html';
+            window.location.href = '/login';
         }
     });
 
-    // Helper functions
-    function formatUserRole(tipo) {
-        if (!tipo) return 'Usuário';
-        const roles = {
-            'ALUNO': 'Aluno',
-            'DOADOR_PF': 'Doador (Pessoa Física)',
-            'DOADOR_PJ': 'Doador (Pessoa Jurídica)',
-            'ADMIN': 'Administrador'
-        };
-        return roles[tipo] || tipo;
-    }
-
-    function formatDocument(userData) {
-        if (!userData.documento) return '-';
-        return userData.documento;
-    }
-
-    function getAvatarColor(name) {
-        if (!name) return 'var(--primary-100)';
-        const colors = [
-            '#E3F2FD', '#E8F5E9', '#FFF3E0', '#F3E5F5',
-            '#E0F2F1', '#FBE9E7', '#F1F8E9', '#E1F5FE'
-        ];
-        const charCode = name.toUpperCase().charCodeAt(0);
-        return colors[charCode % colors.length];
-    }
+    // Helper functions (from DoaTec)
+    const formatUserRole = DoaTec.formatUserRole;
+    const formatDocument = DoaTec.formatDocument;
+    const getAvatarColor = DoaTec.getAvatarColor;
 </script>
 </body>
 </html>
