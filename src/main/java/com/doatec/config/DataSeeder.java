@@ -1,7 +1,9 @@
 package com.doatec.config;
 
+import com.doatec.model.account.Aluno;
 import com.doatec.model.account.DoadorPF;
 import com.doatec.model.account.Role;
+import com.doatec.repository.AlunoRepository;
 import com.doatec.repository.PessoaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,14 +22,21 @@ public class DataSeeder implements CommandLineRunner {
     private static final String SUPER_ADMIN_SENHA = "Admin@123";
     private static final String SUPER_ADMIN_CPF = "000.000.000-00";
 
+    private static final String ALUNO_EMAIL = "teste@gmail.com";
+    private static final String ALUNO_SENHA = "123456";
+    private static final String ALUNO_CEP = "17404542";
+
     private final PessoaRepository pessoaRepository;
+    private final AlunoRepository alunoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
     private final Environment environment;
 
-    public DataSeeder(PessoaRepository pessoaRepository, PasswordEncoder passwordEncoder,
+    public DataSeeder(PessoaRepository pessoaRepository, AlunoRepository alunoRepository,
+                      PasswordEncoder passwordEncoder,
                       JdbcTemplate jdbcTemplate, Environment environment) {
         this.pessoaRepository = pessoaRepository;
+        this.alunoRepository = alunoRepository;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;
@@ -37,6 +46,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         fixRoleCheckConstraint();
         seedSuperAdmin();
+        seedAlunoTeste();
     }
 
     /**
@@ -85,5 +95,41 @@ public class DataSeeder implements CommandLineRunner {
             log.info("  ⚠ Troque a senha em produção!");
             log.info("═══════════════════════════════════════════════════════");
         }
+    }
+
+    private void seedAlunoTeste() {
+        if (alunoRepository.existsByEmail(ALUNO_EMAIL)) {
+            log.info("Aluno de teste já existe, pulando seed...");
+            return;
+        }
+
+        String ra = String.format("%d", 100000 + (int)(Math.random() * 900000));
+        String telefone = String.format("(14) 9%s", 10000 + (int)(Math.random() * 90000));
+        String numero = String.valueOf(10 + (int)(Math.random() * 990));
+
+        Aluno aluno = Aluno.builder()
+                .nome("Aluno Teste")
+                .email(ALUNO_EMAIL)
+                .senha(passwordEncoder.encode(ALUNO_SENHA))
+                .ra(ra)
+                .endereco(ALUNO_CEP)
+                .logradouro("Rua Teste")
+                .numero(numero)
+                .bairro("Centro")
+                .cidade("São Manuel")
+                .estado("SP")
+                .telefone(telefone)
+                .role(Role.USER)
+                .ativo(true)
+                .build();
+
+        alunoRepository.save(aluno);
+
+        log.info("═══════════════════════════════════════════════════════");
+        log.info("  Aluno de teste criado automaticamente");
+        log.info("  Email: {}", ALUNO_EMAIL);
+        log.info("  Senha: {}", ALUNO_SENHA);
+        log.info("  RA: {}", ra);
+        log.info("═══════════════════════════════════════════════════════");
     }
 }
