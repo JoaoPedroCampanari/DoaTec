@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const queroDoarDropdownItem = document.getElementById('queroDoarDropdownItem');
     const solicitarDoacaoDropdownItem = document.getElementById('solicitarDoacaoDropdownItem');
+    const suporteDropdownItem = document.getElementById('suporteDropdownItem');
     const minhaContaDropdownItem = document.getElementById('minhaContaDropdownItem');
     const profileButton = document.getElementById('profileButton');
     const notificationsContainer = document.getElementById('notificationsContainer');
@@ -104,6 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Mostra dropdown "Suporte" - TODOS os usuários logados
+        if (suporteDropdownItem) {
+            suporteDropdownItem.classList.add('dropdown-visible');
+            populateSuporteDropdown(suporteDropdownItem);
+            setupDropdownToggle(suporteDropdownItem);
+        }
+
         // Mostra dropdown "Minha Conta" - TODOS os usuários logados
         if (minhaContaDropdownItem) {
             minhaContaDropdownItem.classList.add('dropdown-visible');
@@ -117,12 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } else {
         // Usuário deslogado - dropdowns permanecem ocultos (já ocultos por CSS)
+        // Suporte visível para deslogados (FAQ + formulário)
+        if (suporteDropdownItem) {
+            suporteDropdownItem.classList.add('dropdown-visible');
+            populateSuporteDropdown(suporteDropdownItem);
+            setupDropdownToggle(suporteDropdownItem);
+        }
         // Mostra botão de login
         if (profileButton) {
             profileButton.textContent = 'Entrar';
             profileButton.style.display = 'inline-block';
             profileButton.onclick = () => {
-                window.location.href = '/login';
+                window.location.href = '/login.html';
             };
         }
     }
@@ -137,8 +151,8 @@ function populateQueroDoarDropdown(dropdownItem) {
 
     dropdownMenu.innerHTML = '';
 
-    addDropdownItem(dropdownMenu, 'Nova Doação', '/donate');
-    addDropdownItem(dropdownMenu, 'Minhas Doações ⭐', '/minhas-doacoes');
+    addDropdownItem(dropdownMenu, 'Nova Doação', '/donate.html');
+    addDropdownItem(dropdownMenu, 'Minhas Doações ⭐', '/minhas-doacoes.html');
 
     console.log('nav-visibility: Dropdown Quero Doar populado');
 }
@@ -152,10 +166,30 @@ function populateSolicitarDoacaoDropdown(dropdownItem) {
 
     dropdownMenu.innerHTML = '';
 
-    addDropdownItem(dropdownMenu, 'Solicitar Equipamento', '/aluno');
-    addDropdownItem(dropdownMenu, 'Meus Pedidos', '/meus-pedidos');
+    addDropdownItem(dropdownMenu, 'Solicitar Equipamento', '/aluno.html');
+    addDropdownItem(dropdownMenu, 'Meus Pedidos', '/meus-pedidos.html');
 
     console.log('nav-visibility: Dropdown Solicitar Doação populado');
+}
+
+/**
+ * Popula o dropdown "Suporte" - Visível para TODOS (logados e deslogados)
+ */
+function populateSuporteDropdown(dropdownItem) {
+    const dropdownMenu = dropdownItem.querySelector('.dropdown-menu');
+    if (!dropdownMenu) return;
+
+    dropdownMenu.innerHTML = '';
+
+    addDropdownItem(dropdownMenu, 'Criar um Ticket', '/suporte.html');
+
+    // "Meus Tickets" apenas para logados
+    const loggedInUser = Auth.getUser();
+    if (loggedInUser) {
+        addDropdownItem(dropdownMenu, 'Meus Tickets', '/suporte.html?tab=tickets');
+    }
+
+    console.log('nav-visibility: Dropdown Suporte populado');
 }
 
 /**
@@ -169,7 +203,7 @@ function populateMinhaContaDropdown(dropdownItem, isAdmin) {
 
     // Painel Admin (se for admin)
     if (isAdmin) {
-        addDropdownItem(dropdownMenu, 'Painel Admin', '/admin');
+        addDropdownItem(dropdownMenu, 'Painel Admin', '/admin.html');
 
         // Separador
         const separator = document.createElement('li');
@@ -178,7 +212,7 @@ function populateMinhaContaDropdown(dropdownItem, isAdmin) {
     }
 
     // Meu Perfil
-    addDropdownItem(dropdownMenu, 'Meu Perfil', '/perfil');
+    addDropdownItem(dropdownMenu, 'Meu Perfil', '/perfil.html');
 
     // Separador
     const separator = document.createElement('li');
@@ -194,10 +228,10 @@ function populateMinhaContaDropdown(dropdownItem, isAdmin) {
         e.preventDefault();
         e.stopPropagation();
         if (window.Auth) {
-            await Auth.logout('/index');
+            await Auth.logout('/index.html');
         } else {
             localStorage.removeItem('loggedInUser');
-            window.location.href = '/index';
+            window.location.href = '/index.html';
         }
     });
     logoutItem.appendChild(logoutLink);

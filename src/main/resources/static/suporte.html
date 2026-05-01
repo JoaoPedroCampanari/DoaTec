@@ -27,7 +27,10 @@
                 <a href="#">Solicitar Doação</a>
                 <ul class="dropdown-menu"></ul>
             </li>
-            <li><a href="suporte.html" class="active">Suporte</a></li>
+            <li id="suporteDropdownItem" class="nav-dropdown">
+                <a href="#" class="active">Suporte</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
             <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
         <div class="navbar-right">
@@ -68,6 +71,13 @@
                 <p>Tem alguma dúvida? Consulte nossas perguntas frequentes ou entre em contato conosco.</p>
             </div>
 
+            <!-- Abas -->
+            <div class="admin-tabs" style="margin-bottom: 24px;">
+                <div class="admin-tab active" data-tab="criar">Criar um Ticket</div>
+                <div class="admin-tab" data-tab="tickets">Meus Tickets</div>
+            </div>
+
+            <div id="tabCriar" class="admin-tab-content active">
             <div class="faq-section">
                 <h2 class="faq-section-title">Perguntas Frequentes</h2>
 
@@ -162,10 +172,12 @@
                     </div>
                 </div>
             </form>
-        </div>
+            </div>
+            </div>
 
-        <!-- Meus Tickets -->
-        <div id="meusTicketsSection" style="display: none; margin-top: 40px;">
+            <div id="tabTickets" class="admin-tab-content">
+            <!-- Meus Tickets -->
+            <div id="meusTicketsSection">
             <div class="faq-card">
                 <h3 class="faq-heading">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
@@ -175,7 +187,8 @@
                 </h3>
                 <div id="ticketsList"></div>
             </div>
-        </div>
+            </div>
+            </div>
     </section>
 </main>
 
@@ -192,6 +205,23 @@
 <script src="js/nav-visibility.js"></script>
 <script>
     let loggedInUser = null;
+
+    // Tab switching
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.tab === 'criar' ? 'tabCriar' : 'tabTickets';
+            document.getElementById(target).classList.add('active');
+        });
+    });
+
+    // Auto-select tab from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'tickets') {
+        document.querySelector('.admin-tab[data-tab="tickets"]').click();
+    }
 
     async function preencherDadosSuporte(supportNameInput, supportEmailInput) {
         try {
@@ -215,13 +245,11 @@
             const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
             if (!response.ok) {
                 list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
-                section.style.display = 'block';
                 return;
             }
             const tickets = await response.json();
             if (!tickets || tickets.length === 0) {
                 list.innerHTML = '<p class="faq-text">Você ainda não enviou nenhum ticket de suporte.</p>';
-                section.style.display = 'block';
                 return;
             }
             let html = '';
@@ -235,9 +263,9 @@
                         <span class="badge ${statusClass}">${statusLabel}</span>
                         <span class="card-date">${dataCriacao}</span>
                     </div>
-                    <div class="card-title">${t.assunto || 'Sem assunto'}</div>
-                    <div class="card-desc">${t.mensagem || ''}</div>
-                    ${temResposta ? `<div class="card-desc" style="margin-top:8px;padding:8px;border-left:3px solid #10b981;background:#f0fdf4;border-radius:4px;"><strong>Resposta do admin:</strong><br>${t.resposta}<br><small style="color:#6b7280">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small></div>` : '<div class="card-desc" style="color:#9ca3af;font-style:italic;margin-top:8px;">Aguardando resposta...</div>'}
+                    <div class="card-title">${DoaTec.escapeHtml(t.assunto || 'Sem assunto')}</div>
+                    <div class="card-desc">${DoaTec.escapeHtml(t.mensagem || '')}</div>
+                    ${temResposta ? `<div class="card-desc" style="margin-top:8px;padding:8px;border-left:3px solid #10b981;background:#f0fdf4;border-radius:4px;"><strong>Resposta do admin:</strong><br>${DoaTec.escapeHtml(t.resposta)}<br><small style="color:#6b7280">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small></div>` : '<div class="card-desc" style="color:#9ca3af;font-style:italic;margin-top:8px;">Aguardando resposta...</div>'}
                 </div>`;
             }
             list.innerHTML = html;
@@ -267,6 +295,8 @@
             // Usuário não logado - mostra mensagem de login, esconde formulário
             loginRequiredMessage.style.display = 'block';
             formFields.style.display = 'none';
+            // Esconde aba "Meus Tickets" para deslogados
+            document.querySelector('.admin-tab[data-tab="tickets"]').style.display = 'none';
         }
 
         supportForm.addEventListener('submit', async (event) => {
