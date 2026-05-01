@@ -1,16 +1,26 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Login - DoaTec')}"></head>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - DoaTec</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
+</head>
 <body class="login-page">
 
 <div class="back-button-container">
-    <a th:href="@{/index}" class="btn btn-secondary">← Voltar à Página Inicial</a>
+    <a href="index.html" class="btn btn-secondary">← Voltar à Página Inicial</a>
 </div>
 
 <div class="login-container">
     <div class="login-box">
         <div class="logo">
-            <a th:href="@{/index}"><img th:src="@{/doatec_logo.png}" width="200" alt="Logo DoaTec"></a>
+            <a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a>
         </div>
         <h1>Entrar na Plataforma</h1>
         <form id="loginForm" class="application-form">
@@ -24,15 +34,19 @@
             </div>
             <button type="submit" class="btn btn-primary btn-submit">Entrar</button>
         </form>
-        <p class="footer-link" style="margin-top: 24px; text-align: center;">Não tem uma conta? <a th:href="@{/registro}" style="color: var(--primary-600); font-weight: 500;">Crie uma aqui</a></p>
+        <p class="footer-link" style="margin-top: 24px; text-align: center;">Não tem uma conta? <a href="registro.html" style="color: var(--primary-600); font-weight: 500;">Crie uma aqui</a></p>
     </div>
 </div>
-<th:block th:replace="~{fragments/scripts :: scripts('')}"></th:block>
+<script src="js/theme-switcher.js"></script>
+<script src="js/main.js?v=2"></script>
+<script src="js/auth.js?v=2"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
+        // Verifica se já está logado
         const user = await Auth.checkSession();
         if (user) {
-            window.location.href = '/index';
+            // Já está logado, redireciona para home
+            window.location.href = 'index.html';
             return;
         }
 
@@ -51,7 +65,7 @@
                 const result = await Auth.login(email, password);
 
                 if (result.success) {
-                    window.location.href = '/index';
+                    window.location.href = 'index.html';
                 } else {
                     DoaTec.showToast('Erro no login: ' + result.error, 'error');
                 }

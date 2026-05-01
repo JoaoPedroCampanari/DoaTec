@@ -77,11 +77,16 @@ public abstract class Pessoa {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    /**
+     * @PreUpdate removido — causava DataIntegrityViolationException ao salvar
+     * entidades que referenciam Pessoa (ex: Doacao.setAdminAvaliador).
+     * O updatedAt deve ser setado explicitamente no service layer.
+     */
+    public void markUpdated() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     /**

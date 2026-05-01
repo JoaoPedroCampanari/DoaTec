@@ -34,6 +34,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByEmailAndIdNot(String email, Integer id);
+
     Page<Pessoa> findByRoleIn(Collection<Role> roles, Pageable pageable);
 
     /**

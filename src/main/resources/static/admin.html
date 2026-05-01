@@ -1,9 +1,63 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Painel Admin - DoaTec')}"></head>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - DoaTec</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
+</head>
 <body class="admin-page">
-
-<header th:replace="~{fragments/nav :: nav('admin')}"></header>
+<header>
+    <nav class="navbar">
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Início</a></li>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="suporteDropdownItem" class="nav-dropdown">
+                <a href="#">Suporte</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
+        </ul>
+        <div class="navbar-right">
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
+        </div>
+        <div class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+</header>
 
 <main class="admin-container">
     <div class="admin-header">
@@ -349,6 +403,12 @@
     </div>
 </div>
 
-<th:block th:replace="~{fragments/scripts :: scripts('notifications,nav,admin')}"></th:block>
+<!-- Scripts -->
+<script src="js/auth.js?v=2"></script>
+<script src="js/main.js?v=2"></script>
+<script src="js/notifications.js?v=2"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/nav-visibility.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>

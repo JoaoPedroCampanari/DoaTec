@@ -112,6 +112,7 @@ public class SuperAdminService {
         }
 
         pessoa.setRole(Role.USER);
+        pessoa.markUpdated();
         return PessoaMapper.toAdminResponse(pessoaRepository.save(pessoa));
     }
 
@@ -136,6 +137,7 @@ public class SuperAdminService {
 
         pessoa.setAtivo(false);
         pessoa.setRole(Role.USER);
+        pessoa.markUpdated();
         pessoaRepository.save(pessoa);
     }
 
@@ -163,6 +165,7 @@ public class SuperAdminService {
         }
 
         pessoa.setRole(novaRole);
+        pessoa.markUpdated();
         return PessoaMapper.toAdminResponse(pessoaRepository.save(pessoa));
     }
 
@@ -189,6 +192,7 @@ public class SuperAdminService {
         }
 
         pessoa.setAtivo(ativo);
+        pessoa.markUpdated();
         return PessoaMapper.toAdminResponse(pessoaRepository.save(pessoa));
     }
 }

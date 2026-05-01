@@ -21,5 +21,7 @@ public interface DoadorPJRepository extends JpaRepository<DoadorPJ, Integer> {
 
     boolean existsByCnpj(String cnpj);
 
+    boolean existsByCnpjAndIdNot(String cnpj, Integer id);
+
     boolean existsByEmail(String email);
 }

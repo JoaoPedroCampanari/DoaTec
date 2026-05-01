@@ -210,7 +210,7 @@ public class PessoaService {
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
         if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(pessoaExistente.getEmail())) {
-            if (pessoaRepository.findByEmail(dto.email()).isPresent()) {
+            if (pessoaRepository.existsByEmailAndIdNot(dto.email(), id)) {
                 throw new BusinessException("Novo email já está cadastrado para outro usuário.");
             }
             pessoaExistente.setEmail(dto.email());
@@ -242,6 +242,7 @@ public class PessoaService {
             pessoaExistente.setTelefone(dto.telefone());
         }
 
+        pessoaExistente.markUpdated();
         return pessoaRepository.save(pessoaExistente);
     }
 
@@ -297,6 +298,7 @@ public class PessoaService {
         }
 
         pessoa.setAtivo(ativo);
+        pessoa.markUpdated();
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
         return PessoaMapper.toAdminResponse(pessoaAtualizada);
@@ -325,6 +327,7 @@ public class PessoaService {
         }
 
         pessoa.setRole(novaRole);
+        pessoa.markUpdated();
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
         return PessoaMapper.toAdminResponse(pessoaAtualizada);

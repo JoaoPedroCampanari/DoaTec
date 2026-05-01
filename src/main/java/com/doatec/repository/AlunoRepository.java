@@ -21,5 +21,7 @@ public interface AlunoRepository extends JpaRepository<Aluno, Integer> {
 
     boolean existsByRa(String ra);
 
+    boolean existsByRaAndIdNot(String ra, Integer id);
+
     boolean existsByEmail(String email);
 }

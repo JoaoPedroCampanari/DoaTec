@@ -507,6 +507,7 @@ public class AdminService {
         }
 
         pessoa.setAtivo(ativo);
+        pessoa.markUpdated();
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
         registrarLog(admin, ativo ? AcaoTipo.REATIVAR_USUARIO : AcaoTipo.DESATIVAR_USUARIO,
@@ -533,6 +534,7 @@ public class AdminService {
         }
 
         pessoa.setRole(novaRole);
+        pessoa.markUpdated();
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
         return PessoaMapper.toAdminResponse(pessoaAtualizada);

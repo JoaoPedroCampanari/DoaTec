@@ -96,6 +96,7 @@ public class DoacaoService {
 
         if (dto.telefone() != null && !dto.telefone().isBlank()) {
             doador.setTelefone(dto.telefone());
+            doador.markUpdated();
             pessoaRepository.save(doador);
         }
 

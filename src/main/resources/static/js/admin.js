@@ -32,7 +32,7 @@ const AdminPanel = {
 
         if (!Auth.isAdmin()) {
             showToast('Acesso restrito a administradores', 'error');
-            setTimeout(() => window.location.href = '/index', 1500);
+            setTimeout(() => window.location.href = '/index.html', 1500);
             return;
         }
 

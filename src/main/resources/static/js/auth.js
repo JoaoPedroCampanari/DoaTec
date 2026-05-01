@@ -124,7 +124,7 @@ const Auth = {
      * @param {string} redirectUrl - URL para redirecionar após logout (padrão: index.html)
      * @returns {Promise<boolean>}
      */
-    async logout(redirectUrl = '/index') {
+    async logout(redirectUrl = '/index.html') {
         try {
             const response = await apiFetch('/api/logout', {
                 method: 'POST',
@@ -196,7 +196,7 @@ const Auth = {
      * Protege uma página - redireciona para login se não autenticado
      * @param {string} redirectUrl - URL para redirecionar após login (opcional)
      */
-    async requireAuth(redirectUrl = '/login') {
+    async requireAuth(redirectUrl = '/login.html') {
         const user = await this.checkSession();
         if (!user) {
             window.location.href = redirectUrl;

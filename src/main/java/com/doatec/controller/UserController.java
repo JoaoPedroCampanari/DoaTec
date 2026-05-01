@@ -105,6 +105,26 @@ public class UserController {
         }
     }
 
+    @PutMapping("/me")
+    public ResponseEntity<String> updateCurrentUser(@AuthenticationPrincipal User userDetails, @Valid @RequestBody PessoaUpdateRequest dto) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Integer userId = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
+                .getId();
+
+        try {
+            Pessoa pessoaAtualizada = pessoaService.updatePessoaProfile(userId, dto);
+            return ResponseEntity.ok("Perfil atualizado com sucesso para " + pessoaAtualizada.getEmail());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar perfil: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<String> updateUser(@PathVariable Integer id, @AuthenticationPrincipal User userDetails, @Valid @RequestBody PessoaUpdateRequest dto) {
         if (userDetails == null) {

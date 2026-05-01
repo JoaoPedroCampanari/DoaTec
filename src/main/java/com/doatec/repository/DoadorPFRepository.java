@@ -21,5 +21,7 @@ public interface DoadorPFRepository extends JpaRepository<DoadorPF, Integer> {
 
     boolean existsByCpf(String cpf);
 
+    boolean existsByCpfAndIdNot(String cpf, Integer id);
+
     boolean existsByEmail(String email);
 }

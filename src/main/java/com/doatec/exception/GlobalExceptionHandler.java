@@ -117,22 +117,28 @@ public class GlobalExceptionHandler {
     /**
      * Trata violação de integridade de dados (ex: email/CPF duplicado).
      * Retorna HTTP 409 Conflict.
+     * Usa extração do nome da constraint do root cause para evitar
+     * classificação incorreta por string-matching (ex: "ra" em "parameters").
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
         String message = "Violação de integridade de dados";
 
-        // Tenta extrair mensagem mais específica
-        if (ex.getMessage() != null) {
-            if (ex.getMessage().contains("email")) {
+        // Extrai a constraint do root cause (PostgreSQL)
+        String constraintName = extractConstraintName(ex);
+
+        if (constraintName != null) {
+            // Mapeia nomes de constraint para mensagens amigáveis
+            String lower = constraintName.toLowerCase();
+            if (lower.contains("email")) {
                 message = "Email já cadastrado no sistema";
-            } else if (ex.getMessage().contains("cpf")) {
+            } else if (lower.contains("cpf")) {
                 message = "CPF já cadastrado no sistema";
-            } else if (ex.getMessage().contains("cnpj")) {
+            } else if (lower.contains("cnpj")) {
                 message = "CNPJ já cadastrado no sistema";
-            } else if (ex.getMessage().contains("ra")) {
+            } else if (lower.equals("ra") || lower.endsWith("_ra") || lower.startsWith("ra_") || lower.contains("uk_ra") || lower.contains("un_ra") || lower.contains("unique_ra")) {
                 message = "RA já cadastrado no sistema";
-            } else if (ex.getMessage().contains("documento")) {
+            } else if (lower.contains("documento")) {
                 message = "Documento já cadastrado no sistema";
             }
         }
@@ -144,6 +150,38 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * Extrai o nome da constraint do root cause de uma DataIntegrityViolationException.
+     * No PostgreSQL, o nome da constraint aparece na mensagem do PSQLException:
+     * "ERROR: duplicate key value violates unique constraint \"uk_pessoa_email\""
+     * ou "ERROR: null value in column \"ra\" violates not-null constraint"
+     */
+    private String extractConstraintName(DataIntegrityViolationException ex) {
+        Throwable cause = ex.getRootCause();
+        if (cause == null) cause = ex.getCause();
+        while (cause != null) {
+            String causeMessage = cause.getMessage();
+            if (causeMessage != null) {
+                // Log do root cause completo para diagnóstico
+                org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class)
+                        .error("DataIntegrityViolation root cause: {}", causeMessage);
+
+                // PostgreSQL: duplicate key → "constraint \"name\""
+                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("constraint \"([^\"]+)\"").matcher(causeMessage);
+                if (matcher.find()) {
+                    return matcher.group(1);
+                }
+                // Fallback: column name → "column \"name\""
+                matcher = java.util.regex.Pattern.compile("column \"([^\"]+)\"").matcher(causeMessage);
+                if (matcher.find()) {
+                    return matcher.group(1);
+                }
+            }
+            cause = cause.getCause();
+        }
+        return null;
     }
 
     /**
