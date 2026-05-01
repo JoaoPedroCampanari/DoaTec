@@ -2859,6 +2859,8 @@ html.dark-mode .admin-detail-content strong {
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 0.78rem;
+    position: relative;
+    z-index: 10;
     font-weight: 500;
     border: 1px solid var(--neutral-300, #d1d5db);
     background: var(--neutral-50, #fff);

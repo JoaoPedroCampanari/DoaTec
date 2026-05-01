@@ -270,7 +270,7 @@ const AdminPanel = {
         tbody.innerHTML = doacoes.map(d => {
             const proximosStatus = this.getProximosStatusDoacao(d.status);
             return `
-            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'doacao', ${d.id})">
+            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'doacao', ${d.id}, event)">
                 <td>#${d.id}</td>
                 <td>${escapeHtml(d.doadorNome || '-')}<br><small>${escapeHtml(d.doadorEmail || '')}</small></td>
                 <td>${formatDate(d.dataDoacao)}</td>
@@ -278,7 +278,7 @@ const AdminPanel = {
                 <td>${escapeHtml(d.descricaoGeral || '-')}</td>
                 <td class="admin-actions">
                     ${proximosStatus.length ?
-                        `<select class="admin-status-select" onchange="event.stopPropagation(); AdminPanel.alterarStatusDoacao(${d.id}, this.value)">
+                        `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusDoacao(${d.id}, this.value)">
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : '<span style="color:var(--neutral-400)">-</span>'}
@@ -385,7 +385,7 @@ const AdminPanel = {
         tbody.innerHTML = solicitacoes.map(s => {
             const proximosStatus = this.getProximosStatusSolicitacao(s.status);
             return `
-            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'solicitacao', ${s.id})">
+            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'solicitacao', ${s.id}, event)">
                 <td>#${s.id}</td>
                 <td>${escapeHtml(s.alunoNome || '-')}<br><small>${escapeHtml(s.alunoEmail || '')}</small></td>
                 <td>${formatDate(s.dataSolicitacao)}</td>
@@ -393,7 +393,7 @@ const AdminPanel = {
                 <td>${this.createPillHtml(s.status)}</td>
                 <td class="admin-actions">
                     ${proximosStatus.length ?
-                        `<select class="admin-status-select" onchange="event.stopPropagation(); AdminPanel.alterarStatusSolicitacao(${s.id}, this.value)">
+                        `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusSolicitacao(${s.id}, this.value)">
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : ''}
@@ -583,7 +583,7 @@ const AdminPanel = {
         }
 
         tbody.innerHTML = tickets.map(t => `
-            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'suporte', ${t.id})">
+            <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'suporte', ${t.id}, event)">
                 <td>#${t.id}</td>
                 <td>${escapeHtml(t.autorNome || '-')}<br><small>${escapeHtml(t.autorEmail || '')}</small></td>
                 <td>${escapeHtml(t.assunto || '-')}</td>
@@ -1033,7 +1033,11 @@ const AdminPanel = {
     },
 
     // ==================== HELPERS ====================
-    toggleDetail(row, type, id) {
+    toggleDetail(row, type, id, event) {
+        // Ignorar cliques em selects e botões dentro da row
+        if (event && (event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON' || event.target.tagName === 'OPTION' || event.target.closest('.admin-status-select'))) {
+            return;
+        }
         const detailRow = document.getElementById(`detail-${type}-${id}`);
         if (!detailRow) return;
         const isVisible = detailRow.style.display !== 'none';
