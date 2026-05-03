@@ -3246,7 +3246,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    color: var(--neutral-900);
+    color: #212121;
 }
 
 .chat-header {
@@ -3257,6 +3257,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
     align-items: center;
     font-weight: 600;
     font-size: 0.95rem;
+    color: #212121;
 }
 
 .chat-title {
@@ -3309,8 +3310,8 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 
 .chat-bubble-other {
     align-self: flex-start;
-    background: var(--neutral-100);
-    color: var(--neutral-900);
+    background: #f3f4f6;
+    color: #212121;
     border-bottom-left-radius: 4px;
 }
 
@@ -3343,9 +3344,11 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
     flex: 1;
     padding: 9px 14px;
     border-radius: 8px;
-    border: 1px solid var(--neutral-200);
+    border: 1px solid #e5e7eb;
     font-size: 0.88rem;
     outline: none;
+    color: #212121;
+    background: #fff;
     transition: border-color var(--transition-fast);
 }
 
@@ -3356,7 +3359,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 .chat-input-area button {
     padding: 9px 18px;
     border-radius: 8px;
-    background: var(--primary-500);
+    background: #1976D2;
     color: #fff;
     border: none;
     cursor: pointer;
@@ -3366,7 +3369,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 }
 
 .chat-input-area button:hover {
-    background: var(--primary-600);
+    background: #1565C0;
 }
 
 .chat-input-area:has(input:disabled) {
@@ -3376,6 +3379,19 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 
 .chat-btn {
     margin-top: 10px;
+    color: #1976D2;
+    border: 1px solid #1976D2;
+    background: transparent;
+    font-size: 0.82rem;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.chat-btn:hover {
+    background: #1976D2;
+    color: #fff;
 }
 
 /* Chat Dark Mode */
