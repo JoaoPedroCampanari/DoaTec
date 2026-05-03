@@ -3246,6 +3246,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    color: var(--neutral-900);
 }
 
 .chat-header {
