@@ -87,6 +87,7 @@
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js?v=2"></script>
+<script src="js/chat.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const donationsContainer = document.getElementById('donationsContainer');
@@ -161,6 +162,7 @@
                                 </span>
                             </div>
                             ${itemsHtml}
+                            <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
                         </div>
                     `;
 

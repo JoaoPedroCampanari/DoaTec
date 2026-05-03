@@ -86,6 +86,7 @@
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js?v=2"></script>
+<script src="js/chat.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const pedidosContainer = document.getElementById('pedidosContainer');
@@ -165,6 +166,7 @@
                                     <p style="margin: 8px 0 0 0; line-height: 1.6;">${escapeHtml(pedido.justificativa || 'Não informada')}</p>
                                 </div>
                             </div>
+                            <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido #${pedido.id}')">Conversar</button>
                         </div>
                     `;
                     pedidosContainer.appendChild(pedidoCard);

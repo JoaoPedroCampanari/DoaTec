@@ -282,6 +282,7 @@ const AdminPanel = {
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : '<span style="color:var(--neutral-400)">-</span>'}
+                    <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('DOACAO', ${d.id}, 'Doação #${d.id}')">Conversar</button>
                 </td>
             </tr>
             <tr class="admin-detail-row" id="detail-doacao-${d.id}" style="display:none">
@@ -397,6 +398,7 @@ const AdminPanel = {
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : ''}
+                    <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SOLICITACAO', ${s.id}, 'Pedido #${s.id}')">Conversar</button>
                 </td>
             </tr>
             <tr class="admin-detail-row" id="detail-solicitacao-${s.id}" style="display:none">
@@ -592,6 +594,7 @@ const AdminPanel = {
                 <td class="admin-actions">
                     <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>
                     <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id})">Status</button>
+                    <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
                 </td>
             </tr>
             <tr class="admin-detail-row" id="detail-suporte-${t.id}" style="display:none">
