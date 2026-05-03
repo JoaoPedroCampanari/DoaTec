@@ -216,7 +216,7 @@ header {
 }
 
 /* Underline animation on hover */
-.nav-links a::after {
+.nav-links > li > a::after {
     content: '';
     position: absolute;
     bottom: -4px;
@@ -227,13 +227,13 @@ header {
     transition: width var(--transition-base);
 }
 
-.nav-links a:hover::after,
-.nav-links a.active::after {
+.nav-links > li > a:hover::after,
+.nav-links > li > a.active::after {
     width: 100%;
 }
 
-.nav-links a:hover,
-.nav-links a.active {
+.nav-links > li > a:hover,
+.nav-links > li > a.active {
     color: var(--primary-400);
 }
 
@@ -1162,9 +1162,16 @@ body.perfil-page .login-box {
 }
 
 .nav-dropdown > a::after {
-    content: '▾';
-    font-size: 0.7em;
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
     transition: transform var(--transition-base);
+    margin-left: 4px;
+    vertical-align: middle;
 }
 
 .nav-dropdown.dropdown-open > a::after {
@@ -1176,27 +1183,25 @@ body.perfil-page .login-box {
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    min-width: 200px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: none;
+    min-width: 210px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: var(--radius-lg);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
     display: none;
     z-index: 1050;
-    padding: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
+    padding: 6px;
+    margin-top: 8px;
     list-style: none;
 }
 
 .nav-dropdown.dropdown-open .dropdown-menu {
     display: block;
-    animation: dropdownFadeIn 0.2s ease;
+    animation: dropdownSlideIn 0.15s ease-out;
 }
 
-@keyframes dropdownFadeIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+@keyframes dropdownSlideIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
@@ -1223,7 +1228,7 @@ body.perfil-page .login-box {
     color: var(--neutral-900) !important;
     font-size: 0.9rem;
     border-radius: var(--radius-md);
-    transition: background var(--transition-fast), transform var(--transition-fast);
+    transition: background var(--transition-fast), color var(--transition-fast);
     text-decoration: none;
 }
 
@@ -1757,8 +1762,8 @@ html.dark-mode .nav-links a {
     color: #f3f4f6;
 }
 
-html.dark-mode .nav-links a:hover,
-html.dark-mode .nav-links a.active {
+html.dark-mode .nav-links > li > a:hover,
+html.dark-mode .nav-links > li > a.active {
     color: var(--primary-400);
 }
 
@@ -2024,15 +2029,14 @@ html.dark-mode .viacep-auto {
 
 /* Dropdowns Dark Mode */
 html.dark-mode .dropdown-menu {
-    background: rgba(26, 26, 46, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-color: var(--dark-700);
+    background: var(--dark-800);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 html.dark-mode .dropdown-menu-header {
     color: #888;
-    border-bottom-color: var(--dark-700);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 html.dark-mode .dropdown-menu li a {
@@ -2040,12 +2044,12 @@ html.dark-mode .dropdown-menu li a {
 }
 
 html.dark-mode .dropdown-menu li a:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.06);
     color: var(--primary-400) !important;
 }
 
 html.dark-mode .dropdown-separator {
-    border-top-color: rgba(255, 255, 255, 0.08);
+    border-top-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Dropdown icon styling */
