@@ -123,9 +123,7 @@ const ChatWidget = {
                 container.appendChild(bubble);
             });
 
-            if (wasAtBottom) {
-                container.scrollTop = container.scrollHeight;
-            }
+            container.scrollTop = container.scrollHeight;
         } catch (e) {
             console.error('Chat: erro ao carregar mensagens', e);
         }
@@ -137,6 +135,22 @@ const ChatWidget = {
 
         const conteudo = input.value.trim();
         if (!conteudo) return;
+
+        // Renderização otimista — mostra a bolha imediatamente
+        const container = this.overlay.querySelector('.chat-messages');
+        const optimisticBubble = document.createElement('div');
+        optimisticBubble.className = 'chat-bubble chat-bubble-user';
+        optimisticBubble.innerHTML = `
+            <div>${DoaTec.escapeHtml(conteudo)}</div>
+            <div class="chat-bubble-time">Enviando...</div>
+        `;
+        // Remove estado vazio se existir
+        const emptyMsg = container.querySelector('div[style*="text-align:center"]');
+        if (emptyMsg) emptyMsg.remove();
+        container.appendChild(optimisticBubble);
+        container.scrollTop = container.scrollHeight;
+
+        input.value = '';
 
         try {
             const response = await apiFetch('/api/chat/enviar', {
@@ -150,15 +164,16 @@ const ChatWidget = {
             });
 
             if (!response.ok) {
+                optimisticBubble.innerHTML = `<div>${DoaTec.escapeHtml(conteudo)}</div><div class="chat-bubble-time" style="color:#ef4444;">Falha ao enviar</div>`;
                 const err = await response.json().catch(() => ({}));
                 DoaTec.showToast(err.message || err.erro || 'Erro ao enviar mensagem', 'error');
                 return;
             }
 
-            input.value = '';
             await this.loadMessages();
         } catch (e) {
             console.error('Chat: erro ao enviar', e);
+            optimisticBubble.innerHTML = `<div>${DoaTec.escapeHtml(conteudo)}</div><div class="chat-bubble-time" style="color:#ef4444;">Falha ao enviar</div>`;
             DoaTec.showToast('Erro ao enviar mensagem', 'error');
         }
     }
