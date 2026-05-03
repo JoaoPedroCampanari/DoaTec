@@ -215,23 +215,7 @@ header {
     transition: color var(--transition-base);
 }
 
-/* Underline animation on hover */
-.nav-links > li > a::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--primary-400);
-    transition: width var(--transition-base);
-}
-
-.nav-links > li > a:hover::after,
-.nav-links > li > a.active::after {
-    width: 100%;
-}
-
+/* Nav link hover */
 .nav-links > li > a:hover,
 .nav-links > li > a.active {
     color: var(--primary-400);
@@ -1162,20 +1146,16 @@ body.perfil-page .login-box {
 }
 
 .nav-dropdown > a::after {
-    content: '';
-    display: inline-block;
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid currentColor;
+    content: '›';
+    font-size: 1.1em;
+    font-weight: 500;
     transition: transform var(--transition-base);
-    margin-left: 4px;
-    vertical-align: middle;
+    margin-left: 2px;
+    display: inline-block;
 }
 
 .nav-dropdown.dropdown-open > a::after {
-    transform: rotate(180deg);
+    transform: rotate(90deg);
 }
 
 .dropdown-menu {
