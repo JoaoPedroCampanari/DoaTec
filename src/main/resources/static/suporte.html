@@ -320,8 +320,13 @@
                     body: JSON.stringify(formData)
                 });
 
-                const message = await response.text();
-                DoaTec.showToast(message, response.ok ? 'success' : 'error');
+                if (response.ok) {
+                    DoaTec.showToast("Ticket aberto! Você pode ver o histórico em 'Meus Tickets'.", 'success');
+                    setTimeout(() => window.location.href = 'meus-tickets.html', 1500);
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    DoaTec.showToast(errorData.message || errorData.erro || 'Erro ao enviar ticket.', 'error');
+                }
 
                 if (response.ok) {
                     supportForm.reset();

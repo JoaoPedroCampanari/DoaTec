@@ -186,7 +186,7 @@ function populateSuporteDropdown(dropdownItem) {
     // "Meus Tickets" apenas para logados
     const loggedInUser = Auth.getUser();
     if (loggedInUser) {
-        addDropdownItem(dropdownMenu, 'Meus Tickets', '/suporte.html?tab=tickets');
+        addDropdownItem(dropdownMenu, 'Meus Tickets', '/meus-tickets.html');
     }
 
     console.log('nav-visibility: Dropdown Suporte populado');

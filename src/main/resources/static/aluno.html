@@ -185,7 +185,7 @@
                 });
 
                 if (response.ok) {
-                    DoaTec.showToast('A requisição para recebimento do equipamento foi realizada!', 'success');
+                    DoaTec.showToast("Solicitação enviada! Acompanhe o status em 'Meus Pedidos'.", 'success');
                     form.reset();
                     setTimeout(() => window.location.href = 'meus-pedidos.html', 1500);
                 } else {

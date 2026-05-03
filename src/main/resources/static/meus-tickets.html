@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Tickets - DoaTec</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
+</head>
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Início</a></li>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li id="suporteDropdownItem" class="nav-dropdown">
+                <a href="#">Suporte</a>
+                <ul class="dropdown-menu"></ul>
+            </li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
+        </ul>
+        <div class="navbar-right">
+            <!-- Notificações -->
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <section class="application-section">
+        <div class="container">
+            <div class="application-header">
+                <h1>Meus Tickets de Suporte</h1>
+                <p>Acompanhe aqui o status dos seus tickets de suporte.</p>
+            </div>
+            <div id="ticketsContainer" class="donations-list">
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
+    </div>
+</footer>
+
+<script src="js/main.js?v=2"></script>
+<script src="js/auth.js?v=2"></script>
+<script src="js/notifications.js?v=2"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/nav-visibility.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const ticketsContainer = document.getElementById('ticketsContainer');
+
+        // Verifica sessão com backend
+        const loggedInUser = await Auth.checkSession();
+
+        if (!loggedInUser || !loggedInUser.id) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
+
+            if (!response.ok) {
+                ticketsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Erro ao carregar</h3>
+                        <p style="color: var(--color-danger, #dc3545);">Ocorreu um erro ao carregar seus tickets. Tente novamente mais tarde.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const tickets = await response.json();
+
+            if (!tickets || tickets.length === 0) {
+                ticketsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <h3>Nenhum ticket enviado</h3>
+                        <p>Você ainda não enviou nenhum ticket de suporte.</p>
+                        <a href="suporte.html" class="btn btn-primary" style="margin-top: 16px;">Criar Ticket</a>
+                    </div>
+                `;
+                return;
+            }
+
+            tickets.forEach(t => {
+                const ticketCard = document.createElement('div');
+                ticketCard.className = 'donation-card';
+
+                const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
+                const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
+                const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
+                const temResposta = t.resposta && t.resposta.trim().length > 0;
+
+                ticketCard.innerHTML = `
+                    <div class="donation-content" style="flex: 1;">
+                        <div class="donation-header">
+                            <h3 class="donation-title">${DoaTec.escapeHtml(t.assunto || 'Sem assunto')}</h3>
+                            <span class="status-pill ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <span class="donation-date">${dataCriacao}</span>
+                        <div class="donation-items" style="margin-top: 12px;">
+                            <div class="donation-item">
+                                <strong>Mensagem:</strong>
+                                <p style="margin: 8px 0 0 0; line-height: 1.6;">${DoaTec.escapeHtml(t.mensagem || '')}</p>
+                            </div>
+                        </div>
+                        ${temResposta ? `
+                        <div style="margin-top: 12px; padding: 12px; border-left: 3px solid #10b981; background: #f0fdf4; border-radius: 4px;">
+                            <strong style="color: #059669;">Resposta do suporte:</strong>
+                            <p style="margin: 8px 0 0 0; line-height: 1.6;">${DoaTec.escapeHtml(t.resposta)}</p>
+                            <small style="color: #6b7280;">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small>
+                        </div>
+                        ` : `
+                        <div style="margin-top: 12px; color: #9ca3af; font-style: italic;">Aguardando resposta...</div>
+                        `}
+                    </div>
+                `;
+                ticketsContainer.appendChild(ticketCard);
+            });
+        } catch (error) {
+            console.error('Erro:', error);
+            ticketsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h3>Erro ao carregar</h3>
+                    <p style="color: var(--color-danger, #dc3545);">Ocorreu um erro ao carregar seus tickets. Tente novamente mais tarde.</p>
+                </div>
+            `;
+        }
+    });
+</script>
+</body>
+</html>
