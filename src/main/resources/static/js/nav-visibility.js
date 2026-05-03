@@ -183,7 +183,7 @@ function populateQueroDoarDropdown(dropdownItem) {
     dropdownMenu.innerHTML = '';
 
     addDropdownItem(dropdownMenu, 'Nova Doação', '/donate.html');
-    addDropdownItem(dropdownMenu, '⭐ Minhas Doações', '/minhas-doacoes.html');
+    addDropdownItem(dropdownMenu, 'Minhas Doações', '/minhas-doacoes.html');
 
     console.log('nav-visibility: Dropdown Quero Doar populado');
 }
