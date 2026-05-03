@@ -88,7 +88,14 @@ const ChatWidget = {
 
         try {
             const response = await apiFetch(`/api/chat/historico/${this.contexto}/${this.referenciaId}`);
-            if (!response.ok) return;
+            if (!response.ok) {
+                container.innerHTML = `
+                    <div style="text-align:center; color:var(--color-danger, #dc3545); font-size:0.85rem; padding:40px 0;">
+                        Não foi possível carregar as mensagens.
+                    </div>
+                `;
+                return;
+            }
 
             const mensagens = await response.json();
             const container = this.overlay.querySelector('.chat-messages');
