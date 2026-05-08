@@ -160,6 +160,7 @@ header {
     margin: 0;
     padding: 0 5%;
     width: 100%;
+    overflow: hidden;
 }
 
 /* Glassmorphism on scroll */
@@ -176,19 +177,29 @@ header {
     font-weight: bold;
     color: var(--primary-400);
     margin-right: var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .navbar .logo a {
     text-decoration: none;
     display: flex;
     align-items: center;
+    height: 100%;
 }
 
 .navbar .logo img {
     cursor: pointer;
     height: 65px;
     width: auto;
-    max-height: 65px;
+    max-height: 90%;
+    object-fit: contain;
+    transition: transform var(--transition-base);
+}
+
+.navbar .logo img:hover {
+    transform: scale(1.05);
 }
 
 /* ==================== NAV LINKS ==================== */
@@ -809,12 +820,12 @@ footer p {
 }
 
 .file-upload-area.has-file {
-    border-color: var(--success-500);
+    border-color: var(--color-success);
     background: #f0fdf4;
 }
 
 .file-upload-area.has-file .file-upload-hint {
-    color: var(--success-500);
+    color: var(--color-success);
     font-weight: 600;
 }
 
@@ -842,7 +853,7 @@ html.dark-mode .file-upload-area .file-upload-hint {
 }
 
 html.dark-mode .file-upload-area.has-file {
-    border-color: var(--success-500);
+    border-color: var(--color-success);
     background: rgba(16, 185, 129, 0.1);
 }
 
