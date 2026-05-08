@@ -45,7 +45,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // 1. RECURSOS ESTÁTICOS E IMAGENS (Sempre Públicos)
-                        .requestMatchers("/style.css", "/doatec_logo.png", "/doatec_logo-removebg.png", "/js/**", "/css/**", "/images/**", "/uploads/**").permitAll()
+                        .requestMatchers("/style.css", "/doatec_logo.png", "/js/**", "/css/**", "/images/**", "/uploads/**").permitAll()
 
                         // 2. PÁGINAS PÚBLICAS
                         .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/sobre.html", "/suporte.html").permitAll()
