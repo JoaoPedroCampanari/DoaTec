@@ -2024,6 +2024,10 @@ html.dark-mode .login-page.perfil-page {
 }
 
 /* Profile Hero Dark Mode */
+html.dark-mode body.perfil-page {
+    background: var(--dark-900);
+}
+
 html.dark-mode .profile-hero {
     background: linear-gradient(135deg, var(--dark-800) 0%, var(--dark-700) 100%);
 }
