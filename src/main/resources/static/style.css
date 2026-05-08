@@ -1823,7 +1823,7 @@ html.dark-mode .nav-links > li > a.active {
     color: var(--primary-400);
 }
 
-html.dark-mode .nav-links a::after {
+html.dark-mode .nav-links > li:not(.nav-dropdown) > a::after {
     background: var(--primary-400);
 }
 
