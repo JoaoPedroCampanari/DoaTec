@@ -22,11 +22,11 @@
     --neutral-100: #F5F5F5;
     --neutral-50: #FAFAFA;
 
-    /* Dark Mode Premium */
-    --dark-900: #1a1a2e;
-    --dark-800: #16213e;
-    --dark-700: #1f2937;
-    --dark-600: #374151;
+    /* Dark Mode — unified navy blue scale */
+    --dark-900: #0f1724;
+    --dark-800: #151e30;
+    --dark-700: #1c2840;
+    --dark-600: #263755;
     --dark-500: #5090D3;
 
     /* Status Pills */
