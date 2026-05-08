@@ -15,7 +15,7 @@
 
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -101,8 +101,15 @@
                         <input type="text" id="preferenciaEquipamento" placeholder="Ex: Notebook para mobilidade, Desktop, etc.">
                     </div>
                     <div class="form-group">
-                        <label for="comprovante">Comprovante de Renda:</label>
-                        <input type="file" id="comprovante">
+                        <label>Comprovante de Renda:</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <input type="file" id="comprovante" accept="image/*,.pdf" hidden>
+                            <svg class="file-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p class="file-upload-text">Clique ou arraste seu comprovante</p>
+                            <p class="file-upload-hint" id="fileUploadHint">Nenhum arquivo selecionado</p>
+                        </div>
                     </div>
                 </fieldset>
 
@@ -159,6 +166,31 @@
         } else {
             // Redireciona para login sem popup
             window.location.href = 'login.html';
+        }
+
+        // File upload area - click to open file picker
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const comprovanteInput = document.getElementById('comprovante');
+        const fileUploadHint = document.getElementById('fileUploadHint');
+        if (fileUploadArea && comprovanteInput) {
+            fileUploadArea.addEventListener('click', () => comprovanteInput.click());
+            fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.classList.add('dragover'); });
+            fileUploadArea.addEventListener('dragleave', () => fileUploadArea.classList.remove('dragover'));
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    comprovanteInput.files = e.dataTransfer.files;
+                    updateFileHint(e.dataTransfer.files[0].name);
+                }
+            });
+            comprovanteInput.addEventListener('change', () => {
+                if (comprovanteInput.files.length) updateFileHint(comprovanteInput.files[0].name);
+            });
+            function updateFileHint(name) {
+                fileUploadHint.textContent = name;
+                fileUploadArea.classList.add('has-file');
+            }
         }
 
         form.addEventListener('submit', async (event) => {

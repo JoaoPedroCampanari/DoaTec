@@ -15,7 +15,7 @@
 
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -157,7 +157,7 @@
                                         <line x1="8" y1="21" x2="16" y2="21"/>
                                         <line x1="12" y1="17" x2="12" y2="21"/>
                                     </svg>
-                                    <strong>Preferência:</strong> ${escapeHtml(pedido.preferenciaEquipamento || 'Não especificada')}
+                                    <strong>Preferência:</strong> ${DoaTec.translateEquipamento(pedido.preferenciaEquipamento)}
                                 </span>
                             </div>
                             <div class="donation-items" style="margin-top: 12px;">
@@ -166,7 +166,10 @@
                                     <p style="margin: 8px 0 0 0; line-height: 1.6;">${escapeHtml(pedido.justificativa || 'Não informada')}</p>
                                 </div>
                             </div>
-                            <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido #${pedido.id}')">Conversar</button>
+                            <div class="donation-actions" style="display:flex;gap:8px;margin-top:12px;">
+                                <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido #${pedido.id}')">Conversar</button>
+                                ${pedido.status === 'EM_ANALISE' ? `<button class="btn btn-sm btn-outline btn-excluir" onclick="excluirPedido(${pedido.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                            </div>
                         </div>
                     `;
                     pedidosContainer.appendChild(pedidoCard);
@@ -192,7 +195,22 @@
 
     // Usando funções globais de DoaTec (main.js)
 
-
+    async function excluirPedido(id, event) {
+        event.stopPropagation();
+        if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+        try {
+            const response = await apiFetch('/api/solicitacoes/' + id, { method: 'DELETE', credentials: 'include' });
+            if (response.ok) {
+                DoaTec.showToast('Pedido excluído com sucesso!', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                const err = await response.json().catch(() => ({}));
+                DoaTec.showToast(err.message || 'Erro ao excluir pedido.', 'error');
+            }
+        } catch (e) {
+            DoaTec.showToast('Erro de conexão ao excluir.', 'error');
+        }
+    }
 
 
 </script>

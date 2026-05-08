@@ -15,7 +15,7 @@
 
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -158,11 +158,14 @@
                             <span class="donation-date">${formatDate(donation.dataDoacao)}</span>
                             <div class="donation-meta">
                                 <span class="donation-meta-item">
-                                    <strong>Entrega:</strong> ${escapeHtml(donation.preferenciaEntrega || 'Não especificada')}
+                                    <strong>Entrega:</strong> ${DoaTec.translateEntrega(donation.preferenciaEntrega)}
                                 </span>
                             </div>
                             ${itemsHtml}
-                            <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
+                            <div class="donation-actions" style="display:flex;gap:8px;margin-top:12px;">
+                                <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
+                                ${donation.status === 'EM_TRIAGEM' ? `<button class="btn btn-sm btn-outline btn-excluir" onclick="excluirDoacao(${donation.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                            </div>
                         </div>
                     `;
 
@@ -189,7 +192,22 @@
 
     // Usando funções globais de DoaTec (main.js)
 
-
+    async function excluirDoacao(id, event) {
+        event.stopPropagation();
+        if (!confirm('Tem certeza que deseja excluir esta doação?')) return;
+        try {
+            const response = await apiFetch('/api/donations/' + id, { method: 'DELETE', credentials: 'include' });
+            if (response.ok) {
+                DoaTec.showToast('Doação excluída com sucesso!', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                const err = await response.json().catch(() => ({}));
+                DoaTec.showToast(err.message || 'Erro ao excluir doação.', 'error');
+            }
+        } catch (e) {
+            DoaTec.showToast('Erro de conexão ao excluir.', 'error');
+        }
+    }
 
 
 </script>

@@ -17,7 +17,7 @@
 <body>
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -102,9 +102,16 @@
                         <small class="form-text">Exemplo: "2 notebooks Dell em bom estado, 1 desktop completo sem monitor, 3 teclados e 2 mouses usados."</small>
                     </div>
                     <div class="form-group">
-                        <label for="fotoDoacao">Foto do Lote (opcional):</label>
-                        <input type="file" id="fotoDoacao" accept="image/jpeg,image/png,image/gif">
-                        <small class="form-text">Envie uma foto do lote de equipamentos. Formatos aceitos: JPEG, PNG, GIF. Máximo: 5MB.</small>
+                        <label>Foto do Lote (opcional):</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <input type="file" id="fotoDoacao" accept="image/jpeg,image/png,image/gif" hidden>
+                            <svg class="file-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p class="file-upload-text">Clique ou arraste uma foto do lote</p>
+                            <p class="file-upload-hint" id="fileUploadHint">Nenhum arquivo selecionado</p>
+                        </div>
+                        <small class="form-text">Formatos aceitos: JPEG, PNG, GIF. Máximo: 5MB.</small>
                     </div>
                 </fieldset>
 
@@ -207,6 +214,31 @@
             window.location.href = 'login.html';
         }
 
+
+        // File upload area - click to open file picker
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fotoInput = document.getElementById('fotoDoacao');
+        const fileUploadHint = document.getElementById('fileUploadHint');
+        if (fileUploadArea && fotoInput) {
+            fileUploadArea.addEventListener('click', () => fotoInput.click());
+            fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.classList.add('dragover'); });
+            fileUploadArea.addEventListener('dragleave', () => fileUploadArea.classList.remove('dragover'));
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    fotoInput.files = e.dataTransfer.files;
+                    updateFileHint(e.dataTransfer.files[0].name);
+                }
+            });
+            fotoInput.addEventListener('change', () => {
+                if (fotoInput.files.length) updateFileHint(fotoInput.files[0].name);
+            });
+            function updateFileHint(name) {
+                fileUploadHint.textContent = name;
+                fileUploadArea.classList.add('has-file');
+            }
+        }
 
         donationForm.addEventListener('submit', async (event) => {
             event.preventDefault();

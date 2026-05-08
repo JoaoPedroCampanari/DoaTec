@@ -140,6 +140,36 @@ function translateStatus(status) {
 }
 
 
+// ==================== TRANSLATION HELPERS ====================
+
+/**
+ * Traduz valor do enum PreferenciaEntrega
+ */
+function translateEntrega(valor) {
+    if (!valor) return 'Não informada';
+    const map = {
+        'PONTO_DE_COLETA': 'Ponto de Coleta',
+        'SOLICITAR_RETIRADA': 'Retirada no Endereço (Análise de Viabilidade)'
+    };
+    return map[valor] || capitalize(valor.replace(/_/g, ' '));
+}
+
+/**
+ * Traduz valor do enum PreferenciaEquipamento
+ */
+function translateEquipamento(valor) {
+    if (!valor) return 'Não informada';
+    const map = {
+        'NOTEBOOK': 'Notebook',
+        'COMPUTADOR_DESKTOP': 'Computador Desktop',
+        'MONITOR': 'Monitor',
+        'ACESSORIOS': 'Acessórios (Teclado, Mouse, etc.)',
+        'QUALQUER': 'Qualquer equipamento disponível'
+    };
+    return map[valor] || capitalize(valor.replace(/_/g, ' '));
+}
+
+
 // ==================== ANIMATIONS ====================
 
 /**
@@ -267,6 +297,8 @@ window.DoaTec = {
     escapeHtml,
     getStatusClass,
     translateStatus,
+    translateEntrega,
+    translateEquipamento,
     animateCounter,
     setButtonLoading,
     showToast,
