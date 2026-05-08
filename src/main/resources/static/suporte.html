@@ -16,7 +16,7 @@
 <body>
 <header>
     <nav class="navbar">
-        <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="180" alt="Logo DoaTec"></a></div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
             <li id="queroDoarDropdownItem" class="nav-dropdown">
@@ -69,12 +69,6 @@
             <div class="application-header">
                 <h1>Central de Suporte</h1>
                 <p>Tem alguma dúvida? Consulte nossas perguntas frequentes ou entre em contato conosco.</p>
-            </div>
-
-            <!-- Abas -->
-            <div class="admin-tabs" style="margin-bottom: 24px;">
-                <div class="admin-tab active" data-tab="criar">Criar um Ticket</div>
-                <div class="admin-tab" data-tab="tickets">Meus Tickets</div>
             </div>
 
             <div id="tabCriar" class="admin-tab-content active">
@@ -174,21 +168,6 @@
             </form>
             </div>
             </div>
-
-            <div id="tabTickets" class="admin-tab-content">
-            <!-- Meus Tickets -->
-            <div id="meusTicketsSection">
-            <div class="faq-card">
-                <h3 class="faq-heading">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    Meus Tickets
-                </h3>
-                <div id="ticketsList"></div>
-            </div>
-            </div>
-            </div>
     </section>
 </main>
 
@@ -206,23 +185,6 @@
 <script>
     let loggedInUser = null;
 
-    // Tab switching
-    document.querySelectorAll('.admin-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-            tab.classList.add('active');
-            const target = tab.dataset.tab === 'criar' ? 'tabCriar' : 'tabTickets';
-            document.getElementById(target).classList.add('active');
-        });
-    });
-
-    // Auto-select tab from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('tab') === 'tickets') {
-        document.querySelector('.admin-tab[data-tab="tickets"]').click();
-    }
-
     async function preencherDadosSuporte(supportNameInput, supportEmailInput) {
         try {
             const response = await apiFetch('/api/users/me', { credentials: 'include' });
@@ -237,46 +199,6 @@
         }
     }
 
-    async function carregarMeusTickets() {
-        if (!loggedInUser) return;
-        const section = document.getElementById('meusTicketsSection');
-        const list = document.getElementById('ticketsList');
-        try {
-            const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
-            if (!response.ok) {
-                list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
-                return;
-            }
-            const tickets = await response.json();
-            if (!tickets || tickets.length === 0) {
-                list.innerHTML = '<p class="faq-text">Você ainda não enviou nenhum ticket de suporte.</p>';
-                return;
-            }
-            let html = '';
-            for (const t of tickets) {
-                const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
-                const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
-                const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
-                const temResposta = t.resposta && t.resposta.trim().length > 0;
-                html += `<div class="card-item">
-                    <div class="card-header">
-                        <span class="badge ${statusClass}">${statusLabel}</span>
-                        <span class="card-date">${dataCriacao}</span>
-                    </div>
-                    <div class="card-title">${DoaTec.escapeHtml(t.assunto || 'Sem assunto')}</div>
-                    <div class="card-desc">${DoaTec.escapeHtml(t.mensagem || '')}</div>
-                    ${temResposta ? `<div class="card-desc" style="margin-top:8px;padding:8px;border-left:3px solid #10b981;background:#f0fdf4;border-radius:4px;"><strong>Resposta do admin:</strong><br>${DoaTec.escapeHtml(t.resposta)}<br><small style="color:#6b7280">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small></div>` : '<div class="card-desc" style="color:#9ca3af;font-style:italic;margin-top:8px;">Aguardando resposta...</div>'}
-                </div>`;
-            }
-            list.innerHTML = html;
-            section.style.display = 'block';
-        } catch (error) {
-            console.error('Erro ao carregar tickets:', error);
-            list.innerHTML = '<p class="faq-text">Erro ao carregar tickets.</p>';
-            section.style.display = 'block';
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', async function() {
         const supportForm = document.getElementById('supportForm');
         const supportNameInput = document.getElementById('supportName');
@@ -288,15 +210,10 @@
         loggedInUser = await Auth.checkSession();
 
         if (loggedInUser) {
-            // Usuário logado - preenche dados e mostra tickets
             await preencherDadosSuporte(supportNameInput, supportEmailInput);
-            await carregarMeusTickets();
         } else {
-            // Usuário não logado - mostra mensagem de login, esconde formulário
             loginRequiredMessage.style.display = 'block';
             formFields.style.display = 'none';
-            // Esconde aba "Meus Tickets" para deslogados
-            document.querySelector('.admin-tab[data-tab="tickets"]').style.display = 'none';
         }
 
         supportForm.addEventListener('submit', async (event) => {
