@@ -4,186 +4,212 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meus Tickets - DoaTec</title>
-    <link rel="icon" href="doatec_logo.png" type="image/png">
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
 
-    <!-- NAVBAR -->
+<header>
     <nav class="navbar">
-        <div class="logo">
-            <a href="index.html">
-                <img src="doatec_logo.png" alt="Logo DoaTec">
-            </a>
-        </div>
+        <div class="logo"><a href="index.html"><img src="doatec_logo.png" alt="Logo DoaTec"></a></div>
         <ul class="nav-links">
             <li><a href="index.html">Início</a></li>
-            <li class="nav-dropdown">
-                <a href="#" class="dropdown-toggle">Quero Doar <span class="caret">›</span></a>
-                <ul class="dropdown-menu">
-                    <li><a href="donate.html">Nova Doação</a></li>
-                    <li><a href="minhas-doacoes.html">Minhas Doações</a></li>
-                </ul>
+            <li id="queroDoarDropdownItem" class="nav-dropdown">
+                <a href="#">Quero Doar</a>
+                <ul class="dropdown-menu"></ul>
             </li>
-            <li class="nav-dropdown">
-                <a href="#" class="dropdown-toggle">Solicitar Doação <span class="caret">›</span></a>
-                <ul class="dropdown-menu">
-                    <li><a href="aluno.html">Nova Solicitação</a></li>
-                    <li><a href="meus-pedidos.html">Meus Pedidos</a></li>
-                </ul>
+            <li id="solicitarDoacaoDropdownItem" class="nav-dropdown">
+                <a href="#">Solicitar Doação</a>
+                <ul class="dropdown-menu"></ul>
             </li>
-            <li class="nav-dropdown">
-                <a href="#" class="dropdown-toggle">Suporte <span class="caret">›</span></a>
-                <ul class="dropdown-menu">
-                    <li><a href="suporte.html">Abrir Ticket</a></li>
-                    <li><a href="meus-tickets.html">Meus Tickets</a></li>
-                </ul>
+            <li id="suporteDropdownItem" class="nav-dropdown">
+                <a href="#">Suporte</a>
+                <ul class="dropdown-menu"></ul>
             </li>
-            <li><a href="sobre.html">Sobre</a></li>
+            <li><a href="sobre.html">Sobre Nós</a></li>
         </ul>
-        <div class="nav-auth">
-            <a href="perfil.html" class="btn btn-primary btn-sm" id="navAccountBtn">
-                <i class="fas fa-user"></i> <span id="navAccountText">Minha Conta</span>
-            </a>
+        <div class="navbar-right">
+            <!-- Notificações -->
+            <div id="notificationsContainer" class="notification-container">
+                <button class="notification-bell" title="Notificações">🔔</button>
+                <span class="notification-badge"></span>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h4>Notificações</h4>
+                        <button onclick="Notifications.markAllAsRead()">Marcar todas como lidas</button>
+                    </div>
+                    <div class="notifications-list"></div>
+                </div>
+            </div>
+            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
+            <ul class="nav-links-account">
+                <li id="minhaContaDropdownItem" class="nav-dropdown">
+                    <a href="#">Minha Conta</a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+            </ul>
+            <button id="profileButton" class="btn btn-primary" style="margin-left: 10px; display: none;">Entrar</button>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
-        <button class="menu-toggle" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
     </nav>
+</header>
 
-    <!-- CONTEÚDO -->
-    <section class="auth-hero">
+<main>
+    <section class="application-section">
         <div class="container">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
-                <h1><i class="fas fa-headset"></i> Meus Tickets</h1>
-                <a href="suporte.html" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Novo Ticket</a>
+            <div class="application-header">
+                <h1>Meus Tickets de Suporte</h1>
+                <p>Acompanhe aqui o status dos seus tickets de suporte.</p>
             </div>
-
-            <div id="loading" class="auth-card" style="text-align:center;padding:3rem;">
-                <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary-600);margin-bottom:1rem;display:block;"></i>
-                <p style="color:var(--neutral-600);">Carregando seus tickets...</p>
+            <div id="ticketsContainer" class="donations-list">
             </div>
-
-            <div id="empty" class="auth-card" style="display:none;text-align:center;padding:3rem;">
-                <i class="fas fa-inbox" style="font-size:3rem;color:var(--neutral-400);margin-bottom:1rem;display:block;"></i>
-                <h3 style="margin-bottom:0.5rem;">Nenhum ticket encontrado</h3>
-                <p style="color:var(--neutral-600);margin-bottom:1.5rem;">Você ainda não abriu nenhum ticket de suporte.</p>
-                <a href="suporte.html" class="btn btn-primary"><i class="fas fa-plus"></i> Abrir Ticket</a>
-            </div>
-
-            <div id="tickets" style="display:flex;flex-direction:column;gap:1rem;"></div>
         </div>
     </section>
+</main>
 
-    <footer class="footer">
-        <p>&copy; 2025 DoaTec. Todos os direitos reservados.</p>
-    </footer>
+<footer>
+    <div class="container">
+        <p>&copy; 2025 DoaTec - Plataforma de Doação de Tecnologia. Fatec Garça.</p>
+    </div>
+</footer>
 
-    <script src="js/main.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/nav-visibility.js"></script>
-    <script>
-        // Proteção de página - requer login
-        if (!DoaTec.requireAuth()) {
+<script src="js/main.js?v=2"></script>
+<script src="js/auth.js?v=2"></script>
+<script src="js/notifications.js?v=2"></script>
+<script src="js/theme-switcher.js"></script>
+<script src="js/nav-visibility.js?v=2"></script>
+<script src="js/chat.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const ticketsContainer = document.getElementById('ticketsContainer');
+
+        // Verifica sessão com backend
+        const loggedInUser = await Auth.checkSession();
+
+        if (!loggedInUser || !loggedInUser.id) {
             window.location.href = 'login.html';
+            return;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTickets();
-        });
+        try {
+            const response = await apiFetch('/api/suporte/meus-tickets', { credentials: 'include' });
 
-        async function loadTickets() {
-            const container = document.getElementById('tickets');
-            const loading = document.getElementById('loading');
-            const empty = document.getElementById('empty');
+            if (!response.ok) {
+                ticketsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>Erro ao carregar</h3>
+                        <p style="color: var(--color-danger, #dc3545);">Ocorreu um erro ao carregar seus tickets. Tente novamente mais tarde.</p>
+                    </div>
+                `;
+                return;
+            }
 
-            try {
-                const response = await apiFetch('/api/suporte/meus-tickets');
+            const tickets = await response.json();
 
-                if (!response.ok) {
-                    throw new Error('Erro ao carregar tickets');
-                }
+            if (!tickets || tickets.length === 0) {
+                ticketsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <h3>Nenhum ticket enviado</h3>
+                        <p>Você ainda não enviou nenhum ticket de suporte.</p>
+                        <a href="suporte.html" class="btn btn-primary" style="margin-top: 16px;">Criar Ticket</a>
+                    </div>
+                `;
+                return;
+            }
 
-                const tickets = await response.json();
-                loading.style.display = 'none';
+            tickets.forEach(t => {
+                const ticketCard = document.createElement('div');
+                ticketCard.className = 'donation-card';
 
-                if (tickets.length === 0) {
-                    empty.style.display = 'block';
-                    return;
-                }
+                const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
+                const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
+                const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
+                const temResposta = t.resposta && t.resposta.trim().length > 0;
 
-                container.innerHTML = tickets.map(ticket => {
-                    const statusClass = ticket.status === 'ABERTO' ? 'status-em-analise' :
-                                       ticket.status === 'EM_ANDAMENTO' ? 'status-aprovado' :
-                                       ticket.status === 'RESOLVIDO' ? 'status-entregue' : 'status-em-triagem';
-                    const statusText = ticket.status === 'ABERTO' ? 'Aberto' :
-                                      ticket.status === 'EM_ANDAMENTO' ? 'Em Andamento' :
-                                      ticket.status === 'RESOLVIDO' ? 'Resolvido' : 'Fechado';
-                    const borderLeft = ticket.status === 'ABERTO' ? 'var(--color-warning)' :
-                                      ticket.status === 'EM_ANDAMENTO' ? 'var(--primary-600)' :
-                                      ticket.status === 'RESOLVIDO' ? 'var(--color-success)' : 'var(--color-danger)';
-
-                    return `
-                        <div class="card" style="border-left: 4px solid ${borderLeft};">
-                            <div class="card-header">
-                                <h3 style="margin:0;">${DoaTec.escapeHtml(ticket.assunto)}</h3>
-                                <div style="display:flex;align-items:center;gap:0.75rem;">
-                                    <span class="status-badge ${statusClass}">${statusText}</span>
-                                    ${ticket.status === 'ABERTO' ? `<button class="btn btn-sm btn-outline btn-excluir" onclick="excluirTicket(${ticket.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
-                                </div>
-                            </div>
-                            <p style="color:var(--neutral-600);font-size:0.9rem;margin-bottom:0.75rem;white-space:pre-line;">${DoaTec.escapeHtml(ticket.mensagem)}</p>
-                            ${ticket.resposta ? `
-                            <div style="background:var(--primary-50);padding:1rem;border-radius:var(--radius-md);margin-top:0.75rem;">
-                                <p style="font-size:0.85rem;font-weight:600;color:var(--primary-600);margin-bottom:0.5rem;">
-                                    <i class="fas fa-reply"></i> Resposta do Suporte
-                                </p>
-                                <p style="color:var(--neutral-700);font-size:0.9rem;white-space:pre-line;">${DoaTec.escapeHtml(ticket.resposta)}</p>
-                            </div>
-                            ` : ''}
-                            <div style="margin-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
-                                <p style="color:var(--neutral-500);font-size:0.85rem;margin:0;">
-                                    <i class="fas fa-calendar"></i> ${new Date(ticket.dataCriacao).toLocaleDateString('pt-BR')}
-                                    ${ticket.dataResolucao ? ` | Resolvido em: ${new Date(ticket.dataResolucao).toLocaleDateString('pt-BR')}` : ''}
-                                </p>
-                                <button class="btn btn-sm btn-outline" onclick="openChat(${ticket.id}, 'suporte')" style="color:var(--primary-600);border-color:var(--primary-600);">
-                                    <i class="fas fa-comments"></i> Conversar
-                                </button>
+                ticketCard.innerHTML = `
+                    <div class="donation-content" style="flex: 1;">
+                        <div class="donation-header">
+                            <h3 class="donation-title">${DoaTec.escapeHtml(t.assunto || 'Sem assunto')}</h3>
+                            <span class="status-pill ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <span class="donation-date">${dataCriacao}</span>
+                        <div class="donation-items" style="margin-top: 12px;">
+                            <div class="donation-item">
+                                <strong>Mensagem:</strong>
+                                <p style="margin: 8px 0 0 0; line-height: 1.6;">${DoaTec.escapeHtml(t.mensagem || '')}</p>
                             </div>
                         </div>
-                    `;
-                }).join('');
+                        ${temResposta ? `
+                        <div style="margin-top: 12px; padding: 12px; border-left: 3px solid #10b981; background: #f0fdf4; border-radius: 4px;">
+                            <strong style="color: #059669;">Resposta do suporte:</strong>
+                            <p style="margin: 8px 0 0 0; line-height: 1.6;">${DoaTec.escapeHtml(t.resposta)}</p>
+                            <small style="color: #6b7280;">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small>
+                        </div>
+                        ` : `
+                        <div style="margin-top: 12px; color: #9ca3af; font-style: italic;">Aguardando resposta...</div>
+                        `}
+                        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                            <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
+                            ${t.status === 'ABERTO' ? `<button class="btn btn-sm btn-outline btn-excluir" onclick="excluirTicket(${t.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                ticketsContainer.appendChild(ticketCard);
+            });
+        } catch (error) {
+            console.error('Erro:', error);
+            ticketsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h3>Erro ao carregar</h3>
+                    <p style="color: var(--color-danger, #dc3545);">Ocorreu um erro ao carregar seus tickets. Tente novamente mais tarde.</p>
+                </div>
+            `;
+        }
+    });
 
-            } catch (error) {
-                loading.style.display = 'none';
-                DoaTec.showToast('Erro ao carregar seus tickets', 'error');
+    async function excluirTicket(id, event) {
+        event.stopPropagation();
+        if (!confirm('Tem certeza que deseja excluir este ticket?')) return;
+        try {
+            const response = await apiFetch(`/api/suporte/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                DoaTec.showToast('Ticket excluído! Redirecionando...', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                const err = await response.json().catch(() => ({}));
+                DoaTec.showToast(err.message || 'Erro ao excluir ticket.', 'error');
             }
+        } catch (error) {
+            DoaTec.showToast('Erro de conexão ao excluir.', 'error');
         }
-
-        async function excluirTicket(id, event) {
-            event.stopPropagation();
-            if (!confirm('Tem certeza que deseja excluir este ticket?')) return;
-
-            try {
-                const response = await apiFetch(`/api/suporte/${id}`, { method: 'DELETE' });
-
-                if (response.ok) {
-                    DoaTec.showToast('Ticket excluído! Redirecionando...', 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    const err = await response.json().catch(() => ({}));
-                    DoaTec.showToast(err.message || 'Erro ao excluir ticket.', 'error');
-                }
-            } catch (error) {
-                DoaTec.showToast('Erro de conexão ao excluir.', 'error');
-            }
-        }
-
-        function toggleMenu() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
