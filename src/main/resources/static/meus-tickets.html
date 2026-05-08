@@ -168,7 +168,7 @@
                         ` : `
                         <div style="margin-top: 12px; color: #9ca3af; font-style: italic;">Aguardando resposta...</div>
                         `}
-                        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                        <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
                             <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
                             ${t.status === 'ABERTO' ? `<button class="btn btn-sm btn-outline btn-excluir" onclick="excluirTicket(${t.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
                         </div>
