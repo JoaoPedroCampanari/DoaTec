@@ -180,13 +180,15 @@ header {
 
 .navbar .logo a {
     text-decoration: none;
+    display: flex;
+    align-items: center;
 }
 
 .navbar .logo img {
     cursor: pointer;
-    height: 55px;
+    height: 65px;
     width: auto;
-    max-height: 55px;
+    max-height: 65px;
 }
 
 /* ==================== NAV LINKS ==================== */
@@ -768,6 +770,80 @@ footer p {
 
 .form-group input[type="file"] {
     padding: var(--spacing-sm);
+}
+
+/* ==================== CUSTOM FILE UPLOAD AREA ==================== */
+.file-upload-area {
+    border: 2px dashed var(--neutral-400);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--transition-base), background var(--transition-base);
+    background: var(--neutral-50);
+}
+
+.file-upload-area:hover,
+.file-upload-area.dragover {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+}
+
+.file-upload-area .file-upload-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--neutral-500);
+    margin-bottom: 0.75rem;
+}
+
+.file-upload-area .file-upload-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--neutral-700);
+    margin-bottom: 0.25rem;
+}
+
+.file-upload-area .file-upload-hint {
+    font-size: 0.85rem;
+    color: var(--neutral-500);
+}
+
+.file-upload-area.has-file {
+    border-color: var(--success-500);
+    background: #f0fdf4;
+}
+
+.file-upload-area.has-file .file-upload-hint {
+    color: var(--success-500);
+    font-weight: 600;
+}
+
+html.dark-mode .file-upload-area {
+    border-color: var(--dark-600);
+    background: var(--dark-700);
+}
+
+html.dark-mode .file-upload-area:hover,
+html.dark-mode .file-upload-area.dragover {
+    border-color: var(--primary-400);
+    background: rgba(66, 165, 245, 0.1);
+}
+
+html.dark-mode .file-upload-area .file-upload-icon {
+    color: var(--dark-500);
+}
+
+html.dark-mode .file-upload-area .file-upload-text {
+    color: var(--neutral-100);
+}
+
+html.dark-mode .file-upload-area .file-upload-hint {
+    color: var(--dark-500);
+}
+
+html.dark-mode .file-upload-area.has-file {
+    border-color: var(--success-500);
+    background: rgba(16, 185, 129, 0.1);
 }
 
 /* ==================== LOGIN PAGE ==================== */
@@ -1753,7 +1829,8 @@ html.dark-mode .nav-links a::after {
 
 /* Hero Dark Mode */
 html.dark-mode .hero {
-    background: linear-gradient(135deg, var(--dark-800) 0%, var(--dark-700) 100%);
+    background: linear-gradient(135deg, var(--dark-900) 0%, var(--dark-800) 100%);
+    clip-path: none;
 }
 
 html.dark-mode .hero::before {
@@ -1761,8 +1838,10 @@ html.dark-mode .hero::before {
 }
 
 html.dark-mode .about-short,
-html.dark-mode .how-it-works {
-    background: var(--dark-800);
+html.dark-mode .dashboard-section,
+html.dark-mode .how-it-works,
+html.dark-mode .news-testimonials {
+    background: var(--dark-900);
 }
 
 html.dark-mode .about-short h2,
@@ -1777,7 +1856,7 @@ html.dark-mode .step p {
 
 /* Stats Dark Mode */
 html.dark-mode .dashboard-section {
-    background-color: var(--dark-900);
+    margin-top: 0;
 }
 
 html.dark-mode .dashboard-title {
@@ -1816,9 +1895,6 @@ html.dark-mode .step h3 {
 }
 
 /* Testimonials Dark Mode */
-html.dark-mode .news-testimonials {
-    background-color: var(--dark-900);
-}
 
 html.dark-mode .testimonial {
     background: var(--dark-800);
