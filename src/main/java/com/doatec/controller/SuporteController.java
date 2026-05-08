@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,5 +53,19 @@ public class SuporteController {
         }
         List<SuporteResponse> tickets = suporteService.getTicketsByAutorId(autor.getId());
         return ResponseEntity.ok(tickets);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirTicket(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Pessoa autor = pessoaRepository.findByEmail(userDetails.getUsername())
+                .orElse(null);
+        if (autor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        suporteService.excluirTicket(id, autor.getId());
+        return ResponseEntity.noContent().build();
     }
 }

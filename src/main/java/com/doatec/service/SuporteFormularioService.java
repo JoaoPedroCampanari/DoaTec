@@ -4,6 +4,7 @@ import com.doatec.dto.request.SuporteFormularioRequest;
 import com.doatec.dto.response.SuporteResponse;
 import com.doatec.mapper.SuporteMapper;
 import com.doatec.model.account.Pessoa;
+import com.doatec.model.suporte.StatusSuporte;
 import com.doatec.model.suporte.SuporteFormulario;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SuporteFormularioRepository;
@@ -42,5 +43,21 @@ public class SuporteFormularioService {
         return suporteRepository.findByAutorId(autorId).stream()
                 .map(SuporteMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void excluirTicket(Integer ticketId, Integer autorId) {
+        SuporteFormulario ticket = suporteRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket não encontrado"));
+
+        if (!ticket.getAutor().getId().equals(autorId)) {
+            throw new RuntimeException("Sem permissão para excluir este ticket");
+        }
+
+        if (ticket.getStatus() != StatusSuporte.ABERTO) {
+            throw new RuntimeException("Só é possível excluir tickets com status ABERTO");
+        }
+
+        suporteRepository.deleteById(ticketId);
     }
 }
