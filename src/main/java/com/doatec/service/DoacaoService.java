@@ -114,4 +114,17 @@ public class DoacaoService {
 
         return new DashboardStatsResponse(total, lastDate);
     }
+
+    @Transactional
+    public void excluirDoacao(Integer id, String email) {
+        Doacao doacao = doacaoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Doação não encontrada."));
+        if (!doacao.getDoador().getEmail().equals(email)) {
+            throw new BusinessException("Você só pode excluir suas próprias doações.");
+        }
+        if (doacao.getStatus() != StatusDoacao.EM_TRIAGEM) {
+            throw new BusinessException("Só é possível excluir doações em triagem.");
+        }
+        doacaoRepository.delete(doacao);
+    }
 }

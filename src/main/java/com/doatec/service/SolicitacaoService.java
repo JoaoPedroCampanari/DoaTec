@@ -7,6 +7,7 @@ import com.doatec.mapper.SolicitacaoMapper;
 import com.doatec.model.account.Aluno;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
+import com.doatec.model.solicitacao.StatusSolicitacao;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SolicitacaoHardwareRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,19 @@ public class SolicitacaoService {
         SolicitacaoHardware novaSolicitacao = SolicitacaoMapper.toSolicitacao(dto, pessoaEncontrada);
 
         return solicitacaoHardwareRepository.save(novaSolicitacao);
+    }
+
+    @Transactional
+    public void excluirSolicitacao(Integer id, String email) {
+        SolicitacaoHardware solicitacao = solicitacaoHardwareRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        if (!solicitacao.getAluno().getEmail().equals(email)) {
+            throw new BusinessException("Você só pode excluir suas próprias solicitações.");
+        }
+        if (solicitacao.getStatus() != StatusSolicitacao.EM_ANALISE) {
+            throw new BusinessException("Só é possível excluir solicitações em análise.");
+        }
+        solicitacaoHardwareRepository.delete(solicitacao);
     }
 
 }

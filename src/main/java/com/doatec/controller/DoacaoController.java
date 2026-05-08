@@ -37,4 +37,10 @@ public class DoacaoController {
         DoacaoResponse response = DoacaoMapper.toResponse(novaDoacao);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
+        doacaoService.excluirDoacao(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
 }
