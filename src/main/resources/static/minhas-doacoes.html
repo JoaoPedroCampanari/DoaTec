@@ -162,9 +162,9 @@
                                 </span>
                             </div>
                             ${itemsHtml}
-                            <div class="donation-actions" style="display:flex;gap:8px;margin-top:12px;">
-                                <button class="btn btn-sm btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
-                                ${donation.status === 'EM_TRIAGEM' ? `<button class="btn btn-sm btn-outline btn-excluir" onclick="excluirDoacao(${donation.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                            <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                                <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
+                                ${donation.status === 'EM_TRIAGEM' ? `<button class="btn btn-outline btn-excluir" onclick="excluirDoacao(${donation.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
                             </div>
                         </div>
                     `;
