@@ -1830,7 +1830,6 @@ html.dark-mode .nav-links > li:not(.nav-dropdown) > a::after {
 /* Hero Dark Mode */
 html.dark-mode .hero {
     background: linear-gradient(135deg, var(--dark-900) 0%, var(--dark-800) 100%);
-    clip-path: none;
 }
 
 html.dark-mode .hero::before {
