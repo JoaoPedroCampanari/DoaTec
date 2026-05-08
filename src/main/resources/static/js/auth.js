@@ -79,10 +79,13 @@ const Auth = {
                 this.currentUser = null;
                 this._sessionCacheTime = null;
                 localStorage.removeItem('loggedInUser');
+                window.dispatchEvent(new CustomEvent('session-invalidated'));
                 return null;
             }
         } catch (error) {
             console.error('Erro ao verificar sessão:', error);
+            localStorage.removeItem('loggedInUser');
+            window.dispatchEvent(new CustomEvent('session-invalidated'));
             return null;
         }
     },

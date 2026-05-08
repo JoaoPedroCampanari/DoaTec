@@ -62,8 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Atualiza cache do backend em segundo plano (não bloqueia a UI)
+    // Se a sessão for inválida (Docker restart, etc), recarrega para mostrar "Entrar"
     if (window.Auth) {
-        Auth.checkSession();
+        Auth.checkSession().then(user => {
+            if (!user && loggedInUser) {
+                // localStorage tinha user mas backend não reconhece — recarrega
+                window.location.reload();
+            }
+        });
     }
 
     const queroDoarDropdownItem = document.getElementById('queroDoarDropdownItem');
