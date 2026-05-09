@@ -25,17 +25,17 @@ erDiagram
     }
 
     Aluno {
-        Integer id PK_FK
+        Integer id FK
         String ra UK
     }
 
     DoadorPF {
-        Integer id PK_FK
+        Integer id FK
         String cpf UK
     }
 
     DoadorPJ {
-        Integer id PK_FK
+        Integer id FK
         String cnpj UK
         String razaoSocial
     }
@@ -176,77 +176,77 @@ erDiagram
     %% ===================== ENUMS =====================
 
     Role {
-        USER
-        ADMIN
-        SUPER_ADMIN
+        string USER
+        string ADMIN
+        string SUPER_ADMIN
     }
 
     StatusDoacao {
-        EM_TRIAGEM
-        AGUARDANDO_COLETA
-        RECEBIDO
-        EM_ANALISE
-        FINALIZADO
-        REJEITADA
+        string EM_TRIAGEM
+        string AGUARDANDO_COLETA
+        string RECEBIDO
+        string EM_ANALISE
+        string FINALIZADO
+        string REJEITADA
     }
 
     PreferenciaEntrega {
-        PONTO_DE_COLETA
-        SOLICITAR_RETIRADA
+        string PONTO_DE_COLETA
+        string SOLICITAR_RETIRADA
     }
 
     StatusSolicitacao {
-        EM_ANALISE
-        APROVADA
-        REJEITADA
-        CONCLUIDA
+        string EM_ANALISE
+        string APROVADA
+        string REJEITADA
+        string CONCLUIDA
     }
 
     StatusEquipamento {
-        DISPONIVEL
-        RESERVADO
-        ENTREGUE
+        string DISPONIVEL
+        string RESERVADO
+        string ENTREGUE
     }
 
     EstadoConservacao {
-        NOVO
-        EXCELENTE
-        BOM
-        REGULAR
-        NECESSITA_REPARO
+        string NOVO
+        string EXCELENTE
+        string BOM
+        string REGULAR
+        string NECESSITA_REPARO
     }
 
     TipoNotificacao {
-        DOACAO_APROVADA
-        DOACAO_REJEITADA
-        SOLICITACAO_APROVADA
-        SOLICITACAO_REJEITADA
-        SOLICITACAO_CONCLUIDA
-        EQUIPAMENTO_DISPONIVEL
-        EQUIPAMENTO_ATRIBUIDO
-        MATCHING_SUGERIDO
-        SISTEMA
+        string DOACAO_APROVADA
+        string DOACAO_REJEITADA
+        string SOLICITACAO_APROVADA
+        string SOLICITACAO_REJEITADA
+        string SOLICITACAO_CONCLUIDA
+        string EQUIPAMENTO_DISPONIVEL
+        string EQUIPAMENTO_ATRIBUIDO
+        string MATCHING_SUGERIDO
+        string SISTEMA
     }
 
     StatusSuporte {
-        ABERTO
-        EM_ANDAMENTO
-        RESOLVIDO
-        FECHADO
+        string ABERTO
+        string EM_ANDAMENTO
+        string RESOLVIDO
+        string FECHADO
     }
 
     AcaoTipo {
-        APROVAR_DOACAO
-        REJEITAR_DOACAO
-        APROVAR_SOLICITACAO
-        REJEITAR_SOLICITACAO
-        RESPONDER_SUPORTE
-        DESATIVAR_USUARIO
+        string APROVAR_DOACAO
+        string REJEITAR_DOACAO
+        string APROVAR_SOLICITACAO
+        string REJEITAR_SOLICITACAO
+        string RESPONDER_SUPORTE
+        string DESATIVAR_USUARIO
     }
 
     ContextoChat {
-        SUPORTE
-        DOACAO
-        SOLICITACAO
+        string SUPORTE
+        string DOACAO
+        string SOLICITACAO
     }
 ```
