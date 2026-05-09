@@ -57,7 +57,8 @@ erDiagram
         String descricao
     }
 
-    Pessoa ||--o{ Doacao : "doador"
+    DoadorPF ||--o{ Doacao : "doador"
+    DoadorPJ ||--o{ Doacao : "doador"
     Pessoa ||--o{ Doacao : "admin_avaliador"
     Doacao ||--o{ ItemDoado : "contem"
 
@@ -72,7 +73,7 @@ erDiagram
         DateTime deletedAt
     }
 
-    Pessoa ||--o{ SolicitacaoHardware : "aluno"
+    Aluno ||--o{ SolicitacaoHardware : "solicita"
     Pessoa ||--o{ SolicitacaoHardware : "admin_avaliador"
 
     Equipamento {
