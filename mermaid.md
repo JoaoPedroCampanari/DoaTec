@@ -15,7 +15,6 @@ erDiagram
         String cidade
         String estado
         String telefone
-        Role role
         Boolean ativo
         DateTime createdAt
         DateTime updatedAt
@@ -35,9 +34,13 @@ erDiagram
         String razaoSocial
     }
 
+    Admin {
+    }
+
     Pessoa ||--o| Aluno : "herda"
     Pessoa ||--o| DoadorPF : "herda"
     Pessoa ||--o| DoadorPJ : "herda"
+    Pessoa ||--o| Admin : "herda"
 
     Doacao {
         Integer id PK
@@ -60,7 +63,7 @@ erDiagram
     DoadorPF ||--o{ Doacao : "doador"
     DoadorPJ ||--o{ Doacao : "doador"
     Aluno ||--o{ Doacao : "doador"
-    Pessoa ||--o{ Doacao : "admin_avaliador"
+    Admin ||--o{ Doacao : "avalia"
     Doacao ||--o{ ItemDoado : "contem"
 
     SolicitacaoHardware {
@@ -75,7 +78,7 @@ erDiagram
     }
 
     Aluno ||--o{ SolicitacaoHardware : "solicita"
-    Pessoa ||--o{ SolicitacaoHardware : "admin_avaliador"
+    Admin ||--o{ SolicitacaoHardware : "avalia"
 
     Equipamento {
         Integer id PK
@@ -91,7 +94,7 @@ erDiagram
 
     ItemDoado |o--o| Equipamento : "gera"
     Equipamento }o--o| SolicitacaoHardware : "destino"
-    Pessoa ||--o{ Equipamento : "aluno_destinatario"
+    Aluno ||--o{ Equipamento : "destinatario"
 
     SuporteFormulario {
         Integer id PK
@@ -105,7 +108,7 @@ erDiagram
     }
 
     Pessoa ||--o{ SuporteFormulario : "autor"
-    Pessoa ||--o{ SuporteFormulario : "admin_responsavel"
+    Admin ||--o{ SuporteFormulario : "responde"
 
     Notificacao {
         Integer id PK
@@ -130,7 +133,7 @@ erDiagram
         DateTime dataAcao
     }
 
-    Pessoa ||--o{ LogAcao : "admin"
+    Admin ||--o{ LogAcao : "registra"
 
     MensagemChat {
         Integer id PK
