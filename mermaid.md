@@ -59,6 +59,7 @@ erDiagram
 
     DoadorPF ||--o{ Doacao : "doador"
     DoadorPJ ||--o{ Doacao : "doador"
+    Aluno ||--o{ Doacao : "doador"
     Pessoa ||--o{ Doacao : "admin_avaliador"
     Doacao ||--o{ ItemDoado : "contem"
 
