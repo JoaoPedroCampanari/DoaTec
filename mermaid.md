@@ -3,12 +3,14 @@
 ```mermaid
 erDiagram
 
+    %% ========== PESSOA (herança JOINED) ==========
+
     Pessoa {
         Integer id PK
         String nome
         String email UK
         String senha
-        String endereco
+        String cep
         String logradouro
         String numero
         String bairro
@@ -42,6 +44,8 @@ erDiagram
     Pessoa ||--o| DoadorPJ : "herda"
     Pessoa ||--o| Admin : "herda"
 
+    %% ========== DOAÇÃO ==========
+
     Doacao {
         Integer id PK
         LocalDate dataDoacao
@@ -60,11 +64,13 @@ erDiagram
         String descricao
     }
 
+    Aluno ||--o{ Doacao : "doador"
     DoadorPF ||--o{ Doacao : "doador"
     DoadorPJ ||--o{ Doacao : "doador"
-    Aluno ||--o{ Doacao : "doador"
     Admin ||--o{ Doacao : "avalia"
     Doacao ||--o{ ItemDoado : "contem"
+
+    %% ========== SOLICITAÇÃO ==========
 
     SolicitacaoHardware {
         Integer id PK
@@ -80,6 +86,8 @@ erDiagram
     Aluno ||--o{ SolicitacaoHardware : "solicita"
     Admin ||--o{ SolicitacaoHardware : "avalia"
 
+    %% ========== INVENTÁRIO ==========
+
     Equipamento {
         Integer id PK
         String tipo
@@ -92,9 +100,11 @@ erDiagram
         DateTime deletedAt
     }
 
-    ItemDoado |o--o| Equipamento : "gera"
+    ItemDoado ||--o| Equipamento : "gera"
     Equipamento }o--o| SolicitacaoHardware : "destino"
     Aluno ||--o{ Equipamento : "destinatario"
+
+    %% ========== SUPORTE ==========
 
     SuporteFormulario {
         Integer id PK
@@ -110,6 +120,8 @@ erDiagram
     Pessoa ||--o{ SuporteFormulario : "autor"
     Admin ||--o{ SuporteFormulario : "responde"
 
+    %% ========== NOTIFICAÇÃO ==========
+
     Notificacao {
         Integer id PK
         String titulo
@@ -124,6 +136,8 @@ erDiagram
 
     Pessoa ||--o{ Notificacao : "destinatario"
 
+    %% ========== AUDITORIA ==========
+
     LogAcao {
         Integer id PK
         AcaoTipo acao
@@ -134,6 +148,8 @@ erDiagram
     }
 
     Admin ||--o{ LogAcao : "registra"
+
+    %% ========== CHAT ==========
 
     MensagemChat {
         Integer id PK
