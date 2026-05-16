@@ -1,8 +1,11 @@
 package com.doatec.controller;
 
+import com.doatec.dto.request.SuporteFormularioRequest;
 import com.doatec.dto.response.SuporteResponse;
 import com.doatec.model.account.DoadorPF;
 import com.doatec.model.account.Pessoa;
+import com.doatec.model.suporte.SuporteFormulario;
+import com.doatec.model.suporte.StatusSuporte;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.service.SuporteFormularioService;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +48,116 @@ class SuporteControllerTest {
         autor.setNome("Usuario Teste");
         autor.setEmail("usuario@teste.com");
         autor.setAtivo(true);
+    }
+
+    @Nested
+    @DisplayName("receberFormulario endpoint")
+    class ReceberFormularioTests {
+
+        @Test
+        @DisplayName("POST /api/suporte retorna 201 com ticket criado")
+        void criarTicketComSucesso() {
+            SuporteFormularioRequest request = SuporteFormularioRequest.builder()
+                    .nome("Usuario Teste")
+                    .email("usuario@teste.com")
+                    .assunto("Problema com hardware")
+                    .mensagem("Meu notebook nao liga.")
+                    .build();
+
+            SuporteFormulario ticket = SuporteFormulario.builder()
+                    .id(1)
+                    .autor(autor)
+                    .assunto("Problema com hardware")
+                    .mensagem("Meu notebook nao liga.")
+                    .status(StatusSuporte.ABERTO)
+                    .build();
+
+            when(suporteService.criarTicket(request)).thenReturn(ticket);
+
+            ResponseEntity<SuporteResponse> response = suporteController.receberFormulario(request);
+
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertEquals(1, response.getBody().id());
+            assertEquals("Problema com hardware", response.getBody().assunto());
+            assertEquals("Meu notebook nao liga.", response.getBody().mensagem());
+            assertEquals("ABERTO", response.getBody().status());
+            verify(suporteService).criarTicket(request);
+        }
+
+        @Test
+        @DisplayName("POST /api/suporte lanca excecao quando email nao encontrado")
+        void lancaExcecaoQuandoEmailNaoEncontrado() {
+            SuporteFormularioRequest request = SuporteFormularioRequest.builder()
+                    .nome("Usuario Teste")
+                    .email("inexistente@teste.com")
+                    .assunto("Problema")
+                    .mensagem("Mensagem teste")
+                    .build();
+
+            when(suporteService.criarTicket(request))
+                    .thenThrow(new RuntimeException("Nenhuma conta encontrada com o email fornecido."));
+
+            assertThrows(RuntimeException.class, () -> suporteController.receberFormulario(request));
+            verify(suporteService).criarTicket(request);
+        }
+    }
+
+    @Nested
+    @DisplayName("excluirTicket endpoint")
+    class ExcluirTicketTests {
+
+        @Test
+        @DisplayName("DELETE /api/suporte/{id} retorna 204 quando autor e dono do ticket")
+        void excluirTicketComSucesso() {
+            User userDetails = new User("usuario@teste.com", "", List.of());
+
+            when(pessoaRepository.findByEmail("usuario@teste.com")).thenReturn(Optional.of(autor));
+            doNothing().when(suporteService).excluirTicket(1, 1);
+
+            ResponseEntity<Void> response = suporteController.excluirTicket(1, userDetails);
+
+            assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+            verify(pessoaRepository).findByEmail("usuario@teste.com");
+            verify(suporteService).excluirTicket(1, 1);
+        }
+
+        @Test
+        @DisplayName("DELETE /api/suporte/{id} retorna 401 quando userDetails e nulo")
+        void excluirTicketSemAutenticacao() {
+            ResponseEntity<Void> response = suporteController.excluirTicket(1, null);
+
+            assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+            verify(pessoaRepository, never()).findByEmail(any());
+            verify(suporteService, never()).excluirTicket(any(), any());
+        }
+
+        @Test
+        @DisplayName("DELETE /api/suporte/{id} retorna 401 quando usuario nao existe no banco")
+        void excluirTicketUsuarioNaoExiste() {
+            User userDetails = new User("inexistente@teste.com", "", List.of());
+
+            when(pessoaRepository.findByEmail("inexistente@teste.com")).thenReturn(Optional.empty());
+
+            ResponseEntity<Void> response = suporteController.excluirTicket(1, userDetails);
+
+            assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+            verify(pessoaRepository).findByEmail("inexistente@teste.com");
+            verify(suporteService, never()).excluirTicket(any(), any());
+        }
+
+        @Test
+        @DisplayName("DELETE /api/suporte/{id} lanca excecao quando nao e o dono do ticket")
+        void excluirTicketSemPermissao() {
+            User userDetails = new User("usuario@teste.com", "", List.of());
+
+            when(pessoaRepository.findByEmail("usuario@teste.com")).thenReturn(Optional.of(autor));
+            doThrow(new RuntimeException("Sem permissão para excluir este ticket"))
+                    .when(suporteService).excluirTicket(99, 1);
+
+            assertThrows(RuntimeException.class, () -> suporteController.excluirTicket(99, userDetails));
+            verify(suporteService).excluirTicket(99, 1);
+        }
     }
 
     @Nested
