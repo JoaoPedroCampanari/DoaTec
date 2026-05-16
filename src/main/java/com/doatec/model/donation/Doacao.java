@@ -46,6 +46,9 @@ public class Doacao {
     private PreferenciaEntrega preferenciaEntrega;
 
     @Column(columnDefinition = "TEXT")
+    private String enderecoRetirada;
+
+    @Column(columnDefinition = "TEXT")
     private String descricaoGeral;
 
     @Column(length = 500)

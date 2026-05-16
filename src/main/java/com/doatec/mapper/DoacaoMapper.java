@@ -15,6 +15,7 @@ public class DoacaoMapper {
                 .doador(doador)
                 .status(StatusDoacao.EM_TRIAGEM)
                 .preferenciaEntrega(request.preferenciaEntrega())
+                .enderecoRetirada(request.enderecoRetirada())
                 .descricaoGeral(request.descricaoGeral())
                 .urlFoto(request.urlFoto())
                 .build();

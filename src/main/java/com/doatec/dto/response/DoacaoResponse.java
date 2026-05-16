@@ -16,6 +16,7 @@ public record DoacaoResponse(
     LocalDate dataDoacao,
     String status,
     String preferenciaEntrega,
+    String enderecoRetirada,
     String descricaoGeral,
     String urlFoto,
     String observacaoAdmin,
@@ -36,6 +37,7 @@ public record DoacaoResponse(
                 .status(doacao.getStatus().name())
                 .preferenciaEntrega(doacao.getPreferenciaEntrega() != null
                         ? doacao.getPreferenciaEntrega().name() : null)
+                .enderecoRetirada(doacao.getEnderecoRetirada())
                 .descricaoGeral(doacao.getDescricaoGeral())
                 .urlFoto(doacao.getUrlFoto())
                 .observacaoAdmin(doacao.getObservacaoAdmin())

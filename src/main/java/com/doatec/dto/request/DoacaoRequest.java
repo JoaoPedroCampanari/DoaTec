@@ -22,5 +22,7 @@ public record DoacaoRequest(
 
     String urlFoto,
 
-    PreferenciaEntrega preferenciaEntrega
+    PreferenciaEntrega preferenciaEntrega,
+
+    String enderecoRetirada
 ) {}
