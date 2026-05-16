@@ -256,10 +256,11 @@
 
                     // Estatísticas do usuário
                     const tipo = userData.tipoPessoa;
-                    if (tipo === 'DOADOR_PF' || tipo === 'DOADOR_PJ') {
+                    if (tipo === 'DOADOR_PF' || tipo === 'DOADOR_PJ' || tipo === 'ALUNO') {
                         document.getElementById('statsDoacoesItem').style.display = '';
                         document.getElementById('profileTotalDoacoes').textContent = userData.totalDoacoes || 0;
-                    } else if (tipo === 'ALUNO') {
+                    }
+                    if (tipo === 'ALUNO') {
                         document.getElementById('statsSolicitacoesItem').style.display = '';
                         document.getElementById('profileTotalSolicitacoes').textContent = userData.totalSolicitacoes || 0;
                     }

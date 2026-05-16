@@ -86,11 +86,10 @@
                     <div class="form-group">
                         <label for="email">Email para Contato*:</label>
                         <input type="email" id="email" name="email" required disabled>
-                        <small class="form-text">Usaremos este email para coordenar a coleta/entrega da sua doação.</small>
                     </div>
                     <div class="form-group">
                         <label for="phone">Telefone:</label>
-                        <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX" disabled>
+                        <input type="tel" id="phone" name="phone" disabled>
                         <small class="form-text">Ajuda a agilizar o contato, se necessário.</small>
                     </div>
                 </fieldset>
@@ -102,16 +101,25 @@
                         <small class="form-text">Exemplo: "2 notebooks Dell em bom estado, 1 desktop completo sem monitor, 3 teclados e 2 mouses usados."</small>
                     </div>
                     <div class="form-group">
-                        <label>Foto do Lote (opcional):</label>
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <input type="file" id="fotoDoacao" accept="image/jpeg,image/png,image/gif" hidden>
-                            <svg class="file-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                            </svg>
-                            <p class="file-upload-text">Clique ou arraste uma foto do lote</p>
-                            <p class="file-upload-hint" id="fileUploadHint">Nenhum arquivo selecionado</p>
+                        <label>Foto dos Equipamentos:</label>
+                        <input type="file" id="fotoDoacao" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
+                        <div class="photo-upload-box" id="photoUploadBox">
+                            <div class="file-upload-previews" id="fotoPreviews"></div>
+                            <div class="photo-upload-placeholder" id="photoPlaceholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="36" height="36">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <p>Arraste ou clique para enviar</p>
+                            </div>
                         </div>
-                        <small class="form-text">Formatos aceitos: JPEG, PNG, GIF. Máximo: 5MB.</small>
+                        <button type="button" class="btn-attach-photo" id="btnAttachPhoto">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            <span>Anexar fotos</span>
+                            <span class="photo-count" id="photoCount"></span>
+                        </button>
+                        <small class="form-text">Formatos: JPEG, PNG, GIF, WebP. Máximo 5MB por foto.</small>
                     </div>
                 </fieldset>
 
@@ -126,6 +134,60 @@
                         <div>
                             <input type="radio" id="deliveryPickup" name="deliveryPreference" value="SOLICITAR_RETIRADA">
                             <label for="deliveryPickup" class="radio-label">Gostaria de solicitar a retirada no meu endereço (sujeito a análise de viabilidade)</label>
+                        </div>
+                    </div>
+                    <!-- Endereço de retirada — visível apenas quando SOLICITAR_RETIRADA -->
+                    <div id="enderecoRetiradaSection" class="endereco-retirada-section" style="display:none;">
+                        <label>Endereço de retirada:</label>
+                        <div class="endereco-cards" id="enderecoCards">
+                            <!-- Card do endereço cadastrado — preenchido via JS -->
+                            <div class="endereco-card" id="enderecoCadastradoCard">
+                                <input type="radio" id="enderecoCadastrado" name="enderecoOption" value="cadastrado" checked>
+                                <label for="enderecoCadastrado" class="endereco-card-label">
+                                    <strong>Meu endereço cadastrado</strong>
+                                    <span id="enderecoCadastradoText">—</span>
+                                </label>
+                            </div>
+                            <!-- Card de outro endereço -->
+                            <div class="endereco-card">
+                                <input type="radio" id="enderecoOutro" name="enderecoOption" value="outro">
+                                <label for="enderecoOutro" class="endereco-card-label">
+                                    <strong>Outro endereço</strong>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Campos para endereço alternativo -->
+                        <div id="enderecoOutroFields" class="endereco-outro-fields" style="display:none;">
+                            <div class="form-row">
+                                <div class="form-group" style="flex:1">
+                                    <label for="retCep">CEP *</label>
+                                    <input type="text" id="retCep" placeholder="00000-000">
+                                </div>
+                                <div class="form-group" style="flex:1">
+                                    <label for="retNumero">Número *</label>
+                                    <input type="text" id="retNumero" placeholder="Nº">
+                                </div>
+                                <div class="form-group" style="flex:1">
+                                    <label for="retComplemento">Complemento</label>
+                                    <input type="text" id="retComplemento" placeholder="Apto, Bloco...">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="flex:2">
+                                    <label for="retLogradouro">Logradouro</label>
+                                    <input type="text" id="retLogradouro" placeholder="Rua, Avenida..." readonly>
+                                </div>
+                                <div class="form-group" style="flex:1">
+                                    <label for="retBairro">Bairro</label>
+                                    <input type="text" id="retBairro" placeholder="Bairro" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="flex:1">
+                                    <label for="retCidade">Cidade</label>
+                                    <input type="text" id="retCidade" placeholder="Cidade" readonly>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </fieldset>
@@ -148,6 +210,7 @@
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js?v=2"></script>
+<script src="js/viacep.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
         const documentLabel = document.getElementById('documentLabel');
@@ -161,6 +224,7 @@
         const loggedInUser = await Auth.checkSession();
         let usuarioTipoDocumento = '';
         let documentMask; // Variável para guardar a instância da máscara
+        let phoneMask;
 
         if (loggedInUser && loggedInUser.id) {
             fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })
@@ -173,28 +237,35 @@
                 .then(userData => {
                     donorNameInput.value = userData.nome || '';
                     emailInput.value = userData.email || '';
-                    phoneInput.value = userData.telefone || '';
+
+                    // Máscara de telefone (igual perfil.html)
+                    if (typeof IMask !== 'undefined') {
+                        phoneMask = IMask(phoneInput, { mask: '(00) 00000-0000' });
+                    }
+                    if (userData.telefone) {
+                        if (phoneMask) {
+                            phoneMask.value = userData.telefone;
+                        } else {
+                            phoneInput.value = userData.telefone;
+                        }
+                    }
 
                     let maskOptions; // Opções da máscara a serem aplicadas
 
                     if (userData.tipoPessoa === 'DOADOR_PF') {
                         documentLabel.textContent = 'CPF:';
-                        documentInput.placeholder = 'Confirme seu CPF';
                         usuarioTipoDocumento = 'cpf';
                         maskOptions = { mask: '000.000.000-00' };
                     } else if (userData.tipoPessoa === 'DOADOR_PJ') {
                         documentLabel.textContent = 'CNPJ:';
-                        documentInput.placeholder = 'Confirme seu CNPJ';
                         usuarioTipoDocumento = 'cnpj';
                         maskOptions = { mask: '00.000.000/0000-00' };
                     } else if (userData.tipoPessoa === 'ALUNO') {
                         documentLabel.textContent = 'RA:';
-                        documentInput.placeholder = 'Confirme seu RA';
                         usuarioTipoDocumento = 'aluno';
-                        maskOptions = { mask: '0000000000000' }; // Máscara de exemplo para RA
+                        maskOptions = { mask: '0000000000000' };
                     } else {
                         documentLabel.textContent = 'Documento:';
-                        documentInput.placeholder = 'Documento de identificação';
                         documentInput.removeAttribute('required');
                         usuarioTipoDocumento = '';
                     }
@@ -202,6 +273,28 @@
                     // Aplica a máscara se as opções foram definidas
                     if (maskOptions) {
                         documentMask = IMask(documentInput, maskOptions);
+                    }
+
+                    // Preenche o documento automaticamente e desabilita o campo
+                    if (userData.documento) {
+                        if (documentMask) {
+                            documentMask.value = userData.documento;
+                        } else {
+                            documentInput.value = userData.documento;
+                        }
+                        documentInput.disabled = true;
+                    }
+
+                    // Preenche endereço cadastrado para retirada
+                    const enderecoText = document.getElementById('enderecoCadastradoText');
+                    const parts = [userData.logradouro, userData.numero, userData.bairro, userData.cidade, userData.estado, userData.endereco].filter(Boolean);
+                    if (parts.length > 0) {
+                        enderecoText.textContent = parts.join(', ');
+                    } else {
+                        enderecoText.textContent = 'Nenhum endereço cadastrado';
+                        document.getElementById('enderecoCadastrado').disabled = true;
+                        document.getElementById('enderecoOutro').checked = true;
+                        document.getElementById('enderecoOutroFields').style.display = '';
                     }
                 })
                 .catch(error => {
@@ -215,29 +308,139 @@
         }
 
 
-        // File upload area - click to open file picker
-        const fileUploadArea = document.getElementById('fileUploadArea');
+        // File upload — múltiplas fotos (até 3)
+        const MAX_FOTOS = 3;
+        const selectedFiles = [];
+        const btnAttach = document.getElementById('btnAttachPhoto');
+        const photoCount = document.getElementById('photoCount');
         const fotoInput = document.getElementById('fotoDoacao');
-        const fileUploadHint = document.getElementById('fileUploadHint');
-        if (fileUploadArea && fotoInput) {
-            fileUploadArea.addEventListener('click', () => fotoInput.click());
-            fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.classList.add('dragover'); });
-            fileUploadArea.addEventListener('dragleave', () => fileUploadArea.classList.remove('dragover'));
-            fileUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                fileUploadArea.classList.remove('dragover');
-                if (e.dataTransfer.files.length) {
-                    fotoInput.files = e.dataTransfer.files;
-                    updateFileHint(e.dataTransfer.files[0].name);
+        const fotoPreviews = document.getElementById('fotoPreviews');
+        const photoPlaceholder = document.getElementById('photoPlaceholder');
+        const photoUploadBox = document.getElementById('photoUploadBox');
+
+        function renderPreviews() {
+            fotoPreviews.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-upload-preview-item';
+
+                const img = document.createElement('img');
+                img.className = 'file-upload-preview';
+                img.alt = file.name;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'file-upload-remove';
+                removeBtn.textContent = '×';
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedFiles.splice(index, 1);
+                    renderPreviews();
+                });
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'file-upload-preview-name';
+                nameEl.textContent = file.name;
+
+                const reader = new FileReader();
+                reader.onload = (ev) => { img.src = ev.target.result; };
+                reader.readAsDataURL(file);
+
+                item.appendChild(img);
+                item.appendChild(removeBtn);
+                item.appendChild(nameEl);
+                fotoPreviews.appendChild(item);
+            });
+
+            // Placeholder some quando tem fotos
+            if (selectedFiles.length > 0) {
+                photoPlaceholder.style.display = 'none';
+                photoCount.textContent = `${selectedFiles.length}/${MAX_FOTOS}`;
+            } else {
+                photoPlaceholder.style.display = '';
+                photoCount.textContent = '';
+            }
+        }
+
+        function addFiles(fileList) {
+            for (const file of fileList) {
+                if (selectedFiles.length >= MAX_FOTOS) {
+                    DoaTec.showToast(`Máximo de ${MAX_FOTOS} fotos permitidas.`, 'warning');
+                    break;
                 }
+                if (!file.type.startsWith('image/')) {
+                    DoaTec.showToast(`"${file.name}" não é uma imagem.`, 'warning');
+                    continue;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    DoaTec.showToast(`"${file.name}" excede 5MB.`, 'warning');
+                    continue;
+                }
+                selectedFiles.push(file);
+            }
+            renderPreviews();
+        }
+
+        // Clicar no box também abre o file picker
+        if (photoUploadBox) {
+            photoUploadBox.addEventListener('click', () => {
+                if (selectedFiles.length < MAX_FOTOS) fotoInput.click();
+                else DoaTec.showToast(`Máximo de ${MAX_FOTOS} fotos atingido.`, 'warning');
+            });
+            photoUploadBox.addEventListener('dragover', (e) => { e.preventDefault(); photoUploadBox.classList.add('dragover'); });
+            photoUploadBox.addEventListener('dragleave', () => photoUploadBox.classList.remove('dragover'));
+            photoUploadBox.addEventListener('drop', (e) => {
+                e.preventDefault();
+                photoUploadBox.classList.remove('dragover');
+                addFiles(e.dataTransfer.files);
+            });
+        }
+
+        if (btnAttach && fotoInput) {
+            btnAttach.addEventListener('click', (e) => {
+                e.stopPropagation(); // não dispara o click do box
+                if (selectedFiles.length < MAX_FOTOS) fotoInput.click();
+                else DoaTec.showToast(`Máximo de ${MAX_FOTOS} fotos atingido.`, 'warning');
             });
             fotoInput.addEventListener('change', () => {
-                if (fotoInput.files.length) updateFileHint(fotoInput.files[0].name);
+                addFiles(fotoInput.files);
+                fotoInput.value = '';
             });
-            function updateFileHint(name) {
-                fileUploadHint.textContent = name;
-                fileUploadArea.classList.add('has-file');
-            }
+        }
+
+        // === Endereço de retirada ===
+        const deliveryPickup = document.getElementById('deliveryPickup');
+        const deliveryDropoff = document.getElementById('deliveryDropoff');
+        const enderecoSection = document.getElementById('enderecoRetiradaSection');
+        const enderecoOptionRadios = document.querySelectorAll('input[name="enderecoOption"]');
+        const enderecoOutroFields = document.getElementById('enderecoOutroFields');
+
+        function toggleEnderecoSection() {
+            enderecoSection.style.display = deliveryPickup.checked ? '' : 'none';
+        }
+        deliveryPickup.addEventListener('change', toggleEnderecoSection);
+        deliveryDropoff.addEventListener('change', toggleEnderecoSection);
+
+        enderecoOptionRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                enderecoOutroFields.style.display = radio.value === 'outro' && radio.checked ? '' : 'none';
+            });
+        });
+
+        // ViaCEP no campo de retirada
+        const retCepInput = document.getElementById('retCep');
+        let retCepMask;
+        if (retCepInput && typeof IMask !== 'undefined') {
+            retCepMask = IMask(retCepInput, { mask: '00000-000' });
+        }
+        if (retCepInput && typeof DoaTec.initViaCEP !== 'undefined') {
+            DoaTec.initViaCEP(retCepInput, {
+                logradouro: document.getElementById('retLogradouro'),
+                bairro: document.getElementById('retBairro'),
+                cidade: document.getElementById('retCidade'),
+                estado: null,
+                numero: document.getElementById('retNumero')
+            }, { cepMask: retCepMask });
         }
 
         donationForm.addEventListener('submit', async (event) => {
@@ -252,7 +455,6 @@
             const descricaoGeral = document.getElementById('descricaoGeral').value;
             const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value;
             const termsAccepted = document.getElementById('terms').checked;
-            const fotoFile = document.getElementById('fotoDoacao').files[0];
 
             if (!termsAccepted) {
                 DoaTec.showToast('Você deve concordar com os termos da doação.', 'warning');
@@ -264,11 +466,11 @@
                 return;
             }
 
-            // Upload da foto primeiro (se houver)
-            let urlFoto = null;
-            if (fotoFile) {
+            // Upload das fotos (se houver)
+            const urlFotos = [];
+            for (const file of selectedFiles) {
                 const formData = new FormData();
-                formData.append('file', fotoFile);
+                formData.append('file', file);
 
                 try {
                     const uploadResponse = await apiFetch('/api/upload/foto', {
@@ -277,7 +479,7 @@
                     });
 
                     if (uploadResponse.ok) {
-                        urlFoto = await uploadResponse.text();
+                        urlFotos.push(await uploadResponse.text());
                     } else {
                         const errorMsg = await uploadResponse.text();
                         DoaTec.showToast('Erro ao enviar foto: ' + errorMsg, 'error');
@@ -289,6 +491,7 @@
                     return;
                 }
             }
+            const urlFoto = urlFotos.length > 0 ? urlFotos.join(',') : null;
 
             const doacaoData = {
                 nome: donorNameInput.value,
@@ -300,6 +503,35 @@
                 urlFoto: urlFoto,
                 preferenciaEntrega: preferenciaEntrega
             };
+
+            // Monta endereço de retirada se SOLICITAR_RETIRADA
+            if (preferenciaEntrega === 'SOLICITAR_RETIRADA') {
+                const enderecoOption = document.querySelector('input[name="enderecoOption"]:checked');
+                if (enderecoOption && enderecoOption.value === 'cadastrado') {
+                    const txt = document.getElementById('enderecoCadastradoText').textContent;
+                    if (txt === 'Nenhum endereço cadastrado' || !txt || txt === '—') {
+                        DoaTec.showToast('Seu perfil não tem endereço cadastrado. Selecione "Outro endereço".', 'warning');
+                        DoaTec.setButtonLoading(submitBtn, false);
+                        return;
+                    }
+                    doacaoData.enderecoRetirada = txt;
+                } else {
+                    const log = document.getElementById('retLogradouro').value.trim();
+                    const num = document.getElementById('retNumero').value.trim();
+                    const bai = document.getElementById('retBairro').value.trim();
+                    const cid = document.getElementById('retCidade').value.trim();
+                    const cep = document.getElementById('retCep').value.trim();
+                    const comp = document.getElementById('retComplemento').value.trim();
+
+                    if (!cep || !num || !log || !bai || !cid) {
+                        DoaTec.showToast('O CEP deve ser válido para preencher o endereço.', 'warning');
+                        DoaTec.setButtonLoading(submitBtn, false);
+                        return;
+                    }
+
+                    doacaoData.enderecoRetirada = [log + ', ' + num, comp, bai, cid, cep].filter(Boolean).join(' - ');
+                }
+            }
 
             try {
                 const response = await apiFetch('/api/donations', {

@@ -817,7 +817,8 @@ footer p {
 
 .file-upload-area.has-file .file-upload-hint {
     color: var(--success-500);
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.8rem;
 }
 
 html.dark-mode .file-upload-area {
@@ -846,6 +847,269 @@ html.dark-mode .file-upload-area .file-upload-hint {
 html.dark-mode .file-upload-area.has-file {
     border-color: var(--success-500);
     background: rgba(16, 185, 129, 0.1);
+}
+
+/* ==================== ENDEREÇO RETIRADA ==================== */
+.endereco-retirada-section {
+    margin-top: 1rem;
+}
+
+.endereco-retirada-section > label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.endereco-cards {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.endereco-card {
+    flex: 1;
+    border: 2px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.endereco-card:has(input:checked) {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+}
+
+.endereco-card:hover {
+    border-color: var(--primary-300);
+}
+
+.endereco-card input[type="radio"] {
+    margin-right: 0.4rem;
+    accent-color: var(--primary-500);
+}
+
+.endereco-card-label {
+    cursor: pointer;
+    display: block;
+}
+
+.endereco-card-label strong {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.endereco-card-label span {
+    font-size: 0.85rem;
+    color: var(--neutral-600);
+}
+
+.endereco-outro-fields {
+    margin-top: 0.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.form-row .form-group {
+    margin-bottom: 0.5rem;
+}
+
+html.dark-mode .endereco-card {
+    border-color: var(--dark-500);
+    background: var(--dark-700);
+}
+
+html.dark-mode .endereco-card:has(input:checked) {
+    border-color: var(--primary-400);
+    background: rgba(66, 165, 245, 0.08);
+}
+
+html.dark-mode .endereco-card:hover {
+    border-color: var(--primary-400);
+}
+
+html.dark-mode .endereco-card-label span {
+    color: var(--dark-400);
+}
+
+/* ==================== PHOTO UPLOAD BOX ==================== */
+.photo-upload-box {
+    border: 1px dashed var(--neutral-400);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--neutral-50);
+    transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.photo-upload-box:hover {
+    border-color: var(--primary-300);
+    background: var(--primary-50);
+}
+
+.photo-upload-box.dragover {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+}
+
+.photo-upload-box .file-upload-previews {
+    align-items: flex-start;
+    margin-bottom: 0;
+}
+
+.photo-upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--neutral-400);
+    pointer-events: none;
+}
+
+.photo-upload-placeholder svg {
+    opacity: 0.5;
+}
+
+.photo-upload-placeholder p {
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.btn-attach-photo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-sm);
+    background: var(--neutral-50);
+    color: var(--neutral-600);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color var(--transition-base), background var(--transition-base), color var(--transition-base);
+}
+
+.btn-attach-photo:hover {
+    border-color: var(--primary-500);
+    color: var(--primary-600);
+    background: var(--primary-50);
+}
+
+.btn-attach-photo svg {
+    flex-shrink: 0;
+}
+
+.btn-attach-photo .photo-count {
+    font-size: 0.75rem;
+    color: var(--primary-500);
+    font-weight: 600;
+    margin-left: 0.15rem;
+}
+
+html.dark-mode .photo-upload-box {
+    border-color: var(--dark-600);
+    background: var(--dark-700);
+}
+
+html.dark-mode .photo-upload-box:hover {
+    border-color: var(--primary-400);
+    background: rgba(66, 165, 245, 0.06);
+}
+
+html.dark-mode .photo-upload-box.dragover {
+    border-color: var(--primary-400);
+    background: rgba(66, 165, 245, 0.06);
+}
+
+html.dark-mode .photo-upload-placeholder {
+    color: var(--dark-500);
+}
+
+html.dark-mode .btn-attach-photo {
+    border-color: var(--dark-500);
+    background: var(--dark-800);
+    color: var(--neutral-200);
+}
+
+html.dark-mode .btn-attach-photo:hover {
+    border-color: var(--primary-400);
+    color: var(--primary-300);
+    background: rgba(66, 165, 245, 0.08);
+}
+
+html.dark-mode .btn-attach-photo .photo-count {
+    color: var(--primary-400);
+}
+
+/* ==================== FILE UPLOAD PREVIEWS ==================== */
+.file-upload-previews {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.file-upload-preview-item {
+    position: relative;
+    width: 180px;
+}
+
+.file-upload-preview-item .file-upload-preview {
+    width: 180px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--neutral-300);
+    margin-bottom: 0;
+}
+
+.file-upload-preview-item .file-upload-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-upload-preview-item .file-upload-remove:hover {
+    background: rgba(220,38,38,0.85);
+}
+
+.file-upload-preview-item .file-upload-preview-name {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+html.dark-mode .file-upload-preview-item .file-upload-preview {
+    border-color: var(--dark-500);
+}
+
+html.dark-mode .file-upload-preview-item .file-upload-preview-name {
+    color: var(--dark-400);
 }
 
 /* ==================== LOGIN PAGE ==================== */
@@ -1647,8 +1911,16 @@ body.perfil-page .login-box {
     background-size: 20px;
 }
 
-.viacep-auto {
-    background-color: var(--neutral-50);
+.viacep-auto,
+input[readonly] {
+    background-color: var(--neutral-100);
+    cursor: not-allowed;
+    color: var(--neutral-500);
+}
+
+input[readonly]::placeholder {
+    color: var(--neutral-400);
+    font-style: italic;
 }
 
 .viacep-error {
@@ -2084,8 +2356,9 @@ html.dark-mode .profile-info-item span {
     color: #f3f4f6;
 }
 
-html.dark-mode .viacep-auto {
-    background-color: var(--dark-700);
+html.dark-mode .viacep-auto,
+html.dark-mode input[readonly] {
+    background-color: var(--dark-800);
 }
 
 /* Dropdowns Dark Mode */

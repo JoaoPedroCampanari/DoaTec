@@ -289,8 +289,9 @@ const AdminPanel = {
                 <td colspan="6">
                     <div class="admin-detail-content">
                         <p><strong>Logística:</strong> ${escapeHtml(d.preferenciaEntrega || 'Não informada')}</p>
+                        ${d.enderecoRetirada ? `<p><strong>Endereço de retirada:</strong> ${escapeHtml(d.enderecoRetirada)}</p>` : ''}
                         <p><strong>Descrição:</strong> ${escapeHtml(d.descricaoGeral || 'Não informada')}</p>
-                        ${d.urlFoto ? `<p><strong>Foto:</strong> <a href="${escapeHtml(d.urlFoto)}" target="_blank">Ver imagem</a></p>` : ''}
+                        ${d.urlFoto ? `<p><strong>Foto${d.urlFoto.includes(',') ? 's' : ''}:</strong> ${d.urlFoto.split(',').map(u => `<a href="${escapeHtml(u.trim())}" target="_blank">Ver imagem</a>`).join(' · ')}</p>` : ''}
                         ${d.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(d.observacaoAdmin)}</p>` : ''}
                         ${d.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(d.adminAvaliadorNome)}${d.dataAvaliacao ? ' — ' + formatDate(d.dataAvaliacao) : ''}</p>` : ''}
                         ${d.itens && d.itens.length ? `
@@ -936,6 +937,25 @@ const AdminPanel = {
             btnCriar.addEventListener('click', () => this.openModal('modal-criar-admin'));
         }
 
+        // Máscara dinâmica no campo documento do modal criar admin
+        const tipoSelect = document.getElementById('criar-admin-tipo');
+        const docInput = document.getElementById('criar-admin-documento');
+        if (tipoSelect && docInput && typeof IMask !== 'undefined') {
+            let docMask = IMask(docInput, { mask: '000.000.000-00' }); // default CPF
+            tipoSelect.addEventListener('change', () => {
+                docMask.destroy();
+                if (tipoSelect.value === 'DOADOR_PF') {
+                    docMask = IMask(docInput, { mask: '000.000.000-00' });
+                } else if (tipoSelect.value === 'DOADOR_PJ') {
+                    docMask = IMask(docInput, { mask: '00.000.000/0000-00' });
+                } else if (tipoSelect.value === 'ALUNO') {
+                    docMask = IMask(docInput, { mask: '0000000000000' });
+                }
+                this._docMask = docMask;
+            });
+            this._docMask = docMask;
+        }
+
         // Confirmar criação de admin
         const confirmCriar = document.getElementById('modal-criar-admin-confirm');
         if (confirmCriar) {
@@ -960,7 +980,8 @@ const AdminPanel = {
         const email = document.getElementById('criar-admin-email').value.trim();
         const senha = document.getElementById('criar-admin-senha').value;
         const tipoPessoa = document.getElementById('criar-admin-tipo').value;
-        const documento = document.getElementById('criar-admin-documento').value.trim();
+        const docInput = document.getElementById('criar-admin-documento');
+        const documento = this._docMask ? this._docMask.unmaskedValue : docInput.value.trim();
 
         if (!nome || !email || !documento) {
             showToast('Nome, email e documento são obrigatórios', 'error');
@@ -987,6 +1008,7 @@ const AdminPanel = {
             document.getElementById('criar-admin-email').value = '';
             document.getElementById('criar-admin-senha').value = '';
             document.getElementById('criar-admin-documento').value = '';
+            if (this._docMask) this._docMask.value = '';
             this.loadUsuarios();
         } catch (e) {
             showToast(e.message || 'Erro ao criar administrador', 'error');

@@ -161,6 +161,11 @@
                                     <strong>Entrega:</strong> ${DoaTec.translateEntrega(donation.preferenciaEntrega)}
                                 </span>
                             </div>
+                            <div class="donation-meta">
+                                <span class="donation-meta-item">
+                                    <strong>Endereço:</strong> ${donation.preferenciaEntrega === 'PONTO_DE_COLETA' ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000' : (donation.enderecoRetirada ? escapeHtml(donation.enderecoRetirada) : 'Não informado')}
+                                </span>
+                            </div>
                             ${itemsHtml}
                             <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
                                 <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
