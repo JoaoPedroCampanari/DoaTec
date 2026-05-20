@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyTheme = (theme) => {
         if (theme === 'dark') {
             html.classList.add('dark-mode');
-            themeToggleButton.textContent = '☀️';
+            if (themeToggleButton) themeToggleButton.textContent = '☀️';
         } else {
             html.classList.remove('dark-mode');
-            themeToggleButton.textContent = '🌙';
+            if (themeToggleButton) themeToggleButton.textContent = '🌙';
         }
     };
 
@@ -20,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme('light');
     }
 
-    themeToggleButton.addEventListener('click', () => {
-        const currentTheme = html.classList.contains('dark-mode') ? 'dark' : 'light';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            const currentTheme = html.classList.contains('dark-mode') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-        applyTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-    });
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
 });
