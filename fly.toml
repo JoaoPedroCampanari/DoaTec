@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for doatec on 2026-05-20T18:44:45Z
+# fly.toml app configuration file generated for doatec on 2026-05-20T18:59:09Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -17,7 +17,8 @@ primary_region = 'gru'
   processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
+  memory_mb = 2048
+  size = 'shared-cpu-1x'
