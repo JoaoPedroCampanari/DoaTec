@@ -178,6 +178,7 @@ header {
     font-weight: bold;
     color: var(--primary-400);
     margin-right: var(--spacing-xl);
+    margin-left: -4.5%;
 }
 
 .navbar .logo a {
