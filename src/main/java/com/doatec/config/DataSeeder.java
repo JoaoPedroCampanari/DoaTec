@@ -8,7 +8,6 @@ import com.doatec.repository.PessoaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -30,16 +29,14 @@ public class DataSeeder implements CommandLineRunner {
     private final AlunoRepository alunoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
-    private final Environment environment;
 
     public DataSeeder(PessoaRepository pessoaRepository, AlunoRepository alunoRepository,
                       PasswordEncoder passwordEncoder,
-                      JdbcTemplate jdbcTemplate, Environment environment) {
+                      JdbcTemplate jdbcTemplate) {
         this.pessoaRepository = pessoaRepository;
         this.alunoRepository = alunoRepository;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
-        this.environment = environment;
     }
 
     @Override
@@ -55,15 +52,6 @@ public class DataSeeder implements CommandLineRunner {
      */
     private void fixRoleCheckConstraint() {
         try {
-            // Verifica se está usando PostgreSQL
-            boolean isPostgres = false;
-            for (String profile : environment.getActiveProfiles()) {
-                if ("docker".equals(profile)) {
-                    isPostgres = true;
-                    break;
-                }
-            }
-            if (!isPostgres) return;
 
             // Tenta dropar e recriar a constraint
             jdbcTemplate.execute("ALTER TABLE pessoa DROP CONSTRAINT IF EXISTS pessoa_role_check");
