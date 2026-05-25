@@ -93,43 +93,43 @@ class InventarioControllerTest {
         @Test
         @DisplayName("retorna 200 com lista de equipamentos sem filtro")
         void listarSemFiltro() {
-            when(inventarioService.listarEquipamentos(null))
+            when(inventarioService.listarEquipamentos(null, null, null, null))
                     .thenReturn(List.of(equipamentoResponse));
 
             ResponseEntity<List<EquipamentoResponse>> response =
-                    controller.listarEquipamentos(null);
+                    controller.listarEquipamentos(null, null, null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(1, response.getBody().size());
             assertEquals("Notebook", response.getBody().get(0).tipo());
-            verify(inventarioService).listarEquipamentos(null);
+            verify(inventarioService).listarEquipamentos(null, null, null, null);
         }
 
         @Test
         @DisplayName("retorna 200 com lista filtrada por status")
         void listarComFiltroStatus() {
-            when(inventarioService.listarEquipamentos(StatusEquipamento.DISPONIVEL))
+            when(inventarioService.listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null))
                     .thenReturn(List.of(equipamentoResponse));
 
             ResponseEntity<List<EquipamentoResponse>> response =
-                    controller.listarEquipamentos(StatusEquipamento.DISPONIVEL);
+                    controller.listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(1, response.getBody().size());
             assertEquals("DISPONIVEL", response.getBody().get(0).status());
-            verify(inventarioService).listarEquipamentos(StatusEquipamento.DISPONIVEL);
+            verify(inventarioService).listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null);
         }
 
         @Test
         @DisplayName("retorna 200 com lista vazia quando nenhum equipamento existe")
         void listarVazio() {
-            when(inventarioService.listarEquipamentos(null))
+            when(inventarioService.listarEquipamentos(null, null, null, null))
                     .thenReturn(List.of());
 
             ResponseEntity<List<EquipamentoResponse>> response =
-                    controller.listarEquipamentos(null);
+                    controller.listarEquipamentos(null, null, null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());

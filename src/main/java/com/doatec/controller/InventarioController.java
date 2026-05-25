@@ -3,6 +3,7 @@ package com.doatec.controller;
 import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
 import com.doatec.dto.response.SugestaoMatchingResponse;
+import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.service.InventarioService;
@@ -28,12 +29,24 @@ public class InventarioController {
     private InventarioService inventarioService;
 
     /**
-     * Lista todos os equipamentos, opcionalmente filtrados por status.
+     * Lista equipamentos com filtros combinados (todos opcionais).
+     *
+     * <ul>
+     *   <li>{@code status} — DISPONIVEL, RESERVADO ou ENTREGUE</li>
+     *   <li>{@code conservacao} — NOVO, EXCELENTE, BOM, REGULAR ou NECESSITA_REPARO</li>
+     *   <li>{@code origem} — "COM_VINCULO" (vinculados a doação) ou "SEM_VINCULO" (avulsos);
+     *       ignorado se {@code doacaoId} for passado</li>
+     *   <li>{@code doacaoId} — filtra equipamentos vinculados a uma doação específica</li>
+     * </ul>
      */
     @GetMapping
     public ResponseEntity<List<EquipamentoResponse>> listarEquipamentos(
-            @RequestParam(required = false) StatusEquipamento status) {
-        List<EquipamentoResponse> equipamentos = inventarioService.listarEquipamentos(status);
+            @RequestParam(required = false) StatusEquipamento status,
+            @RequestParam(required = false) EstadoConservacao conservacao,
+            @RequestParam(required = false) String origem,
+            @RequestParam(required = false) Integer doacaoId) {
+        List<EquipamentoResponse> equipamentos =
+                inventarioService.listarEquipamentos(status, conservacao, origem, doacaoId);
         return ResponseEntity.ok(equipamentos);
     }
 
@@ -49,6 +62,32 @@ public class InventarioController {
         Integer adminId = getAuthenticatedAdminId(userDetails);
         EquipamentoResponse equipamento = inventarioService.criarEquipamentoManual(request, adminId);
         return ResponseEntity.status(HttpStatus.CREATED).body(equipamento);
+    }
+
+    /**
+     * Atualiza um equipamento existente. O vínculo com doação só pode ser
+     * alterado enquanto o equipamento está DISPONIVEL.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<EquipamentoResponse> atualizarEquipamento(
+            @PathVariable Integer id,
+            @RequestBody @Valid EquipamentoRequest request,
+            @AuthenticationPrincipal User userDetails) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
+        EquipamentoResponse equipamento = inventarioService.atualizarEquipamento(id, request, adminId);
+        return ResponseEntity.ok(equipamento);
+    }
+
+    /**
+     * Soft delete de equipamento. Só permitido se status = DISPONIVEL.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarEquipamento(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal User userDetails) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
+        inventarioService.deletarEquipamento(id, adminId);
+        return ResponseEntity.noContent().build();
     }
 
     /**

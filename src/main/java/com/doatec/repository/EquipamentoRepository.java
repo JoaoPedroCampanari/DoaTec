@@ -1,6 +1,7 @@
 package com.doatec.repository;
 
 import com.doatec.model.inventory.Equipamento;
+import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -40,4 +41,29 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Intege
      * Busca equipamentos atribuídos a um aluno específico.
      */
     List<Equipamento> findByAlunoDestinatarioId(Integer alunoId);
+
+    /**
+     * Busca com filtros combinados (todos opcionais). Cada filtro só
+     * restringe se for não-null. Filtro {@code hasDoacao}: true = só com
+     * vínculo; false = só sem vínculo; null = ignorar. {@code doacaoId}
+     * tem precedência sobre {@code hasDoacao}.
+     */
+    @Query("""
+        SELECT e FROM Equipamento e
+        WHERE (:status IS NULL OR e.status = :status)
+          AND (:conservacao IS NULL OR e.estadoConservacao = :conservacao)
+          AND (:doacaoId IS NULL OR e.doacao.id = :doacaoId)
+          AND (
+                :hasDoacao IS NULL
+                OR (:hasDoacao = TRUE AND e.doacao IS NOT NULL)
+                OR (:hasDoacao = FALSE AND e.doacao IS NULL)
+              )
+        ORDER BY e.dataEntradaInventario DESC
+    """)
+    List<Equipamento> findWithFilters(
+            @Param("status") StatusEquipamento status,
+            @Param("conservacao") EstadoConservacao conservacao,
+            @Param("hasDoacao") Boolean hasDoacao,
+            @Param("doacaoId") Integer doacaoId
+    );
 }

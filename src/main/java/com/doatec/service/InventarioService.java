@@ -88,6 +88,96 @@ public class InventarioService {
     }
 
     /**
+     * Atualiza um equipamento existente.
+     *
+     * <p>Regras de transição:</p>
+     * <ul>
+     *   <li>{@code tipo}, {@code descricao}, {@code estadoConservacao} sempre editáveis.</li>
+     *   <li>{@code doacaoId} (vínculo) só pode ser alterado enquanto status = DISPONIVEL.
+     *       Após reserva/entrega o vínculo trava para preservar histórico de origem.</li>
+     *   <li>{@code status} pode ser corrigido pelo admin, mas mudanças válidas dependem
+     *       do fluxo de inventário (DISPONIVEL→RESERVADO→ENTREGUE). Permitido aqui:
+     *       só dentro de DISPONIVEL (ou seja, status no request deve ser null ou DISPONIVEL
+     *       enquanto o equipamento estiver DISPONIVEL). Para reservar/entregar use os
+     *       endpoints dedicados (atribuir/entregar).</li>
+     * </ul>
+     */
+    @Transactional
+    public EquipamentoResponse atualizarEquipamento(Integer id, EquipamentoRequest request, Integer adminId) {
+        Pessoa admin = validarAdmin(adminId);
+
+        Equipamento equipamento = equipamentoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Equipamento não encontrado com ID: " + id));
+
+        boolean disponivel = equipamento.isDisponivel();
+
+        // Vínculo com doação só pode mudar enquanto disponível
+        Integer doacaoAtualId = equipamento.getDoacao() != null ? equipamento.getDoacao().getId() : null;
+        Integer doacaoNovaId = request.doacaoId();
+        boolean trocouDoacao = !java.util.Objects.equals(doacaoAtualId, doacaoNovaId);
+
+        if (trocouDoacao && !disponivel) {
+            throw new BusinessException(
+                    "O vínculo com doação só pode ser alterado enquanto o equipamento está disponível. " +
+                    "Status atual: " + equipamento.getStatus());
+        }
+
+        if (trocouDoacao) {
+            Doacao novaDoacao = null;
+            if (doacaoNovaId != null) {
+                novaDoacao = doacaoRepository.findById(doacaoNovaId)
+                        .orElseThrow(() -> new BusinessException(
+                                "Doação não encontrada com ID: " + doacaoNovaId));
+            }
+            equipamento.setDoacao(novaDoacao);
+        }
+
+        // Status: só permite manter (null no request) ou ficar DISPONIVEL.
+        // Mudanças para RESERVADO/ENTREGUE devem usar atribuirEquipamento/marcarComoEntregue.
+        if (request.status() != null && request.status() != equipamento.getStatus()) {
+            if (request.status() != StatusEquipamento.DISPONIVEL || !disponivel) {
+                throw new BusinessException(
+                        "Mudanças de status devem usar os endpoints de atribuição/entrega. " +
+                        "Para reverter para DISPONIVEL, o equipamento deve já estar disponível.");
+            }
+        }
+
+        equipamento.setTipo(request.tipo());
+        equipamento.setDescricao(request.descricao());
+        equipamento.setEstadoConservacao(request.estadoConservacao());
+
+        Equipamento atualizado = equipamentoRepository.save(equipamento);
+
+        registrarLog(admin, AcaoTipo.EDITAR_EQUIPAMENTO, atualizado.getId(),
+                "Equipamento #" + atualizado.getId() + " editado"
+                        + (trocouDoacao ? " (vínculo com doação alterado para " + doacaoNovaId + ")" : ""));
+
+        return EquipamentoResponse.from(atualizado);
+    }
+
+    /**
+     * Soft delete de um equipamento. Só permitido se status = DISPONIVEL —
+     * equipamentos reservados ou entregues mantêm o rastro histórico.
+     */
+    @Transactional
+    public void deletarEquipamento(Integer id, Integer adminId) {
+        Pessoa admin = validarAdmin(adminId);
+
+        Equipamento equipamento = equipamentoRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Equipamento não encontrado com ID: " + id));
+
+        if (!equipamento.isDisponivel()) {
+            throw new BusinessException(
+                    "Apenas equipamentos disponíveis podem ser excluídos. Status atual: " + equipamento.getStatus());
+        }
+
+        registrarLog(admin, AcaoTipo.DELETAR_EQUIPAMENTO, equipamento.getId(),
+                "Equipamento '" + equipamento.getTipo() + "' (#" + equipamento.getId() + ") excluído");
+
+        equipamentoRepository.delete(equipamento); // @SQLDelete soft-delete via deletedAt
+    }
+
+    /**
      * Cria um equipamento a partir de um item doado aprovado.
      *
      * @deprecated Substituído pelo cadastro manual via
@@ -112,14 +202,43 @@ public class InventarioService {
 
     /**
      * Lista todos os equipamentos, opcionalmente filtrados por status.
+     * Mantido por compatibilidade — prefere {@link #listarEquipamentos(StatusEquipamento, EstadoConservacao, String, Integer)}.
      */
     @Transactional(readOnly = true)
     public List<EquipamentoResponse> listarEquipamentos(StatusEquipamento status) {
-        List<Equipamento> equipamentos = status != null
-                ? equipamentoRepository.findByStatus(status)
-                : equipamentoRepository.findAll();
+        return listarEquipamentos(status, null, null, null);
+    }
 
-        return equipamentos.stream()
+    /**
+     * Lista equipamentos aplicando filtros combinados (todos opcionais).
+     *
+     * @param status        DISPONIVEL/RESERVADO/ENTREGUE
+     * @param conservacao   NOVO/EXCELENTE/BOM/REGULAR/NECESSITA_REPARO
+     * @param origem        {@code "COM_VINCULO"}, {@code "SEM_VINCULO"} ou {@code null}
+     *                      (ignorado se {@code doacaoId} for passado)
+     * @param doacaoId      filtra por uma doação específica; precede o filtro de origem
+     */
+    @Transactional(readOnly = true)
+    public List<EquipamentoResponse> listarEquipamentos(StatusEquipamento status,
+                                                        EstadoConservacao conservacao,
+                                                        String origem,
+                                                        Integer doacaoId) {
+        Boolean hasDoacao = null;
+        // doacaoId tem precedência: se passado, ignora 'origem'
+        if (doacaoId == null && origem != null && !origem.isBlank()) {
+            String normalizado = origem.trim().toUpperCase();
+            if ("COM_VINCULO".equals(normalizado)) {
+                hasDoacao = Boolean.TRUE;
+            } else if ("SEM_VINCULO".equals(normalizado)) {
+                hasDoacao = Boolean.FALSE;
+            } else {
+                throw new BusinessException(
+                        "Filtro 'origem' inválido. Use 'COM_VINCULO' ou 'SEM_VINCULO'.");
+            }
+        }
+
+        return equipamentoRepository.findWithFilters(status, conservacao, hasDoacao, doacaoId)
+                .stream()
                 .map(EquipamentoResponse::from)
                 .collect(Collectors.toList());
     }
