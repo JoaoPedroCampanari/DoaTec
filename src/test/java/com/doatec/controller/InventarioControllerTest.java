@@ -1,9 +1,11 @@
 package com.doatec.controller;
 
+import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
 import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.dto.response.SugestaoMatchingResponse.MatchEquipamentoResponse;
 import com.doatec.model.account.Pessoa;
+import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.service.InventarioService;
@@ -390,6 +392,80 @@ class InventarioControllerTest {
             assertThrows(RuntimeException.class,
                     () -> controller.marcarComoEntregue(999, userDetails));
             verify(inventarioService).marcarComoEntregue(999, 99);
+        }
+    }
+
+    // =====================================================================
+    // CRUD manual
+    // =====================================================================
+
+    @Nested
+    @DisplayName("POST /api/admin/inventario")
+    class CriarEquipamentoTests {
+
+        @Test
+        @DisplayName("retorna 201 e response com id")
+        void criar_retorna201() {
+            EquipamentoRequest req = EquipamentoRequest.builder()
+                    .tipo("HD").descricao("HD 500GB")
+                    .estadoConservacao(EstadoConservacao.BOM)
+                    .build();
+
+            when(pessoaRepository.findByEmail("admin@teste.com"))
+                    .thenReturn(Optional.of(admin));
+            when(inventarioService.criarEquipamentoManual(req, 99))
+                    .thenReturn(equipamentoResponse);
+
+            ResponseEntity<EquipamentoResponse> response =
+                    controller.criarEquipamento(req, userDetails);
+
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertEquals(1, response.getBody().id());
+            verify(inventarioService).criarEquipamentoManual(req, 99);
+        }
+    }
+
+    @Nested
+    @DisplayName("PUT /api/admin/inventario/{id}")
+    class AtualizarEquipamentoTests {
+
+        @Test
+        @DisplayName("retorna 200 com response atualizado")
+        void atualizar_retorna200() {
+            EquipamentoRequest req = EquipamentoRequest.builder()
+                    .tipo("HD").descricao("nova")
+                    .estadoConservacao(EstadoConservacao.EXCELENTE)
+                    .build();
+
+            when(pessoaRepository.findByEmail("admin@teste.com"))
+                    .thenReturn(Optional.of(admin));
+            when(inventarioService.atualizarEquipamento(1, req, 99))
+                    .thenReturn(equipamentoResponse);
+
+            ResponseEntity<EquipamentoResponse> response =
+                    controller.atualizarEquipamento(1, req, userDetails);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            verify(inventarioService).atualizarEquipamento(1, req, 99);
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/admin/inventario/{id}")
+    class DeletarEquipamentoTests {
+
+        @Test
+        @DisplayName("retorna 204 ao deletar com sucesso")
+        void deletar_retorna204() {
+            when(pessoaRepository.findByEmail("admin@teste.com"))
+                    .thenReturn(Optional.of(admin));
+            doNothing().when(inventarioService).deletarEquipamento(1, 99);
+
+            ResponseEntity<Void> response = controller.deletarEquipamento(1, userDetails);
+
+            assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+            verify(inventarioService).deletarEquipamento(1, 99);
         }
     }
 }

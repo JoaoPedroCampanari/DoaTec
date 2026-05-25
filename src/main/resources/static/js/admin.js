@@ -16,7 +16,11 @@ const AdminPanel = {
     filters: {
         doacoes: '',
         solicitacoes: '',
-        inventario: '',
+        inventario: {
+            status: '',
+            conservacao: '',
+            origem: ''
+        },
         suporte: '',
         usuariosTipo: '',
         usuariosRole: ''
@@ -92,13 +96,8 @@ const AdminPanel = {
             { value: 'CONCLUIDA', label: 'Concluída' }
         ], 'solicitacoes');
 
-        // Inventário
-        this.createFilterButtons('inventario-filters', [
-            { value: '', label: 'Todos' },
-            { value: 'DISPONIVEL', label: 'Disponível' },
-            { value: 'RESERVADO', label: 'Reservado' },
-            { value: 'ENTREGUE', label: 'Entregue' }
-        ], 'inventario');
+        // Inventário — filtros múltiplos (status + conservação + origem)
+        this.createInventarioFilters();
 
         // Suporte
         this.createFilterButtons('suporte-filters', [
@@ -212,6 +211,81 @@ const AdminPanel = {
             roleGroup.appendChild(btn);
         });
         container.appendChild(roleGroup);
+    },
+
+    /**
+     * Renderiza 3 grupos de filtros no inventário (status + conservação + origem).
+     * Cada grupo é independente; combinados via AND no backend.
+     */
+    createInventarioFilters() {
+        const container = document.getElementById('inventario-filters');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const groups = [
+            {
+                key: 'status',
+                label: 'Status:',
+                options: [
+                    { value: '', label: 'Todos' },
+                    { value: 'DISPONIVEL', label: 'Disponível' },
+                    { value: 'RESERVADO', label: 'Reservado' },
+                    { value: 'ENTREGUE', label: 'Entregue' }
+                ]
+            },
+            {
+                key: 'conservacao',
+                label: 'Conservação:',
+                options: [
+                    { value: '', label: 'Todos' },
+                    { value: 'NOVO', label: 'Novo' },
+                    { value: 'EXCELENTE', label: 'Excelente' },
+                    { value: 'BOM', label: 'Bom' },
+                    { value: 'REGULAR', label: 'Regular' },
+                    { value: 'NECESSITA_REPARO', label: 'Necessita Reparo' }
+                ]
+            },
+            {
+                key: 'origem',
+                label: 'Origem:',
+                options: [
+                    { value: '', label: 'Todos' },
+                    { value: 'COM_VINCULO', label: 'Com vínculo' },
+                    { value: 'SEM_VINCULO', label: 'Sem vínculo (avulso)' }
+                ]
+            }
+        ];
+
+        groups.forEach((group, idx) => {
+            const groupEl = document.createElement('div');
+            groupEl.style.display = 'flex';
+            groupEl.style.gap = '8px';
+            groupEl.style.alignItems = 'center';
+            groupEl.style.flexWrap = 'wrap';
+            if (idx > 0) groupEl.style.marginTop = '8px';
+
+            const label = document.createElement('span');
+            label.textContent = group.label;
+            label.style.fontWeight = '600';
+            label.style.marginRight = '4px';
+            groupEl.appendChild(label);
+
+            group.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'admin-filter-btn' + (opt.value === '' ? ' active' : '');
+                btn.textContent = opt.label;
+                btn.dataset.value = opt.value;
+                btn.addEventListener('click', () => {
+                    groupEl.querySelectorAll('.admin-filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this.filters.inventario[group.key] = opt.value;
+                    this.loadInventario();
+                });
+                groupEl.appendChild(btn);
+            });
+
+            container.appendChild(groupEl);
+        });
     },
 
     // ==================== DASHBOARD ====================
@@ -506,9 +580,11 @@ const AdminPanel = {
 
     // ==================== INVENTÁRIO ====================
     async loadInventario() {
-        const status = this.filters.inventario;
+        const f = this.filters.inventario;
         const params = new URLSearchParams();
-        if (status) params.set('status', status);
+        if (f.status) params.set('status', f.status);
+        if (f.conservacao) params.set('conservacao', f.conservacao);
+        if (f.origem) params.set('origem', f.origem);
 
         try {
             const res = await apiFetch('/api/admin/inventario?' + params);
