@@ -32,12 +32,21 @@ function setupMobileMenu() {
         navLinks.classList.toggle('active');
     });
 
-    // Close menu when clicking a link
-    navLinks.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
-            menuToggle.classList.remove('active');
-            navLinks.classList.remove('active');
-        });
+    // Fecha o menu mobile ao clicar em um link, EXCETO o "trigger" de um
+    // .nav-dropdown — esse só abre/fecha o submenu inline e não navega,
+    // então fechar o menu inteiro impede o usuário de ver as opções.
+    navLinks.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        // Link dentro de um .nav-dropdown que é o próprio trigger (filho direto do <li>)?
+        const parentLi = link.closest('li');
+        if (parentLi && parentLi.classList.contains('nav-dropdown') && link.parentElement === parentLi) {
+            return; // não fecha o menu — o setupDropdownToggle vai expandir o submenu
+        }
+
+        menuToggle.classList.remove('active');
+        navLinks.classList.remove('active');
     });
 }
 

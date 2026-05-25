@@ -8,39 +8,64 @@
 
 /* ==================== VARIÁVEIS CSS - DESIGN TOKENS ==================== */
 :root {
-    /* Primary Colors */
+    /* ===== BRAND (Primary - Doatec Blue) ===== */
     --primary-900: #0D47A1;
+    --primary-700: #1976D2;
     --primary-600: #1565C0;
     --primary-500: #1E88E5;
     --primary-400: #42A5F5;
+    --primary-300: #64B5F6;
     --primary-100: #E3F2FD;
     --primary-50: #F5F9FF;
 
-    /* Neutral Colors */
+    /* ===== NEUTRAL (Light mode grays - Material) ===== */
     --neutral-900: #212121;
+    --neutral-800: #424242;
     --neutral-600: #757575;
     --neutral-400: #BDBDBD;
+    --neutral-300: #E0E0E0;
     --neutral-100: #F5F5F5;
     --neutral-50: #FAFAFA;
 
-    /* Dark Mode — unified navy blue scale */
-    --dark-900: #0f1724;
-    --dark-800: #151e30;
-    --dark-700: #1c2840;
-    --dark-600: #263755;
-    --dark-500: #5090D3;
+    /* ===== DARK SURFACES (Linear/Vercel-inspired: refined cool-neutral) =====
+       Near-pure black with the slightest cool hint to feel modern but not navy.
+       Surface hierarchy is achieved via lift (RGB delta) + soft shadows,
+       NOT via harsh borders. Borders here are intentionally subtle. */
+    --dark-950: #050506;   /* deepest, rare use */
+    --dark-900: #0c0c0f;   /* page background */
+    --dark-800: #16161a;   /* card / panel surface (lift +10) */
+    --dark-700: #1f1f24;   /* modal / dropdown / elevated (lift +9) */
+    --dark-600: #2a2a30;   /* strong border / divider */
+    --dark-500: #3a3a42;   /* subtle border (almost shadow-like) */
+    --dark-400: #6e6e78;   /* muted/disabled - 4.7:1 on dark-900 */
+    --dark-300: #9b9ba4;   /* secondary text - 7.2:1 (AAA Large) */
+    --dark-200: #c5c5cc;   /* tertiary text - 11:1 (AAA) */
+    --dark-100: #e3e3e7;   /* body text - 13:1 (AAA) */
+    --dark-50:  #f4f4f7;   /* high emphasis - 16:1 (AAA) */
 
-    /* Status Pills */
-    --status-triage-bg: #E3F2FD;
-    --status-triage-text: #1565C0;
-    --status-approved-bg: #E8F5E9;
-    --status-approved-text: #2E7D32;
-    --status-rejected-bg: #FFEBEE;
-    --status-rejected-text: #C62828;
-    --status-pending-bg: #FFF3E0;
-    --status-pending-text: #E65100;
-    --status-completed-bg: #E0F2F1;
-    --status-completed-text: #00695C;
+    /* ===== SEMANTIC STATUS (light defaults; overridden in dark mode below) ===== */
+    --color-danger-bg: #FFEBEE;
+    --color-danger-text: #C62828;
+    --color-success-bg: #E8F5E9;
+    --color-success-text: #2E7D32;
+    --color-warning-bg: #FFF3E0;
+    --color-warning-text: #E65100;
+    --color-info-bg: #E3F2FD;
+    --color-info-text: #1565C0;
+    --color-completed-bg: #E0F2F1;
+    --color-completed-text: #00695C;
+
+    /* Status Pills (aliases for backward compat) */
+    --status-triage-bg: var(--color-info-bg);
+    --status-triage-text: var(--color-info-text);
+    --status-approved-bg: var(--color-success-bg);
+    --status-approved-text: var(--color-success-text);
+    --status-rejected-bg: var(--color-danger-bg);
+    --status-rejected-text: var(--color-danger-text);
+    --status-pending-bg: var(--color-warning-bg);
+    --status-pending-text: var(--color-warning-text);
+    --status-completed-bg: var(--color-completed-bg);
+    --status-completed-text: var(--color-completed-text);
 
     /* Typography */
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -72,7 +97,7 @@
     --transition-base: 0.3s ease;
     --transition-fast: 0.15s ease;
 
-    /* Neutral fill (used in 40+ places but were missing) */
+    /* Neutral fill (extra stops) */
     --neutral-200: #EEEEEE;
     --neutral-500: #9E9E9E;
     --neutral-700: #616161;
@@ -83,7 +108,7 @@
     --color-danger: #dc3545;
     --color-success: #28a745;
     --color-warning: #ffc107;
-    --color-info: #007bff;
+    --color-info: var(--primary-700);
 }
 
 /* ==================== RESET CSS ==================== */
@@ -101,6 +126,19 @@ html {
 
 html.dark-mode {
     background-color: var(--dark-900);
+
+    /* Semantic status — translucent overlays that integrate with surface
+       (modern Linear/Stripe approach instead of stamped solid backgrounds) */
+    --color-danger-bg: rgba(239, 68, 68, 0.12);
+    --color-danger-text: #f87171;
+    --color-success-bg: rgba(34, 197, 94, 0.12);
+    --color-success-text: #4ade80;
+    --color-warning-bg: rgba(234, 179, 8, 0.14);
+    --color-warning-text: #facc15;
+    --color-info-bg: rgba(96, 165, 250, 0.12);
+    --color-info-text: #60a5fa;
+    --color-completed-bg: rgba(45, 212, 191, 0.12);
+    --color-completed-text: #2dd4bf;
 }
 
 body {
@@ -192,6 +230,14 @@ header {
     height: 65px;
     width: auto;
     max-height: 65px;
+    transition: filter var(--transition-base);
+}
+
+/* Dark mode: o "Doa" do logo é preto e some sobre o fundo escuro.
+   invert(1) hue-rotate(180deg) inverte só a luminância — preto vira branco,
+   e as cores (laranja, verde, azul) voltam ao matiz original. */
+html.dark-mode .navbar .logo img {
+    filter: invert(1) hue-rotate(180deg);
 }
 
 /* ==================== NAV LINKS ==================== */
@@ -220,10 +266,18 @@ header {
     transition: color var(--transition-base);
 }
 
-/* Nav link hover */
-.nav-links > li > a:hover,
+/* Nav link active state — sempre aplicada */
 .nav-links > li > a.active {
     color: var(--primary-400);
+}
+
+/* Hover apenas em dispositivos com ponteiro fino (mouse). Em touch o :hover
+   fica grudado após o toque, então restringimos para evitar que um link
+   tocado permaneça azul até o próximo toque em outro lugar. */
+@media (hover: hover) {
+    .nav-links > li > a:hover {
+        color: var(--primary-400);
+    }
 }
 
 /* ==================== MENU TOGGLE (Mobile) ==================== */
@@ -376,7 +430,7 @@ main {
     padding: var(--spacing-xl);
     text-align: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--neutral-200);
     transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -834,7 +888,7 @@ html.dark-mode .file-upload-area.dragover {
 }
 
 html.dark-mode .file-upload-area .file-upload-icon {
-    color: var(--dark-500);
+    color: var(--dark-300);
 }
 
 html.dark-mode .file-upload-area .file-upload-text {
@@ -842,7 +896,7 @@ html.dark-mode .file-upload-area .file-upload-text {
 }
 
 html.dark-mode .file-upload-area .file-upload-hint {
-    color: var(--dark-500);
+    color: var(--dark-400);
 }
 
 html.dark-mode .file-upload-area.has-file {
@@ -1032,7 +1086,7 @@ html.dark-mode .photo-upload-box.dragover {
 }
 
 html.dark-mode .photo-upload-placeholder {
-    color: var(--dark-500);
+    color: var(--dark-300);
 }
 
 html.dark-mode .btn-attach-photo {
@@ -1259,7 +1313,7 @@ body.perfil-page {
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--neutral-200);
     transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -2119,11 +2173,11 @@ input[readonly]::placeholder {
 }
 
 html.dark-mode .about-text {
-    color: #9ca3af;
+    color: var(--dark-300);
 }
 
 html.dark-mode .about-list {
-    color: #9ca3af;
+    color: var(--dark-300);
 }
 
 html.dark-mode .about-strong {
@@ -2140,25 +2194,32 @@ html.dark-mode h4,
 html.dark-mode h5,
 html.dark-mode h6,
 html.dark-mode strong {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .navbar {
-    background: var(--dark-800);
+    background: var(--dark-900);
+    border-bottom: 1px solid var(--dark-600);
 }
 
 html.dark-mode .navbar.scrolled {
-    background: rgba(10, 25, 41, 0.95);
-    backdrop-filter: blur(12px);
+    background: rgba(12, 12, 15, 0.85);
+    backdrop-filter: blur(16px) saturate(140%);
+    border-bottom-color: var(--dark-500);
 }
 
 html.dark-mode .nav-links a {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
-html.dark-mode .nav-links > li > a:hover,
 html.dark-mode .nav-links > li > a.active {
     color: var(--primary-400);
+}
+
+@media (hover: hover) {
+    html.dark-mode .nav-links > li > a:hover {
+        color: var(--primary-400);
+    }
 }
 
 html.dark-mode .nav-links > li:not(.nav-dropdown) > a::after {
@@ -2183,12 +2244,12 @@ html.dark-mode .news-testimonials {
 
 html.dark-mode .about-short h2,
 html.dark-mode .how-it-works h2 {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .about-short p,
 html.dark-mode .step p {
-    color: var(--dark-500);
+    color: var(--dark-200);
 }
 
 /* Stats Dark Mode */
@@ -2197,7 +2258,7 @@ html.dark-mode .dashboard-section {
 }
 
 html.dark-mode .dashboard-title {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .stat-card {
@@ -2215,7 +2276,7 @@ html.dark-mode .stat-number {
 }
 
 html.dark-mode .stat-label {
-    color: var(--dark-500);
+    color: var(--dark-300);
 }
 
 /* Timeline Dark Mode */
@@ -2228,7 +2289,7 @@ html.dark-mode .step-number {
 }
 
 html.dark-mode .step h3 {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 /* Testimonials Dark Mode */
@@ -2243,11 +2304,11 @@ html.dark-mode .testimonial::before {
 }
 
 html.dark-mode .testimonial blockquote {
-    color: var(--dark-500);
+    color: var(--dark-200);
 }
 
 html.dark-mode .testimonial-author {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 /* Forms Dark Mode */
@@ -2266,7 +2327,7 @@ html.dark-mode .form-group .radio-label,
 html.dark-mode .form-group .checkbox-label,
 html.dark-mode .form-text,
 html.dark-mode p {
-    color: #d1d5db;
+    color: var(--dark-200);
 }
 
 html.dark-mode .application-form fieldset {
@@ -2280,7 +2341,7 @@ html.dark-mode .application-form legend {
 }
 
 html.dark-mode .form-group label {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .form-group input[type="text"],
@@ -2292,7 +2353,7 @@ html.dark-mode .form-group textarea,
 html.dark-mode .form-group select {
     background-color: var(--dark-700);
     border-color: var(--dark-600);
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .form-group input:focus,
@@ -2320,40 +2381,14 @@ html.dark-mode .donation-title {
 
 html.dark-mode .donation-meta-item,
 html.dark-mode .donation-item {
-    color: #d1d5db;
+    color: var(--dark-200);
 }
 
 html.dark-mode .donation-items {
     background: var(--dark-700);
 }
 
-/* Status Pills Dark Mode */
-html.dark-mode .status-triagem {
-    background: rgba(66, 165, 245, 0.15);
-    color: #64B5F6;
-}
-
-html.dark-mode .status-aprovado {
-    background: rgba(76, 175, 80, 0.15);
-    color: #81C784;
-}
-
-html.dark-mode .status-reprovado,
-html.dark-mode .status-recusado {
-    background: rgba(239, 83, 80, 0.15);
-    color: #EF5350;
-}
-
-html.dark-mode .status-pendente {
-    background: rgba(255, 152, 0, 0.15);
-    color: #FFB74D;
-}
-
-html.dark-mode .status-concluido,
-html.dark-mode .status-entregue {
-    background: rgba(0, 150, 136, 0.15);
-    color: #4DB6AC;
-}
+/* Status pills auto-adapt via --color-*-bg/text tokens (overridden in html.dark-mode) */
 
 /* Profile Dark Mode */
 html.dark-mode .login-page.perfil-page {
@@ -2386,7 +2421,7 @@ html.dark-mode .profile-hero-role {
 /* Profile Back Link Dark Mode */
 html.dark-mode .profile-back-link a {
     background: var(--dark-800);
-    color: var(--dark-500);
+    color: var(--dark-200);
 }
 
 html.dark-mode .profile-back-link a:hover {
@@ -2405,7 +2440,7 @@ html.dark-mode .profile-card h2 {
 }
 
 html.dark-mode .profile-card label {
-    color: #d1d5db;
+    color: var(--dark-200);
 }
 
 html.dark-mode .profile-card-actions {
@@ -2413,16 +2448,18 @@ html.dark-mode .profile-card-actions {
 }
 
 html.dark-mode .profile-info-item label {
-    color: #888;
+    color: var(--dark-400);
 }
 
 html.dark-mode .profile-info-item span {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .viacep-auto,
 html.dark-mode input[readonly] {
-    background-color: var(--dark-800);
+    background-color: var(--dark-900);
+    color: var(--dark-300);
+    border-color: var(--dark-700);
 }
 
 /* Dropdowns Dark Mode */
@@ -2433,12 +2470,12 @@ html.dark-mode .dropdown-menu {
 }
 
 html.dark-mode .dropdown-menu-header {
-    color: #888;
+    color: var(--dark-400);
     border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 html.dark-mode .dropdown-menu li a {
-    color: #f3f4f6 !important;
+    color: var(--dark-50) !important;
 }
 
 html.dark-mode .dropdown-menu li a:hover {
@@ -2486,7 +2523,7 @@ html.dark-mode .notification-header {
 }
 
 html.dark-mode .notification-header h4 {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .notification-item {
@@ -2498,31 +2535,31 @@ html.dark-mode .notification-item:hover {
 }
 
 html.dark-mode .notification-item.unread {
-    background-color: #1a3a5c;
+    background-color: rgba(66, 165, 245, 0.1);
     border-left-color: var(--primary-400);
 }
 
 html.dark-mode .notification-title {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .notification-message {
-    color: #d1d5db;
+    color: var(--dark-200);
 }
 
 html.dark-mode .notification-empty {
-    color: #888;
+    color: var(--dark-400);
 }
 
 /* Stepper Dark Mode */
 html.dark-mode .stepper .step-number {
     background: var(--dark-700);
-    color: #aaa;
+    color: var(--dark-300);
     border-color: var(--dark-600);
 }
 
 html.dark-mode .stepper .step-label {
-    color: #888;
+    color: var(--dark-400);
 }
 
 html.dark-mode .stepper-progress::before {
@@ -2541,24 +2578,25 @@ html.dark-mode .stepper .step.active .step-label {
 }
 
 html.dark-mode .stepper .step.completed .step-number {
-    background: #4CAF50;
-    border-color: #4CAF50;
+    background: var(--color-success-text);
+    border-color: var(--color-success-text);
 }
 
 html.dark-mode .stepper .step.completed .step-label {
-    color: #4CAF50;
+    color: var(--color-success-text);
 }
 
 /* Footer Dark Mode */
 html.dark-mode footer {
     background: var(--dark-800);
-    color: #888;
+    color: var(--dark-300);
+    border-top: 1px solid var(--dark-700);
 }
 
 html.dark-mode blockquote {
     border-left: 5px solid var(--primary-400);
     background-color: transparent !important;
-    color: #d1d5db;
+    color: var(--dark-200);
 }
 
 html.dark-mode hr {
@@ -2567,7 +2605,7 @@ html.dark-mode hr {
 
 /* FAQ Dark Mode */
 html.dark-mode .faq-section h2 {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .faq-card {
@@ -2588,28 +2626,29 @@ html.dark-mode .faq-heading {
 }
 
 html.dark-mode .faq-label {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .faq-subtitle {
-    color: #9ca3af;
+    color: var(--dark-300);
 }
 
 html.dark-mode .login-required-msg {
-    background: rgba(37, 99, 235, 0.15);
+    background: rgba(66, 165, 245, 0.12);
+    border: 1px solid rgba(66, 165, 245, 0.18);
 }
 
 html.dark-mode .login-required-msg p {
-    color: #9ca3af;
+    color: var(--dark-300);
 }
 
 /* Empty State Dark Mode */
 html.dark-mode .empty-state h3 {
-    color: #ccc;
+    color: var(--dark-50);
 }
 
 html.dark-mode .empty-state p {
-    color: #888;
+    color: var(--dark-400);
 }
 
 html.dark-mode .empty-state-icon {
@@ -2623,16 +2662,16 @@ html.dark-mode .login-page {
 html.dark-mode .login-box {
     background: var(--dark-800);
     border-color: var(--dark-700);
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .login-box h1,
 html.dark-mode .login-box h2 {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .login-box label {
-    color: #ccc;
+    color: var(--dark-200);
 }
 
 html.dark-mode .login-box input[type="text"],
@@ -2643,7 +2682,7 @@ html.dark-mode .login-box select,
 html.dark-mode .login-box textarea {
     background: var(--dark-900);
     border-color: var(--dark-700);
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .login-box input:focus,
@@ -2693,6 +2732,25 @@ html.dark-mode .login-box textarea:focus {
 
     .menu-toggle {
         display: flex;
+    }
+
+    /* Navbar Right Mobile — recolhe os atalhos dentro do menu hamburger
+       para evitar que estoure a viewport (overflow horizontal). */
+    .navbar-right {
+        margin-right: 0;
+        gap: 6px;
+    }
+
+    .navbar-right > #profileButton.btn-primary {
+        padding: 0 12px;
+        font-size: 0.85rem;
+        height: 36px;
+    }
+
+    /* Esconde o dropdown "Minha Conta" no header mobile —
+       suas opções (Perfil, Sair) ficam no menu hamburger. */
+    .navbar-right .nav-links-account {
+        display: none;
     }
 
     /* Hero Mobile */
@@ -2819,25 +2877,79 @@ html.dark-mode .login-box textarea:focus {
         width: 100%;
     }
 
-    /* Dropdown Mobile */
-    .nav-dropdown.dropdown-open .dropdown-menu {
-        position: fixed;
-        top: auto;
-        left: var(--spacing-md);
-        right: var(--spacing-md);
-        width: calc(100% - 2 * var(--spacing-md));
-        max-width: 100%;
+    /* Dropdown Mobile — comportamento accordion inline.
+       No mobile o submenu expande dentro do fluxo do menu hamburger,
+       empurrando os itens irmãos para baixo, em vez de virar popover flutuante. */
+    .nav-dropdown .dropdown-menu,
+    #minhaContaDropdownItem .dropdown-menu {
+        position: static;
         transform: none;
+        left: auto;
+        right: auto;
+        top: auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: var(--spacing-xs) 0 0;
+        padding: 4px 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        border-left: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0;
+        padding-left: var(--spacing-md);
     }
 
+    .nav-dropdown.dropdown-open .dropdown-menu,
     #minhaContaDropdownItem.dropdown-open .dropdown-menu {
-        left: var(--spacing-md);
-        right: var(--spacing-md);
-        transform: none;
+        animation: none;
     }
 
     .dropdown-menu li a {
-        text-align: center !important;
+        text-align: left !important;
+        padding: 10px 12px;
+        color: #f8f9fa !important; /* mesma cor dos itens principais do nav mobile */
+        background: transparent;
+    }
+
+    /* Hover/foco dos sub-itens: cor da brand, sem fundo branco. */
+    .dropdown-menu li a:hover,
+    .dropdown-menu li a:focus {
+        color: var(--primary-400) !important;
+        background: transparent;
+    }
+
+    /* Esconde os ícones SVG dos sub-itens no mobile — visual mais limpo
+       e alinhado ao restante do menu hamburger (que não tem ícones). */
+    .dropdown-menu .dropdown-icon {
+        display: none;
+    }
+
+    /* Trigger do dropdown: posiciona relativo para ancorar o chevron absoluto. */
+    .nav-dropdown > a {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Chevron indicador de expansão — POSITION: ABSOLUTE para não consumir
+       espaço do texto. Assim "Suporte" continua centralizado igual aos demais
+       itens do nav (Início, Sobre Nós) sem deslocar lateralmente. */
+    .nav-dropdown > a::after {
+        content: "▾";
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 8px;
+        display: inline-block;
+        background: none !important;
+        width: auto;
+        height: auto;
+        transition: transform var(--transition-fast);
+    }
+
+    .nav-dropdown.dropdown-open > a::after {
+        transform: translateY(-50%) rotate(180deg);
     }
 
     /* Form Mobile */
@@ -2917,7 +3029,7 @@ html.dark-mode ::selection {
 }
 
 html.dark-mode .admin-page h1 {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 .admin-container {
@@ -2946,11 +3058,11 @@ html.dark-mode .admin-page h1 {
 }
 
 .admin-subtitle {
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     font-size: 0.95rem;
 }
 
-html.dark-mode .admin-subtitle { color: #aaa; }
+html.dark-mode .admin-subtitle { color: var(--dark-300); }
 
 .admin-section-header {
     display: flex;
@@ -2964,7 +3076,7 @@ html.dark-mode .admin-subtitle { color: #aaa; }
 .admin-tabs {
     display: flex;
     gap: 4px;
-    border-bottom: 2px solid var(--neutral-200, #e2e8f0);
+    border-bottom: 2px solid var(--neutral-200);
     margin-bottom: 24px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -2980,7 +3092,7 @@ html.dark-mode .admin-subtitle { color: #aaa; }
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 500;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     border: none;
     background: none;
     border-bottom: 3px solid transparent;
@@ -2991,19 +3103,19 @@ html.dark-mode .admin-subtitle { color: #aaa; }
 }
 
 .admin-tab:hover {
-    color: var(--primary-600, #1565C0);
+    color: var(--primary-600);
 }
 
 .admin-tab.active {
-    color: var(--primary-600, #1565C0);
-    border-bottom-color: var(--primary-600, #1565C0);
+    color: var(--primary-600);
+    border-bottom-color: var(--primary-600);
     font-weight: 600;
 }
 
-html.dark-mode .admin-tab { color: #aaa; }
-html.dark-mode .admin-tab:hover { color: var(--primary-400, #42A5F5); }
-html.dark-mode .admin-tab.active { color: var(--primary-400, #42A5F5); border-bottom-color: var(--primary-400, #42A5F5); }
-html.dark-mode .admin-tabs { border-bottom-color: var(--dark-700, #1f2937); }
+html.dark-mode .admin-tab { color: var(--dark-300); }
+html.dark-mode .admin-tab:hover { color: var(--primary-400); }
+html.dark-mode .admin-tab.active { color: var(--primary-400); border-bottom-color: var(--primary-400); }
+html.dark-mode .admin-tabs { border-bottom-color: var(--dark-700); }
 
 /* Sub-tabs */
 .admin-subtabs {
@@ -3017,17 +3129,17 @@ html.dark-mode .admin-tabs { border-bottom-color: var(--dark-700, #1f2937); }
     border-radius: 20px;
     font-size: 0.85rem;
     cursor: pointer;
-    border: 1px solid var(--neutral-400, #BDBDBD);
+    border: 1px solid var(--neutral-400);
     background: transparent;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     transition: all var(--transition-fast, 0.15s ease);
 }
 
-.admin-subtab:hover { border-color: var(--primary-400, #42A5F5); color: var(--primary-600, #1565C0); }
-.admin-subtab.active { background: var(--primary-600, #1565C0); color: #fff; border-color: var(--primary-600, #1565C0); }
+.admin-subtab:hover { border-color: var(--primary-400); color: var(--primary-600); }
+.admin-subtab.active { background: var(--primary-600); color: #fff; border-color: var(--primary-600); }
 
-html.dark-mode .admin-subtab { border-color: var(--dark-600, #1f2937); color: #aaa; }
-html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); color: #fff; }
+html.dark-mode .admin-subtab { border-color: var(--dark-600); color: var(--dark-300); }
+html.dark-mode .admin-subtab.active { background: var(--primary-600); color: #fff; }
 
 /* Tab content */
 .admin-tab-content { display: none; }
@@ -3051,7 +3163,7 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    border: 1px solid var(--neutral-200, #e2e8f0);
+    border: 1px solid var(--neutral-200);
     transition: transform var(--transition-fast, 0.15s ease), box-shadow var(--transition-fast, 0.15s ease);
 }
 
@@ -3062,7 +3174,7 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
 
 .admin-stat-card .stat-label {
     font-size: 0.8rem;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
@@ -3072,18 +3184,18 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
 .admin-stat-card .stat-number {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--primary-900, #0D47A1);
+    color: var(--primary-900);
     display: block;
 }
 
 .admin-stat-card.stat-success .stat-value,
-.admin-stat-card.stat-success .stat-number { color: var(--color-success, #28a745); }
+.admin-stat-card.stat-success .stat-number { color: var(--color-success); }
 .admin-stat-card.stat-danger .stat-value,
-.admin-stat-card.stat-danger .stat-number { color: var(--color-danger, #dc3545); }
+.admin-stat-card.stat-danger .stat-number { color: var(--color-danger); }
 .admin-stat-card.stat-warning .stat-value,
-.admin-stat-card.stat-warning .stat-number { color: var(--color-warning, #ffc107); }
+.admin-stat-card.stat-warning .stat-number { color: var(--color-warning); }
 .admin-stat-card.stat-info .stat-value,
-.admin-stat-card.stat-info .stat-number { color: var(--primary-600, #1565C0); }
+.admin-stat-card.stat-info .stat-number { color: var(--primary-600); }
 
 .admin-stat-icon {
     margin-bottom: 8px;
@@ -3095,20 +3207,20 @@ html.dark-mode .admin-subtab.active { background: var(--primary-600, #1565C0); c
 }
 
 html.dark-mode .admin-stat-card {
-    background: var(--dark-800, #16213e);
-    border-color: var(--dark-700, #1f2937);
+    background: var(--dark-800);
+    border-color: var(--dark-700);
 }
-html.dark-mode .admin-stat-card .stat-label { color: #999; }
+html.dark-mode .admin-stat-card .stat-label { color: var(--dark-400); }
 html.dark-mode .admin-stat-card .stat-value,
-html.dark-mode .admin-stat-card .stat-number { color: #f3f4f6; }
+html.dark-mode .admin-stat-card .stat-number { color: var(--dark-50); }
 html.dark-mode .admin-stat-card.stat-success .stat-value,
-html.dark-mode .admin-stat-card.stat-success .stat-number { color: #66bb6a; }
+html.dark-mode .admin-stat-card.stat-success .stat-number { color: var(--color-success-text); }
 html.dark-mode .admin-stat-card.stat-danger .stat-value,
-html.dark-mode .admin-stat-card.stat-danger .stat-number { color: #ef5350; }
+html.dark-mode .admin-stat-card.stat-danger .stat-number { color: var(--color-danger-text); }
 html.dark-mode .admin-stat-card.stat-warning .stat-value,
-html.dark-mode .admin-stat-card.stat-warning .stat-number { color: #ffca28; }
+html.dark-mode .admin-stat-card.stat-warning .stat-number { color: var(--color-warning-text); }
 html.dark-mode .admin-stat-card.stat-info .stat-value,
-html.dark-mode .admin-stat-card.stat-info .stat-number { color: var(--primary-400, #42A5F5); }
+html.dark-mode .admin-stat-card.stat-info .stat-number { color: var(--primary-400); }
 
 /* Filter bar */
 .admin-filter-bar {
@@ -3124,29 +3236,29 @@ html.dark-mode .admin-stat-card.stat-info .stat-number { color: var(--primary-40
     border-radius: 16px;
     font-size: 0.8rem;
     cursor: pointer;
-    border: 1px solid var(--neutral-400, #BDBDBD);
+    border: 1px solid var(--neutral-400);
     background: transparent;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     transition: all var(--transition-fast, 0.15s ease);
 }
 
-.admin-filter-btn:hover { border-color: var(--primary-400, #42A5F5); color: var(--primary-600, #1565C0); }
-.admin-filter-btn.active { background: var(--primary-600, #1565C0); color: #fff; border-color: var(--primary-600, #1565C0); }
+.admin-filter-btn:hover { border-color: var(--primary-400); color: var(--primary-600); }
+.admin-filter-btn.active { background: var(--primary-600); color: #fff; border-color: var(--primary-600); }
 
-html.dark-mode .admin-filter-btn { border-color: var(--dark-600, #1f2937); color: #aaa; }
-html.dark-mode .admin-filter-btn.active { background: var(--primary-600, #1565C0); color: #fff; }
+html.dark-mode .admin-filter-btn { border-color: var(--dark-600); color: var(--dark-300); }
+html.dark-mode .admin-filter-btn.active { background: var(--primary-600); color: #fff; }
 
 /* Admin table */
 .admin-table-wrapper {
     overflow-x: auto;
     border-radius: 10px;
-    border: 1px solid var(--neutral-200, #e2e8f0);
+    border: 1px solid var(--neutral-200);
     background: #fff;
 }
 
 html.dark-mode .admin-table-wrapper {
-    background: var(--dark-800, #16213e);
-    border-color: var(--dark-700, #1f2937);
+    background: var(--dark-800);
+    border-color: var(--dark-700);
 }
 
 .admin-table {
@@ -3156,41 +3268,41 @@ html.dark-mode .admin-table-wrapper {
 }
 
 .admin-table th {
-    background: var(--neutral-100, #F5F5F5);
+    background: var(--neutral-100);
     padding: 12px 14px;
     text-align: left;
     font-weight: 600;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--neutral-600, #757575);
-    border-bottom: 2px solid var(--neutral-200, #e2e8f0);
+    color: var(--neutral-600);
+    border-bottom: 2px solid var(--neutral-200);
     white-space: nowrap;
 }
 
 html.dark-mode .admin-table th {
-    background: var(--dark-700, #1f2937);
-    color: #aaa;
-    border-bottom-color: var(--dark-600, #1f2937);
+    background: var(--dark-700);
+    color: var(--dark-300);
+    border-bottom-color: var(--dark-600);
 }
 
 .admin-table td {
     padding: 10px 14px;
-    border-bottom: 1px solid var(--neutral-100, #F5F5F5);
-    color: var(--neutral-900, #212121);
+    border-bottom: 1px solid var(--neutral-100);
+    color: var(--neutral-900);
 }
 
 html.dark-mode .admin-table td {
-    color: #ddd;
-    border-bottom-color: var(--dark-700, #1f2937);
+    color: var(--dark-100);
+    border-bottom-color: var(--dark-700);
 }
 
 .admin-table tr:hover td {
-    background: var(--primary-50, #F5F9FF);
+    background: var(--primary-50);
 }
 
 html.dark-mode .admin-table tr:hover td {
-    background: var(--dark-700, #1f2937);
+    background: var(--dark-700);
 }
 
 .admin-table .actions,
@@ -3250,11 +3362,11 @@ html.dark-mode .admin-detail-content {
 }
 
 html.dark-mode .admin-detail-content p {
-    color: #9ca3af;
+    color: var(--dark-300);
 }
 
 html.dark-mode .admin-detail-content strong {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 /* Action buttons */
@@ -3269,20 +3381,20 @@ html.dark-mode .admin-detail-content strong {
 }
 
 .btn-approve {
-    background: #d4edda;
-    color: #155724;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
 }
-.btn-approve:hover { background: #c3e6cb; }
+.btn-approve:hover { background: color-mix(in srgb, var(--color-success-bg) 88%, black); }
 
 .btn-reject {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
 }
-.btn-reject:hover { background: #f5c6cb; }
+.btn-reject:hover { background: color-mix(in srgb, var(--color-danger-bg) 88%, black); }
 
 .btn-action {
-    background: var(--primary-100, #E3F2FD);
-    color: var(--primary-900, #0D47A1);
+    background: var(--primary-100);
+    color: var(--primary-900);
 }
 .btn-action:hover { background: #bbdefb; }
 
@@ -3294,33 +3406,31 @@ html.dark-mode .admin-detail-content strong {
     position: relative;
     z-index: 10;
     font-weight: 500;
-    border: 1px solid var(--neutral-300, #d1d5db);
-    background: var(--neutral-50, #fff);
-    color: var(--neutral-800, #1f2937);
+    border: 1px solid var(--neutral-300);
+    background: var(--neutral-50);
+    color: var(--neutral-800);
     cursor: pointer;
     transition: all var(--transition-fast, 0.15s ease);
 }
-.admin-status-select:hover { border-color: var(--primary-500, #2563eb); }
-.admin-status-select:focus { outline: 2px solid var(--primary-500, #2563eb); outline-offset: 1px; }
+.admin-status-select:hover { border-color: var(--primary-500); }
+.admin-status-select:focus { outline: 2px solid var(--primary-500); outline-offset: 1px; }
 html.dark-mode .admin-status-select {
-    background: var(--dark-700, #1f2937);
-    color: var(--dark-text, #f3f4f6);
-    border-color: var(--dark-600, #374151);
+    background: var(--dark-700);
+    color: var(--dark-text);
+    border-color: var(--dark-600);
 }
 
 .btn-danger {
     padding: 5px 10px;
     border: none;
     border-radius: 4px;
-    background: #dc3545;
+    background: var(--color-danger);
     color: #fff;
     cursor: pointer;
     font-size: 0.8rem;
-    transition: background var(--transition-fast, 0.15s ease);
+    transition: background var(--transition-fast);
 }
-.btn-danger:hover { background: #c82333; }
-html.dark-mode .btn-danger { background: #b71c1c; color: #ef9a9a; }
-html.dark-mode .btn-danger:hover { background: #c62828; }
+.btn-danger:hover { background: color-mix(in srgb, var(--color-danger) 85%, black); }
 
 .btn-sm { font-size: 0.78rem; padding: 4px 8px; }
 
@@ -3328,12 +3438,12 @@ html.dark-mode .btn-danger:hover { background: #c62828; }
 .skeleton-line {
     height: 16px;
     border-radius: 4px;
-    background: linear-gradient(90deg, #f3f4f6 25%, #f0f0f0 50%, #f3f4f6 75%);
+    background: linear-gradient(90deg, var(--neutral-100) 25%, var(--neutral-200) 50%, var(--neutral-100) 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 html.dark-mode .skeleton-line {
-    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+    background: linear-gradient(90deg, var(--dark-800) 25%, var(--dark-700) 50%, var(--dark-800) 75%);
     background-size: 200% 100%;
 }
 @keyframes skeleton-shimmer {
@@ -3341,12 +3451,8 @@ html.dark-mode .skeleton-line {
     100% { background-position: -200% 0; }
 }
 
-html.dark-mode .btn-approve { background: #1b5e20; color: #a5d6a7; }
-html.dark-mode .btn-approve:hover { background: #2e7d32; }
-html.dark-mode .btn-reject { background: #b71c1c; color: #ef9a9a; }
-html.dark-mode .btn-reject:hover { background: #c62828; }
-html.dark-mode .btn-action { background: var(--dark-700, #1f2937); color: var(--primary-400, #42A5F5); }
-html.dark-mode .btn-action:hover { background: var(--dark-600, #1f2937); }
+html.dark-mode .btn-action { background: var(--dark-700); color: var(--primary-400); }
+html.dark-mode .btn-action:hover { background: var(--dark-600); }
 
 /* Pagination */
 .admin-pagination {
@@ -3359,21 +3465,21 @@ html.dark-mode .btn-action:hover { background: var(--dark-600, #1f2937); }
 
 .admin-pagination button {
     padding: 6px 12px;
-    border: 1px solid var(--neutral-400, #BDBDBD);
+    border: 1px solid var(--neutral-400);
     border-radius: 6px;
     background: #fff;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     cursor: pointer;
     font-size: 0.85rem;
     transition: all var(--transition-fast, 0.15s ease);
 }
 
-.admin-pagination button:hover { border-color: var(--primary-400, #42A5F5); color: var(--primary-600, #1565C0); }
-.admin-pagination button.active { background: var(--primary-600, #1565C0); color: #fff; border-color: var(--primary-600, #1565C0); }
+.admin-pagination button:hover { border-color: var(--primary-400); color: var(--primary-600); }
+.admin-pagination button.active { background: var(--primary-600); color: #fff; border-color: var(--primary-600); }
 .admin-pagination button:disabled { opacity: 0.4; cursor: default; }
 
-html.dark-mode .admin-pagination button { background: var(--dark-800, #16213e); border-color: var(--dark-600, #1f2937); color: #aaa; }
-html.dark-mode .admin-pagination button.active { background: var(--primary-600, #1565C0); color: #fff; }
+html.dark-mode .admin-pagination button { background: var(--dark-800); border-color: var(--dark-600); color: var(--dark-300); }
+html.dark-mode .admin-pagination button.active { background: var(--primary-600); color: #fff; }
 
 /* Modal */
 .admin-modal-overlay {
@@ -3402,15 +3508,15 @@ html.dark-mode .admin-pagination button.active { background: var(--primary-600, 
 }
 
 html.dark-mode .admin-modal {
-    background: var(--dark-800, #16213e);
-    color: #ddd;
+    background: var(--dark-800);
+    color: var(--dark-100);
 }
 
 .admin-modal h3 {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 16px;
-    color: var(--primary-900, #0D47A1);
+    color: var(--primary-900);
 }
 
 .admin-modal-header {
@@ -3424,7 +3530,7 @@ html.dark-mode .admin-modal {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--primary-900, #0D47A1);
+    color: var(--primary-900);
 }
 
 .admin-modal-header button {
@@ -3432,13 +3538,13 @@ html.dark-mode .admin-modal {
     border: none;
     font-size: 1.4rem;
     cursor: pointer;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     padding: 0 4px;
     line-height: 1;
 }
 
 .admin-modal-header button:hover {
-    color: var(--color-danger, #dc3545);
+    color: var(--color-danger);
 }
 
 .admin-modal-body {
@@ -3446,21 +3552,21 @@ html.dark-mode .admin-modal {
 }
 
 .admin-modal-body p {
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
     margin-bottom: 12px;
     font-size: 0.9rem;
 }
 
-html.dark-mode .admin-modal h3 { color: var(--primary-400, #42A5F5); }
-html.dark-mode .admin-modal-header h3 { color: var(--primary-400, #42A5F5); }
-html.dark-mode .admin-modal-header button { color: #aaa; }
-html.dark-mode .admin-modal-header button:hover { color: #ef5350; }
-html.dark-mode .admin-modal-body p { color: #aaa; }
+html.dark-mode .admin-modal h3 { color: var(--primary-400); }
+html.dark-mode .admin-modal-header h3 { color: var(--primary-400); }
+html.dark-mode .admin-modal-header button { color: var(--dark-300); }
+html.dark-mode .admin-modal-header button:hover { color: var(--color-danger-text); }
+html.dark-mode .admin-modal-body p { color: var(--dark-300); }
 
 .admin-modal textarea {
     width: 100%;
     min-height: 100px;
-    border: 1px solid var(--neutral-400, #BDBDBD);
+    border: 1px solid var(--neutral-400);
     border-radius: 8px;
     padding: 10px;
     font-size: 0.9rem;
@@ -3477,30 +3583,30 @@ html.dark-mode .admin-modal-body p { color: #aaa; }
     font-weight: 500;
     margin-bottom: 4px;
     font-size: 0.85rem;
-    color: var(--neutral-700, #616161);
+    color: var(--neutral-700);
 }
 
 .admin-modal .form-group select {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid var(--neutral-400, #BDBDBD);
+    border: 1px solid var(--neutral-400);
     border-radius: 8px;
     font-size: 0.9rem;
     background: #fff;
     font-family: inherit;
 }
 
-html.dark-mode .admin-modal .form-group label { color: #ccc; }
+html.dark-mode .admin-modal .form-group label { color: var(--dark-200); }
 html.dark-mode .admin-modal .form-group select {
-    background: var(--dark-900, #1a1a2e);
-    border-color: var(--dark-600, #1f2937);
-    color: #ddd;
+    background: var(--dark-900);
+    border-color: var(--dark-600);
+    color: var(--dark-100);
 }
 
 html.dark-mode .admin-modal textarea {
-    background: var(--dark-900, #1a1a2e);
-    border-color: var(--dark-600, #1f2937);
-    color: #ddd;
+    background: var(--dark-900);
+    border-color: var(--dark-600);
+    color: var(--dark-100);
 }
 
 .admin-modal-footer {
@@ -3520,24 +3626,24 @@ html.dark-mode .admin-modal textarea {
 }
 
 .admin-modal-footer .btn-cancel {
-    background: var(--neutral-100, #F5F5F5);
-    color: var(--neutral-600, #757575);
+    background: var(--neutral-100);
+    color: var(--neutral-600);
 }
 
-html.dark-mode .admin-modal-footer .btn-cancel { background: var(--dark-700, #1f2937); color: #aaa; }
+html.dark-mode .admin-modal-footer .btn-cancel { background: var(--dark-700); color: var(--dark-300); }
 
 .admin-modal-footer .btn-confirm-approve {
-    background: var(--color-success, #28a745);
+    background: var(--color-success);
     color: #fff;
 }
 
 .admin-modal-footer .btn-confirm-reject {
-    background: var(--color-danger, #dc3545);
+    background: var(--color-danger);
     color: #fff;
 }
 
 .admin-modal-footer .btn-confirm-action {
-    background: var(--primary-600, #1565C0);
+    background: var(--primary-600);
     color: #fff;
 }
 
@@ -3550,19 +3656,15 @@ html.dark-mode .admin-modal-footer .btn-cancel { background: var(--dark-700, #1f
     font-weight: 600;
 }
 
-.match-score.high { background: #d4edda; color: #155724; }
-.match-score.medium { background: #fff3cd; color: #856404; }
-.match-score.low { background: #f8d7da; color: #721c24; }
-
-html.dark-mode .match-score.high { background: #1b5e20; color: #a5d6a7; }
-html.dark-mode .match-score.medium { background: #4e342e; color: #ffca28; }
-html.dark-mode .match-score.low { background: #b71c1c; color: #ef9a9a; }
+.match-score.high { background: var(--color-success-bg); color: var(--color-success-text); }
+.match-score.medium { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.match-score.low { background: var(--color-danger-bg); color: var(--color-danger-text); }
 
 /* Empty state */
 .admin-empty {
     text-align: center;
     padding: 40px 20px;
-    color: var(--neutral-600, #757575);
+    color: var(--neutral-600);
 }
 
 .admin-empty svg {
@@ -3591,7 +3693,7 @@ html.dark-mode .match-score.low { background: #b71c1c; color: #ef9a9a; }
     position: absolute;
     cursor: pointer;
     inset: 0;
-    background: #ccc;
+    background: var(--neutral-400);
     border-radius: 24px;
     transition: 0.3s;
 }
@@ -3609,15 +3711,15 @@ html.dark-mode .match-score.low { background: #b71c1c; color: #ef9a9a; }
 }
 
 .toggle-active input:checked + .toggle-slider {
-    background: var(--color-success, #28a745);
+    background: var(--color-success);
 }
 
 .toggle-active input:checked + .toggle-slider::before {
     transform: translateX(20px);
 }
 
-html.dark-mode .toggle-slider { background: var(--dark-600, #1f2937); }
-html.dark-mode .toggle-active input:checked + .toggle-slider { background: #66bb6a; }
+html.dark-mode .toggle-slider { background: var(--dark-600); }
+html.dark-mode .toggle-active input:checked + .toggle-slider { background: var(--color-success-text); }
 
 /* Role badge */
 .role-badge {
@@ -3629,16 +3731,10 @@ html.dark-mode .toggle-active input:checked + .toggle-slider { background: #66bb
 }
 
 .role-badge.admin,
-.role-badge.role-admin { background: #fff3cd; color: #856404; }
-.role-badge.role-super-admin { background: #f8d7da; color: #721c24; font-weight: 600; }
+.role-badge.role-admin { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.role-badge.role-super-admin { background: var(--color-danger-bg); color: var(--color-danger-text); font-weight: 600; }
 .role-badge.user,
-.role-badge.role-user { background: #d1ecf1; color: #0c5460; }
-
-html.dark-mode .role-badge.admin,
-html.dark-mode .role-badge.role-admin { background: #4e342e; color: #ffca28; }
-html.dark-mode .role-badge.role-super-admin { background: #4a1a2e; color: #ff8a9e; }
-html.dark-mode .role-badge.user,
-html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
+.role-badge.role-user { background: var(--color-info-bg); color: var(--color-info-text); }
 
 /* ==============================
    Chat Widget
@@ -3728,7 +3824,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 
 .chat-bubble-other {
     align-self: flex-start;
-    background: #f3f4f6;
+    background: var(--dark-50);
     color: #212121;
     border-bottom-left-radius: 4px;
 }
@@ -3777,7 +3873,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 .chat-input-area button {
     padding: 9px 18px;
     border-radius: 8px;
-    background: #1976D2;
+    background: var(--primary-700);
     color: #fff;
     border: none;
     cursor: pointer;
@@ -3797,8 +3893,8 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 
 .chat-btn {
     margin-top: 10px;
-    color: #1976D2;
-    border: 1px solid #1976D2;
+    color: var(--primary-700);
+    border: 1px solid var(--primary-700);
     background: transparent;
     font-size: 0.82rem;
     padding: 5px 12px;
@@ -3808,7 +3904,7 @@ html.dark-mode .role-badge.role-user { background: #0c5460; color: #bee5eb; }
 }
 
 .chat-btn:hover {
-    background: #1976D2;
+    background: var(--primary-700);
     color: #fff;
 }
 
@@ -3821,16 +3917,16 @@ html.dark-mode .chat-panel {
 
 html.dark-mode .chat-header {
     border-bottom-color: rgba(255, 255, 255, 0.06);
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .chat-close:hover {
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .chat-bubble-other {
     background: rgba(255, 255, 255, 0.08);
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .chat-input-area {
@@ -3840,7 +3936,7 @@ html.dark-mode .chat-input-area {
 html.dark-mode .chat-input-area input {
     background: var(--dark-700);
     border-color: var(--dark-700);
-    color: #f3f4f6;
+    color: var(--dark-50);
 }
 
 html.dark-mode .chat-input-area input:focus {
