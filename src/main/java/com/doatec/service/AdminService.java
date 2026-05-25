@@ -18,9 +18,7 @@ import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.Role;
 import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.Doacao;
-import com.doatec.model.donation.ItemDoado;
 import com.doatec.model.donation.StatusDoacao;
-import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.notification.TipoNotificacao;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.model.solicitacao.StatusSolicitacao;
@@ -62,9 +60,6 @@ public class AdminService {
 
     @Autowired
     private LogAcaoRepository logAcaoRepository;
-
-    @Autowired
-    private InventarioService inventarioService;
 
     @Autowired
     private NotificacaoService notificacaoService;
@@ -128,11 +123,10 @@ public class AdminService {
 
         Doacao doacaoAtualizada = doacaoRepository.save(doacao);
 
-        // Criar equipamentos no inventário para cada item doado
-        for (ItemDoado item : doacao.getItens()) {
-            EstadoConservacao estado = inferirEstadoConservacao(request);
-            inventarioService.criarEquipamento(item, estado);
-        }
+        // Equipamentos NÃO são mais criados automaticamente. O admin faz a triagem
+        // física e cadastra manualmente em InventarioService.criarEquipamentoManual,
+        // opcionalmente vinculando à doação. Nem todo item declarado funciona, e um
+        // item pode gerar várias peças (HD/RAM/bateria de um mesmo notebook).
 
         // Notificar o doador
         notificacaoService.criarNotificacao(
@@ -204,13 +198,8 @@ public class AdminService {
             doacao.setObservacaoAdmin(request.observacao());
         }
 
-        // Criar equipamentos no inventário SOMENTE quando transicionar para FINALIZADO
-        if (novoStatus == StatusDoacao.FINALIZADO) {
-            for (ItemDoado item : doacao.getItens()) {
-                EstadoConservacao estado = inferirEstadoConservacao(request);
-                inventarioService.criarEquipamento(item, estado);
-            }
-        }
+        // Criação automática de equipamentos desligada — admin faz triagem manual.
+        // Ver InventarioService.criarEquipamentoManual.
 
         Doacao doacaoAtualizada = doacaoRepository.save(doacao);
 
@@ -566,13 +555,4 @@ public class AdminService {
         logAcaoRepository.save(log);
     }
 
-    /**
-     * Infere o estado de conservação do item baseado no request.
-     * Por enquanto usa um valor padrão, mas pode ser expandido.
-     */
-    private EstadoConservacao inferirEstadoConservacao(AvaliacaoRequest request) {
-        // Por enquanto, usa BOM como padrão.
-        // No futuro, o request pode incluir campos para avaliar cada item.
-        return EstadoConservacao.BOM;
-    }
 }

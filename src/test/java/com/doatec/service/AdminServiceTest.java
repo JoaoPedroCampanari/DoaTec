@@ -58,9 +58,6 @@ class AdminServiceTest {
     private LogAcaoRepository logAcaoRepository;
 
     @Mock
-    private InventarioService inventarioService;
-
-    @Mock
     private NotificacaoService notificacaoService;
 
     @Mock

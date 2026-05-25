@@ -38,9 +38,6 @@ class AdminServiceDoacaoTest {
     private EquipamentoRepository equipamentoRepository;
 
     @Mock
-    private InventarioService inventarioService;
-
-    @Mock
     private NotificacaoService notificacaoService;
 
     @Mock

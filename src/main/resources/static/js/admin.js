@@ -528,22 +528,29 @@ const AdminPanel = {
             return;
         }
 
-        tbody.innerHTML = equipamentos.map(eq => `
+        // Mantém referência aos objetos completos para o modal de edição
+        this._inventarioCache = {};
+        equipamentos.forEach(eq => { this._inventarioCache[eq.id] = eq; });
+
+        tbody.innerHTML = equipamentos.map(eq => {
+            const disponivel = eq.status === 'DISPONIVEL';
+            const reservado = eq.status === 'RESERVADO';
+            const acoes = [];
+            if (reservado) acoes.push(`<button class="btn-approve" onclick="AdminPanel.marcarEntregue(${eq.id})">Marcar Entregue</button>`);
+            acoes.push(`<button class="btn-action" onclick="AdminPanel.openEquipamentoModal(${eq.id})">Editar</button>`);
+            if (disponivel) acoes.push(`<button class="btn-reject" onclick="AdminPanel.deleteEquipamento(${eq.id})">Excluir</button>`);
+            return `
             <tr>
                 <td>#${eq.id}</td>
                 <td>${escapeHtml(eq.tipo || '-')}</td>
                 <td>${escapeHtml(eq.descricao || '-')}</td>
                 <td>${this.createPillHtml(eq.estadoConservacao)}</td>
                 <td>${this.createPillHtml(eq.status)}</td>
-                <td>${escapeHtml(eq.doadorOrigem || '-')}</td>
+                <td>${escapeHtml(eq.doadorOrigem || '-')}${eq.doacaoId ? ' <small style="opacity:.7">(doação #' + eq.doacaoId + ')</small>' : ''}</td>
                 <td>${eq.alunoDestinatarioId ? 'Aluno #' + eq.alunoDestinatarioId : '-'}</td>
-                <td class="admin-actions">
-                    ${eq.status === 'RESERVADO' ?
-                        `<button class="btn-approve" onclick="AdminPanel.marcarEntregue(${eq.id})">Marcar Entregue</button>` :
-                        '<span style="color:var(--neutral-400)">-</span>'}
-                </td>
-            </tr>
-        `).join('');
+                <td class="admin-actions">${acoes.join(' ')}</td>
+            </tr>`;
+        }).join('');
     },
 
     async marcarEntregue(id) {
@@ -554,6 +561,150 @@ const AdminPanel = {
                 this.loadInventario();
             } catch {
                 showToast('Erro ao marcar como entregue', 'error');
+            }
+        });
+    },
+
+    // ==================== MODAL CRIAR/EDITAR EQUIPAMENTO ====================
+
+    /**
+     * Abre o modal de equipamento. Sem id = modo criar; com id = modo editar.
+     */
+    async openEquipamentoModal(id) {
+        const isEdit = id != null;
+        const eq = isEdit ? (this._inventarioCache && this._inventarioCache[id]) : null;
+
+        document.getElementById('modal-equipamento-title').textContent =
+            isEdit ? `Editar equipamento #${id}` : 'Adicionar equipamento';
+        document.getElementById('modal-equipamento-id').value = isEdit ? id : '';
+
+        // Carrega doações para o combobox (sempre refresca)
+        await this.loadDoacoesParaSelect();
+
+        // Pré-preenche se editando
+        const tipoEl = document.getElementById('modal-equipamento-tipo');
+        const descEl = document.getElementById('modal-equipamento-descricao');
+        const consEl = document.getElementById('modal-equipamento-conservacao');
+        const doacaoEl = document.getElementById('modal-equipamento-doacao');
+        const lockHint = document.getElementById('modal-equipamento-doacao-lock');
+
+        if (isEdit && eq) {
+            tipoEl.value = eq.tipo || '';
+            descEl.value = eq.descricao || '';
+            // estadoConservacao no response vem como descrição ("Bom estado..."), não como enum.
+            // Re-deriva do select pelo valor que o servidor exibirá.
+            consEl.value = this._inferConservacaoEnum(eq.estadoConservacao) || 'BOM';
+            doacaoEl.value = eq.doacaoId != null ? String(eq.doacaoId) : '';
+
+            const disponivel = eq.status === 'DISPONIVEL';
+            doacaoEl.disabled = !disponivel;
+            lockHint.style.display = disponivel ? 'none' : 'block';
+        } else {
+            tipoEl.value = '';
+            descEl.value = '';
+            consEl.value = 'BOM';
+            doacaoEl.value = '';
+            doacaoEl.disabled = false;
+            lockHint.style.display = 'none';
+        }
+
+        this.openModal('modal-equipamento');
+
+        // Configura o botão de confirmar (substitui handler para evitar acúmulo)
+        const confirmBtn = document.getElementById('modal-equipamento-confirm');
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        newBtn.addEventListener('click', () => this.submitEquipamento());
+    },
+
+    /**
+     * Mapeia a descrição do estado de conservação (vinda do response) de volta
+     * para o nome do enum. As descrições estão definidas em EstadoConservacao.
+     */
+    _inferConservacaoEnum(descricao) {
+        if (!descricao) return null;
+        const d = descricao.toLowerCase();
+        if (d.includes('novo')) return 'NOVO';
+        if (d.includes('excelente')) return 'EXCELENTE';
+        if (d.includes('bom')) return 'BOM';
+        if (d.includes('regular')) return 'REGULAR';
+        if (d.includes('repar')) return 'NECESSITA_REPARO';
+        return null;
+    },
+
+    /**
+     * Busca doações (limitadas) para popular o combobox do modal.
+     * Reusa o endpoint paginado de admin/doacoes; pega primeira página com size=50.
+     */
+    async loadDoacoesParaSelect() {
+        const select = document.getElementById('modal-equipamento-doacao');
+        try {
+            const res = await apiFetch('/api/admin/doacoes?page=0&size=50');
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const doacoes = data.content || data;
+            // Preserva opção "Nenhuma" e adiciona as doações
+            select.innerHTML = '<option value="">— Nenhuma (peça avulsa) —</option>'
+                + doacoes.map(d => {
+                    const nome = d.doadorNome || 'Doador #' + (d.doadorId || '?');
+                    return `<option value="${d.id}">#${d.id} — ${escapeHtml(nome)} — ${escapeHtml(d.dataDoacao || '')}</option>`;
+                }).join('');
+        } catch {
+            select.innerHTML = '<option value="">— Nenhuma (peça avulsa) —</option>';
+            showToast('Não foi possível carregar doações para vínculo', 'warning');
+        }
+    },
+
+    async submitEquipamento() {
+        const id = document.getElementById('modal-equipamento-id').value;
+        const isEdit = !!id;
+
+        const body = {
+            tipo: document.getElementById('modal-equipamento-tipo').value.trim(),
+            descricao: document.getElementById('modal-equipamento-descricao').value.trim(),
+            estadoConservacao: document.getElementById('modal-equipamento-conservacao').value,
+            doacaoId: document.getElementById('modal-equipamento-doacao').value || null
+        };
+
+        if (!body.tipo || !body.descricao) {
+            showToast('Tipo e descrição são obrigatórios', 'warning');
+            return;
+        }
+        if (body.doacaoId !== null) body.doacaoId = parseInt(body.doacaoId, 10);
+
+        const url = isEdit ? '/api/admin/inventario/' + id : '/api/admin/inventario';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        try {
+            const res = await apiFetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || 'Erro ao salvar equipamento');
+            }
+            showToast(isEdit ? 'Equipamento atualizado' : 'Equipamento cadastrado', 'success');
+            this.closeModal('modal-equipamento');
+            this.loadInventario();
+        } catch (err) {
+            showToast(err.message || 'Erro ao salvar equipamento', 'error');
+        }
+    },
+
+    async deleteEquipamento(id) {
+        this.confirmAction('Excluir equipamento #' + id + '? Esta ação só é permitida para equipamentos disponíveis.', async () => {
+            try {
+                const res = await apiFetch('/api/admin/inventario/' + id, { method: 'DELETE' });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || 'Erro ao excluir');
+                }
+                showToast('Equipamento excluído', 'success');
+                this.loadInventario();
+            } catch (err) {
+                showToast(err.message || 'Erro ao excluir equipamento', 'error');
             }
         });
     },

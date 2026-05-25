@@ -45,9 +45,6 @@ class AdminServiceSolicitacaoTest {
     private LogAcaoRepository logAcaoRepository;
 
     @Mock
-    private InventarioService inventarioService;
-
-    @Mock
     private SuporteFormularioRepository suporteRepository;
 
     @Mock
