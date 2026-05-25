@@ -1,16 +1,23 @@
 package com.doatec.service;
 
+import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
 import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.exception.BusinessException;
+import com.doatec.model.account.AcaoTipo;
 import com.doatec.model.account.Aluno;
+import com.doatec.model.account.LogAcao;
 import com.doatec.model.account.Pessoa;
+import com.doatec.model.account.Role;
+import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.ItemDoado;
 import com.doatec.model.inventory.Equipamento;
 import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
+import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.EquipamentoRepository;
+import com.doatec.repository.LogAcaoRepository;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.repository.SolicitacaoHardwareRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +44,59 @@ public class InventarioService {
     @Autowired
     private SolicitacaoHardwareRepository solicitacaoRepository;
 
+    @Autowired
+    private DoacaoRepository doacaoRepository;
+
+    @Autowired
+    private LogAcaoRepository logAcaoRepository;
+
+    /**
+     * Cria um equipamento manualmente no inventário (admin auditando uma doação física
+     * ou cadastrando uma peça avulsa que nunca passou pelo formulário online).
+     *
+     * <p>O vínculo com {@code doacaoId} é opcional. Quando informado, valida que
+     * a doação existe.</p>
+     *
+     * <p>Default {@code status = DISPONIVEL} quando o request não especifica.</p>
+     */
+    @Transactional
+    public EquipamentoResponse criarEquipamentoManual(EquipamentoRequest request, Integer adminId) {
+        Pessoa admin = validarAdmin(adminId);
+
+        Doacao doacao = null;
+        if (request.doacaoId() != null) {
+            doacao = doacaoRepository.findById(request.doacaoId())
+                    .orElseThrow(() -> new BusinessException(
+                            "Doação não encontrada com ID: " + request.doacaoId()));
+        }
+
+        Equipamento equipamento = Equipamento.builder()
+                .tipo(request.tipo())
+                .descricao(request.descricao())
+                .estadoConservacao(request.estadoConservacao())
+                .status(request.status() != null ? request.status() : StatusEquipamento.DISPONIVEL)
+                .doacao(doacao)
+                .build();
+
+        Equipamento salvo = equipamentoRepository.save(equipamento);
+
+        registrarLog(admin, AcaoTipo.CRIAR_EQUIPAMENTO, salvo.getId(),
+                "Equipamento '" + salvo.getTipo() + "' cadastrado manualmente"
+                        + (doacao != null ? " (vinculado à doação #" + doacao.getId() + ")" : ""));
+
+        return EquipamentoResponse.from(salvo);
+    }
+
     /**
      * Cria um equipamento a partir de um item doado aprovado.
+     *
+     * @deprecated Substituído pelo cadastro manual via
+     *             {@link #criarEquipamentoManual(EquipamentoRequest, Integer)}.
+     *             O fluxo automático na aprovação de doações foi desligado para
+     *             permitir auditoria manual (nem todo item declarado funciona,
+     *             e um item pode gerar várias peças aproveitáveis).
      */
+    @Deprecated
     @Transactional
     public Equipamento criarEquipamento(ItemDoado item, EstadoConservacao estado) {
         Equipamento equipamento = Equipamento.builder()
@@ -235,5 +292,30 @@ public class InventarioService {
 
         // Nenhum match
         return 20;
+    }
+
+    /**
+     * Valida que o adminId corresponde a um usuário com role ADMIN ou SUPER_ADMIN.
+     * Mantido local (em vez de delegar ao AdminService) para evitar dependência circular.
+     */
+    private Pessoa validarAdmin(Integer adminId) {
+        Pessoa admin = pessoaRepository.findById(adminId)
+                .orElseThrow(() -> new BusinessException("Admin não encontrado"));
+        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.SUPER_ADMIN) {
+            throw new BusinessException("Apenas administradores podem executar esta ação");
+        }
+        return admin;
+    }
+
+    private void registrarLog(Pessoa admin, AcaoTipo acao, Integer entidadeId, String descricao) {
+        LogAcao log = LogAcao.builder()
+                .admin(admin)
+                .acao(acao)
+                .entidade("Equipamento")
+                .entidadeId(entidadeId)
+                .descricao(descricao)
+                .dataAcao(LocalDateTime.now())
+                .build();
+        logAcaoRepository.save(log);
     }
 }

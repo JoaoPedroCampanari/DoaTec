@@ -1,11 +1,14 @@
 package com.doatec.controller;
 
+import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
 import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.model.inventory.StatusEquipamento;
 import com.doatec.repository.PessoaRepository;
 import com.doatec.service.InventarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -32,6 +35,20 @@ public class InventarioController {
             @RequestParam(required = false) StatusEquipamento status) {
         List<EquipamentoResponse> equipamentos = inventarioService.listarEquipamentos(status);
         return ResponseEntity.ok(equipamentos);
+    }
+
+    /**
+     * Cadastra manualmente um equipamento no inventário.
+     * Usado após auditoria física da doação (admin testa o que funciona).
+     * Vínculo com {@code doacaoId} é opcional.
+     */
+    @PostMapping
+    public ResponseEntity<EquipamentoResponse> criarEquipamento(
+            @RequestBody @Valid EquipamentoRequest request,
+            @AuthenticationPrincipal User userDetails) {
+        Integer adminId = getAuthenticatedAdminId(userDetails);
+        EquipamentoResponse equipamento = inventarioService.criarEquipamentoManual(request, adminId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(equipamento);
     }
 
     /**

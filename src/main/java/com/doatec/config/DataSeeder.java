@@ -42,6 +42,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         fixRoleCheckConstraint();
+        fixLogAcaoCheckConstraint();
         seedSuperAdmin();
         seedAlunoTeste();
     }
@@ -60,6 +61,27 @@ public class DataSeeder implements CommandLineRunner {
         } catch (Exception e) {
             // Se a tabela não existe ainda (primeira execução), o Hibernate vai criá-la corretamente
             log.debug("Não foi possível alterar constraint pessoa_role_check (tabela pode não existir ainda): {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Recria a check constraint de {@code log_acao.acao} para incluir os novos valores
+     * do enum AcaoTipo (CRIAR_EQUIPAMENTO, EDITAR_EQUIPAMENTO, DELETAR_EQUIPAMENTO).
+     * Hibernate ddl-auto=update não atualiza check constraints existentes.
+     */
+    private void fixLogAcaoCheckConstraint() {
+        try {
+            jdbcTemplate.execute("ALTER TABLE log_acao DROP CONSTRAINT IF EXISTS log_acao_acao_check");
+            jdbcTemplate.execute(
+                "ALTER TABLE log_acao ADD CONSTRAINT log_acao_acao_check CHECK (acao IN (" +
+                "'APROVAR_DOACAO','REJEITAR_DOACAO','ALTERAR_STATUS_DOACAO'," +
+                "'APROVAR_SOLICITACAO','REJEITAR_SOLICITACAO','CONCLUIR_SOLICITACAO','ALTERAR_STATUS_SOLICITACAO'," +
+                "'RESPONDER_SUPORTE','DESATIVAR_USUARIO','REATIVAR_USUARIO'," +
+                "'CRIAR_EQUIPAMENTO','EDITAR_EQUIPAMENTO','DELETAR_EQUIPAMENTO'))"
+            );
+            log.info("Constraint log_acao_acao_check atualizada para incluir CRUD de Equipamento");
+        } catch (Exception e) {
+            log.debug("Não foi possível alterar constraint log_acao_acao_check: {}", e.getMessage());
         }
     }
 
