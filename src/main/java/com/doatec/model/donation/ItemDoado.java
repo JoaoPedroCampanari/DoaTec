@@ -1,16 +1,25 @@
 package com.doatec.model.donation;
 
-import com.doatec.model.inventory.Equipamento;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * Representa um item declarado pelo doador no formulário de doação online.
+ *
+ * Nota: o vínculo com equipamentos no inventário foi invertido — agora é
+ * {@code Equipamento.itemOrigem} (lado dono, N:1) ou diretamente
+ * {@code Equipamento.doacao} para cadastros manuais. O campo
+ * {@code equipamentoGerado} foi removido pois não suportava o caso
+ * "1 item declarado → vários equipamentos aproveitados" (ex.: notebook
+ * cuja apenas HD, RAM e bateria são reaproveitados).
+ */
 @Entity
 @Table(name = "item_doado")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"doacao", "equipamentoGerado"})
+@ToString(exclude = {"doacao"})
 public class ItemDoado {
 
     @Id
@@ -26,12 +35,4 @@ public class ItemDoado {
 
     @Column(nullable = false)
     private String descricao;
-
-    /**
-     * Equipamento gerado a partir deste item quando a doação é aprovada.
-     * Relacionamento OneToOne opcional.
-     */
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "equipamento_gerado_id")
-    private Equipamento equipamentoGerado;
 }

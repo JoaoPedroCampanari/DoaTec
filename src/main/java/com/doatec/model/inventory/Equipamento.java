@@ -1,6 +1,7 @@
 package com.doatec.model.inventory;
 
 import com.doatec.model.account.Pessoa;
+import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.ItemDoado;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import jakarta.persistence.*;
@@ -21,8 +22,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"itemOrigem", "solicitacaoDestino", "alunoDestinatario"})
-@ToString(exclude = {"itemOrigem", "solicitacaoDestino", "alunoDestinatario"})
+@EqualsAndHashCode(exclude = {"itemOrigem", "doacao", "solicitacaoDestino", "alunoDestinatario"})
+@ToString(exclude = {"itemOrigem", "doacao", "solicitacaoDestino", "alunoDestinatario"})
 @SQLDelete(sql = "UPDATE equipamento SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class Equipamento {
@@ -46,9 +47,24 @@ public class Equipamento {
     @Column(nullable = false)
     private EstadoConservacao estadoConservacao;
 
+    /**
+     * Item da doação que originou este equipamento.
+     * Mantido por compatibilidade com o fluxo automático antigo.
+     * Para novos cadastros manuais, prefira {@link #doacao}.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_origem_id")
     private ItemDoado itemOrigem;
+
+    /**
+     * Doação que originou este equipamento (opcional).
+     * Relação N:1: várias peças podem vir da mesma doação física
+     * (ex.: HD, RAM e bateria de um mesmo notebook).
+     * Null para equipamentos avulsos que nunca passaram pelo site.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doacao_id")
+    private Doacao doacao;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "solicitacao_destino_id")
