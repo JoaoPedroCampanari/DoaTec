@@ -2,7 +2,6 @@ package com.doatec.controller;
 
 import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
-import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
 import com.doatec.repository.PessoaRepository;
@@ -37,6 +36,7 @@ public class InventarioController {
      *   <li>{@code origem} — "COM_VINCULO" (vinculados a doação) ou "SEM_VINCULO" (avulsos);
      *       ignorado se {@code doacaoId} for passado</li>
      *   <li>{@code doacaoId} — filtra equipamentos vinculados a uma doação específica</li>
+     *   <li>{@code q} — busca textual livre, case-insensitive, em tipo OU descrição</li>
      * </ul>
      */
     @GetMapping
@@ -44,9 +44,10 @@ public class InventarioController {
             @RequestParam(required = false) StatusEquipamento status,
             @RequestParam(required = false) EstadoConservacao conservacao,
             @RequestParam(required = false) String origem,
-            @RequestParam(required = false) Integer doacaoId) {
+            @RequestParam(required = false) Integer doacaoId,
+            @RequestParam(required = false) String q) {
         List<EquipamentoResponse> equipamentos =
-                inventarioService.listarEquipamentos(status, conservacao, origem, doacaoId);
+                inventarioService.listarEquipamentos(status, conservacao, origem, doacaoId, q);
         return ResponseEntity.ok(equipamentos);
     }
 
@@ -107,17 +108,6 @@ public class InventarioController {
             @RequestParam(required = false) String preferencia) {
         List<EquipamentoResponse> equipamentos = inventarioService.buscarDisponiveisPorPreferencia(preferencia);
         return ResponseEntity.ok(equipamentos);
-    }
-
-    /**
-     * Gera sugestões de matching para uma solicitação.
-     * Retorna equipamentos disponíveis compatíveis com a preferência do aluno.
-     */
-    @GetMapping("/sugestoes/{solicitacaoId}")
-    public ResponseEntity<SugestaoMatchingResponse> sugerirMatchings(
-            @PathVariable Integer solicitacaoId) {
-        SugestaoMatchingResponse sugestoes = inventarioService.sugerirMatchings(solicitacaoId);
-        return ResponseEntity.ok(sugestoes);
     }
 
     /**

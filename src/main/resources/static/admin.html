@@ -441,6 +441,39 @@
     </div>
 </div>
 
+<!-- ==================== MODAL DE ATRIBUIR EQUIPAMENTO A SOLICITAÇÃO ==================== -->
+<div id="modal-atribuir" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal" style="max-width:720px;">
+        <div class="admin-modal-header">
+            <h3>Atribuir equipamento à solicitação <span id="modal-atribuir-solicitacao"></span></h3>
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-atribuir')">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="form-group">
+                <label for="modal-atribuir-busca">Buscar equipamento disponível</label>
+                <input type="text" id="modal-atribuir-busca" placeholder="Digite tipo ou descrição (ex.: 'hd', 'notebook'...)">
+            </div>
+            <div class="admin-table-wrapper" style="margin-top:8px; max-height:400px; overflow-y:auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Conservação</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-atribuir-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn-action" onclick="AdminPanel.closeModal('modal-atribuir')">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <!-- ==================== MODAL DE CONFIRMAÇÃO GENÉRICO ==================== -->
 <div id="modal-confirmacao" class="admin-modal-overlay" style="display:none;">
     <div class="admin-modal">

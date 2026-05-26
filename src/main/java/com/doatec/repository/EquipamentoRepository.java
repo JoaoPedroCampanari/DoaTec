@@ -46,7 +46,8 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Intege
      * Busca com filtros combinados (todos opcionais). Cada filtro só
      * restringe se for não-null. Filtro {@code hasDoacao}: true = só com
      * vínculo; false = só sem vínculo; null = ignorar. {@code doacaoId}
-     * tem precedência sobre {@code hasDoacao}.
+     * tem precedência sobre {@code hasDoacao}. {@code q} faz LIKE
+     * case-insensitive em tipo OU descrição.
      */
     @Query("""
         SELECT e FROM Equipamento e
@@ -58,12 +59,18 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Intege
                 OR (:hasDoacao = TRUE AND e.doacao IS NOT NULL)
                 OR (:hasDoacao = FALSE AND e.doacao IS NULL)
               )
+          AND (
+                :q IS NULL
+                OR LOWER(e.tipo) LIKE LOWER(CONCAT('%', :q, '%'))
+                OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :q, '%'))
+              )
         ORDER BY e.dataEntradaInventario DESC
     """)
     List<Equipamento> findWithFilters(
             @Param("status") StatusEquipamento status,
             @Param("conservacao") EstadoConservacao conservacao,
             @Param("hasDoacao") Boolean hasDoacao,
-            @Param("doacaoId") Integer doacaoId
+            @Param("doacaoId") Integer doacaoId,
+            @Param("q") String q
     );
 }

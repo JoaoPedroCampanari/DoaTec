@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 
 import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
-import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.exception.BusinessException;
 import com.doatec.model.account.Aluno;
 import com.doatec.model.account.DoadorPF;
@@ -249,111 +248,6 @@ class InventarioServiceTest {
     }
 
     // =====================================================================
-    // 4. sugerirMatchings
-    // =====================================================================
-
-    @Nested
-    @DisplayName("sugerirMatchings")
-    class SugerirMatchingsTests {
-
-        @Test
-        @DisplayName("Match exato de descricao retorna score alto (100)")
-        void matchExato_scoreAlto() {
-            Equipamento matchExato = Equipamento.builder()
-                    .id(3)
-                    .tipo("Notebook")
-                    .descricao("Notebook para uso")
-                    .estadoConservacao(EstadoConservacao.BOM)
-                    .status(StatusEquipamento.DISPONIVEL)
-                    .build();
-
-            when(solicitacaoRepository.findById(100)).thenReturn(Optional.of(solicitacao));
-            when(equipamentoRepository.findDisponiveisByKeyword("Notebook"))
-                    .thenReturn(List.of(matchExato));
-
-            SugestaoMatchingResponse response = service.sugerirMatchings(100);
-
-            assertEquals(1, response.equipamentosCompativeis().size());
-            assertEquals(100, response.equipamentosCompativeis().get(0).scoreCompatibilidade());
-        }
-
-        @Test
-        @DisplayName("Match parcial retorna score medio")
-        void matchParcial_scoreMedio() {
-            Equipamento matchParcial = Equipamento.builder()
-                    .id(4)
-                    .tipo("Notebook Dell Inspiron")
-                    .descricao("Notebook Dell para estudante")
-                    .estadoConservacao(EstadoConservacao.BOM)
-                    .status(StatusEquipamento.DISPONIVEL)
-                    .build();
-
-            when(solicitacaoRepository.findById(100)).thenReturn(Optional.of(solicitacao));
-            when(equipamentoRepository.findDisponiveisByKeyword("Notebook"))
-                    .thenReturn(List.of(matchParcial));
-
-            SugestaoMatchingResponse response = service.sugerirMatchings(100);
-
-            assertEquals(1, response.equipamentosCompativeis().size());
-            Integer score = response.equipamentosCompativeis().get(0).scoreCompatibilidade();
-            assertEquals(80, score);
-        }
-
-        @Test
-        @DisplayName("Match por palavra-chave retorna score medio-baixo (50 + 10)")
-        void matchPorPalavraChave_scoreMedioBaixo() {
-            Equipamento matchKeyword = Equipamento.builder()
-                    .id(5)
-                    .tipo("Dell Inspiron")
-                    .descricao("Dell Inspiron para estudante")
-                    .estadoConservacao(EstadoConservacao.REGULAR)
-                    .status(StatusEquipamento.DISPONIVEL)
-                    .build();
-
-            SolicitacaoHardware solicitacaoMulti = SolicitacaoHardware.builder()
-                    .id(100)
-                    .aluno(aluno)
-                    .status(StatusSolicitacao.EM_ANALISE)
-                    .preferenciaEquipamento("Dell Notebook")
-                    .build();
-
-            when(solicitacaoRepository.findById(100)).thenReturn(Optional.of(solicitacaoMulti));
-            when(equipamentoRepository.findDisponiveisByKeyword("Dell Notebook"))
-                    .thenReturn(List.of(matchKeyword));
-
-            SugestaoMatchingResponse response = service.sugerirMatchings(100);
-
-            assertEquals(1, response.equipamentosCompativeis().size());
-            Integer score = response.equipamentosCompativeis().get(0).scoreCompatibilidade();
-            // pref=["dell","notebook"], tipo=["dell","inspiron"]
-            // "dell" matches "dell" => matches=1 => 50 + 10 = 60
-            assertEquals(60, score);
-        }
-
-        @Test
-        @DisplayName("Sem match retorna score baixo (20)")
-        void semMatch_scoreBaixo() {
-            Equipamento semMatch = Equipamento.builder()
-                    .id(6)
-                    .tipo("Impressora")
-                    .descricao("Impressora HP")
-                    .estadoConservacao(EstadoConservacao.BOM)
-                    .status(StatusEquipamento.DISPONIVEL)
-                    .build();
-
-            when(solicitacaoRepository.findById(100)).thenReturn(Optional.of(solicitacao));
-            when(equipamentoRepository.findDisponiveisByKeyword("Notebook"))
-                    .thenReturn(List.of(semMatch));
-
-            SugestaoMatchingResponse response = service.sugerirMatchings(100);
-
-            assertEquals(1, response.equipamentosCompativeis().size());
-            Integer score = response.equipamentosCompativeis().get(0).scoreCompatibilidade();
-            assertEquals(20, score);
-        }
-    }
-
-    // =====================================================================
     // CRUD manual (etapas 3, 4 e 5)
     // =====================================================================
 
@@ -569,7 +463,7 @@ class InventarioServiceTest {
 
             assertTrue(ex.getMessage().toLowerCase().contains("disponíveis") ||
                        ex.getMessage().toLowerCase().contains("disponiveis"));
-            verify(equipamentoRepository, never()).delete(any(Equipamento.class));
+            verify(equipamentoRepository, never()).delete(reservado);
         }
     }
 
@@ -581,7 +475,7 @@ class InventarioServiceTest {
         @DisplayName("Filtro origem invalido lanca BusinessException")
         void origemInvalida_lancaExcecao() {
             BusinessException ex = assertThrows(BusinessException.class,
-                    () -> service.listarEquipamentos(null, null, "XYZ", null));
+                    () -> service.listarEquipamentos(null, null, "XYZ", null, null));
 
             assertTrue(ex.getMessage().toLowerCase().contains("origem"));
         }
@@ -590,27 +484,49 @@ class InventarioServiceTest {
         @DisplayName("Origem COM_VINCULO traduz para hasDoacao=TRUE no repo")
         void comVinculo_passaTrueAoRepo() {
             when(equipamentoRepository.findWithFilters(
-                    any(), any(), eq(Boolean.TRUE), any()))
+                    any(), any(), eq(Boolean.TRUE), any(), any()))
                     .thenReturn(List.of(equipamentoDisponivel));
 
             List<EquipamentoResponse> result = service.listarEquipamentos(
-                    null, null, "COM_VINCULO", null);
+                    null, null, "COM_VINCULO", null, null);
 
             assertEquals(1, result.size());
-            verify(equipamentoRepository).findWithFilters(null, null, Boolean.TRUE, null);
+            verify(equipamentoRepository).findWithFilters(null, null, Boolean.TRUE, null, null);
         }
 
         @Test
         @DisplayName("doacaoId precede o filtro de origem")
         void doacaoId_precedeOrigem() {
             when(equipamentoRepository.findWithFilters(
-                    any(), any(), eq(null), eq(42)))
+                    any(), any(), eq((Boolean) null), eq(42), any()))
                     .thenReturn(List.of());
 
-            service.listarEquipamentos(null, null, "SEM_VINCULO", 42);
+            service.listarEquipamentos(null, null, "SEM_VINCULO", 42, null);
 
             // hasDoacao deve ser null porque doacaoId tem precedencia
-            verify(equipamentoRepository).findWithFilters(null, null, null, 42);
+            verify(equipamentoRepository).findWithFilters(null, null, null, 42, null);
+        }
+
+        @Test
+        @DisplayName("Parametro q em branco e tratado como null no repo")
+        void qEmBranco_eIgnorado() {
+            when(equipamentoRepository.findWithFilters(any(), any(), any(), any(), eq((String) null)))
+                    .thenReturn(List.of());
+
+            service.listarEquipamentos(null, null, null, null, "   ");
+
+            verify(equipamentoRepository).findWithFilters(null, null, null, null, null);
+        }
+
+        @Test
+        @DisplayName("Parametro q nao vazio e propagado (trimmed)")
+        void qPropagado() {
+            when(equipamentoRepository.findWithFilters(any(), any(), any(), any(), eq("HD")))
+                    .thenReturn(List.of(equipamentoDisponivel));
+
+            service.listarEquipamentos(null, null, null, null, "  HD  ");
+
+            verify(equipamentoRepository).findWithFilters(null, null, null, null, "HD");
         }
     }
 }

@@ -483,18 +483,14 @@ const AdminPanel = {
                         ${s.justificativa ? `<p><strong>Justificativa:</strong> ${escapeHtml(s.justificativa)}</p>` : ''}
                         ${s.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(s.observacaoAdmin)}</p>` : ''}
                         ${s.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(s.adminAvaliadorNome)}${s.dataAvaliacao ? ' — ' + formatDate(s.dataAvaliacao) : ''}</p>` : ''}
-                        <div id="sugestoes-solicitacao-${s.id}"></div>
+                        ${s.status === 'APROVADA' ? `
+                            <div style="margin-top:12px">
+                                <button class="btn-approve" onclick="AdminPanel.openAtribuirModal(${s.id}, '${escapeHtml(s.preferenciaEquipamento || '')}')">Atribuir equipamento</button>
+                            </div>` : ''}
                     </div>
                 </td>
             </tr>
         `;}).join('');
-
-        // Carregar sugestões inline para solicitações APROVADAS quando detail row for aberto
-        solicitacoes.forEach(s => {
-            if (s.status === 'APROVADA') {
-                this.carregarSugestoesInline(s.id);
-            }
-        });
     },
 
     getProximosStatusSolicitacao(status) {
@@ -532,49 +528,74 @@ const AdminPanel = {
         );
     },
 
-    async carregarSugestoesInline(solicitacaoId) {
-        try {
-            const res = await apiFetch('/api/admin/inventario/sugestoes/' + solicitacaoId);
-            if (!res.ok) return;
-            const data = await res.json();
-            const container = document.getElementById('sugestoes-solicitacao-' + solicitacaoId);
-            if (!container) return;
+    /**
+     * Abre o modal de atribuição. O admin pesquisa por tipo/descrição
+     * e clica no botão "Atribuir" do equipamento desejado.
+     * @param solicitacaoId id da solicitação aprovada
+     * @param preferencia preferência do aluno (preenche o campo de busca)
+     */
+    openAtribuirModal(solicitacaoId, preferencia) {
+        this._atribuirSolicitacaoId = solicitacaoId;
+        document.getElementById('modal-atribuir-solicitacao').textContent = '#' + solicitacaoId;
+        const buscaEl = document.getElementById('modal-atribuir-busca');
+        buscaEl.value = preferencia || '';
+        this.openModal('modal-atribuir');
+        // dispara busca inicial usando a preferência como ponto de partida
+        this.buscarEquipamentosParaAtribuir();
+        // wire da busca on-input (com debounce simples)
+        clearTimeout(this._atribuirDebounce);
+        buscaEl.oninput = () => {
+            clearTimeout(this._atribuirDebounce);
+            this._atribuirDebounce = setTimeout(() => this.buscarEquipamentosParaAtribuir(), 250);
+        };
+    },
 
-            let html = '<p><strong>Equipamentos compatíveis:</strong></p>';
-            if (!data.equipamentosCompativeis || !data.equipamentosCompativeis.length) {
-                html += '<p style="color:var(--neutral-400)">Nenhum equipamento compatível encontrado.</p>';
-            } else {
-                html += '<table class="admin-table" style="margin-top:8px"><thead><tr><th>ID</th><th>Tipo</th><th>Descrição</th><th>Conservação</th><th>Score</th><th>Ação</th></tr></thead><tbody>';
-                data.equipamentosCompativeis.forEach(eq => {
-                    const scoreClass = eq.scoreCompatibilidade >= 80 ? 'high' : eq.scoreCompatibilidade >= 50 ? 'medium' : 'low';
-                    html += `<tr>
-                        <td>#${eq.equipamentoId}</td>
-                        <td>${escapeHtml(eq.tipo)}</td>
-                        <td>${escapeHtml(eq.descricao)}</td>
-                        <td>${escapeHtml(eq.estadoConservacao || '-')}</td>
-                        <td><span class="match-score ${scoreClass}">${eq.scoreCompatibilidade}%</span></td>
-                        <td><button class="btn-approve" onclick="AdminPanel.atribuirEquipamento(${eq.equipamentoId}, ${solicitacaoId})">Atribuir</button></td>
-                    </tr>`;
-                });
-                html += '</tbody></table>';
+    async buscarEquipamentosParaAtribuir() {
+        const q = document.getElementById('modal-atribuir-busca').value.trim();
+        const params = new URLSearchParams({ status: 'DISPONIVEL' });
+        if (q) params.set('q', q);
+
+        const tbody = document.getElementById('modal-atribuir-tbody');
+        tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Buscando...</td></tr>';
+
+        try {
+            const res = await apiFetch('/api/admin/inventario?' + params);
+            if (!res.ok) throw new Error();
+            const equipamentos = await res.json();
+            if (!equipamentos.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Nenhum equipamento disponível encontrado.</td></tr>';
+                return;
             }
-            container.innerHTML = html;
-        } catch (err) {
-            console.error('Sugestões inline:', err);
+            tbody.innerHTML = equipamentos.map(eq => `
+                <tr>
+                    <td>#${eq.id}</td>
+                    <td>${escapeHtml(eq.tipo)}</td>
+                    <td>${escapeHtml(eq.descricao)}</td>
+                    <td>${escapeHtml(eq.estadoConservacao || '-')}</td>
+                    <td><button class="btn-approve" onclick="AdminPanel.confirmarAtribuicao(${eq.id})">Atribuir</button></td>
+                </tr>`).join('');
+        } catch {
+            tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Erro ao carregar equipamentos.</td></tr>';
         }
     },
 
-    async atribuirEquipamento(equipamentoId, solicitacaoId) {
+    async confirmarAtribuicao(equipamentoId) {
+        const solicitacaoId = this._atribuirSolicitacaoId;
+        if (!solicitacaoId) return;
         try {
             const res = await apiFetch('/api/admin/inventario/' + equipamentoId + '/atribuir/' + solicitacaoId, {
                 method: 'POST'
             });
-            if (!res.ok) throw new Error();
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || 'Erro ao atribuir equipamento');
+            }
             showToast('Equipamento atribuído com sucesso', 'success');
+            this.closeModal('modal-atribuir');
             this.loadSolicitacoes();
             this.loadInventario();
-        } catch {
-            showToast('Erro ao atribuir equipamento', 'error');
+        } catch (e) {
+            showToast(e.message || 'Erro ao atribuir equipamento', 'error');
         }
     },
 

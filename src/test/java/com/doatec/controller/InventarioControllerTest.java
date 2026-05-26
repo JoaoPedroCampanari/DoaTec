@@ -2,8 +2,6 @@ package com.doatec.controller;
 
 import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
-import com.doatec.dto.response.SugestaoMatchingResponse;
-import com.doatec.dto.response.SugestaoMatchingResponse.MatchEquipamentoResponse;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
@@ -45,7 +43,6 @@ class InventarioControllerTest {
     private Pessoa admin;
     private User userDetails;
     private EquipamentoResponse equipamentoResponse;
-    private SugestaoMatchingResponse sugestaoResponse;
 
     @BeforeEach
     void setUp() {
@@ -66,22 +63,6 @@ class InventarioControllerTest {
                 .dataEntradaInventario(LocalDateTime.of(2026, 5, 1, 10, 0))
                 .dataAtribuicao(null)
                 .build();
-
-        MatchEquipamentoResponse match = MatchEquipamentoResponse.builder()
-                .equipamentoId(1)
-                .tipo("Notebook")
-                .descricao("Notebook Dell Latitude")
-                .estadoConservacao("Bom")
-                .scoreCompatibilidade(95)
-                .build();
-
-        sugestaoResponse = SugestaoMatchingResponse.builder()
-                .solicitacaoId(10)
-                .alunoNome("Maria Santos")
-                .alunoEmail("maria@teste.com")
-                .preferenciaEquipamento("Notebook")
-                .equipamentosCompativeis(List.of(match))
-                .build();
     }
 
     // ----------------------------------------------------------------
@@ -95,43 +76,43 @@ class InventarioControllerTest {
         @Test
         @DisplayName("retorna 200 com lista de equipamentos sem filtro")
         void listarSemFiltro() {
-            when(inventarioService.listarEquipamentos(null, null, null, null))
+            when(inventarioService.listarEquipamentos(null, null, null, null, null))
                     .thenReturn(List.of(equipamentoResponse));
 
             ResponseEntity<List<EquipamentoResponse>> response =
-                    controller.listarEquipamentos(null, null, null, null);
+                    controller.listarEquipamentos(null, null, null, null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(1, response.getBody().size());
             assertEquals("Notebook", response.getBody().get(0).tipo());
-            verify(inventarioService).listarEquipamentos(null, null, null, null);
+            verify(inventarioService).listarEquipamentos(null, null, null, null, null);
         }
 
         @Test
         @DisplayName("retorna 200 com lista filtrada por status")
         void listarComFiltroStatus() {
-            when(inventarioService.listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null))
+            when(inventarioService.listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null, null))
                     .thenReturn(List.of(equipamentoResponse));
 
             ResponseEntity<List<EquipamentoResponse>> response =
-                    controller.listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null);
+                    controller.listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(1, response.getBody().size());
             assertEquals("DISPONIVEL", response.getBody().get(0).status());
-            verify(inventarioService).listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null);
+            verify(inventarioService).listarEquipamentos(StatusEquipamento.DISPONIVEL, null, null, null, null);
         }
 
         @Test
         @DisplayName("retorna 200 com lista vazia quando nenhum equipamento existe")
         void listarVazio() {
-            when(inventarioService.listarEquipamentos(null, null, null, null))
+            when(inventarioService.listarEquipamentos(null, null, null, null, null))
                     .thenReturn(List.of());
 
             ResponseEntity<List<EquipamentoResponse>> response =
-                    controller.listarEquipamentos(null, null, null, null);
+                    controller.listarEquipamentos(null, null, null, null, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -225,43 +206,6 @@ class InventarioControllerTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertTrue(response.getBody().isEmpty());
-        }
-    }
-
-    // ----------------------------------------------------------------
-    // GET /api/admin/inventario/sugestoes/{solicitacaoId}
-    // ----------------------------------------------------------------
-
-    @Nested
-    @DisplayName("sugerirMatchings")
-    class SugerirMatchingsTests {
-
-        @Test
-        @DisplayName("retorna 200 com sugestoes de matching")
-        void sugerirComSucesso() {
-            when(inventarioService.sugerirMatchings(10)).thenReturn(sugestaoResponse);
-
-            ResponseEntity<SugestaoMatchingResponse> response =
-                    controller.sugerirMatchings(10);
-
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertEquals(10, response.getBody().solicitacaoId());
-            assertEquals("Maria Santos", response.getBody().alunoNome());
-            assertEquals(1, response.getBody().equipamentosCompativeis().size());
-            assertEquals(95, response.getBody().equipamentosCompativeis().get(0).scoreCompatibilidade());
-            verify(inventarioService).sugerirMatchings(10);
-        }
-
-        @Test
-        @DisplayName("propaga excecao quando solicitacao nao existe")
-        void sugerirSolicitacaoInexistente() {
-            when(inventarioService.sugerirMatchings(999))
-                    .thenThrow(new RuntimeException("Solicitação não encontrada"));
-
-            assertThrows(RuntimeException.class,
-                    () -> controller.sugerirMatchings(999));
-            verify(inventarioService).sugerirMatchings(999);
         }
     }
 

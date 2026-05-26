@@ -2,7 +2,6 @@ package com.doatec.service;
 
 import com.doatec.dto.request.EquipamentoRequest;
 import com.doatec.dto.response.EquipamentoResponse;
-import com.doatec.dto.response.SugestaoMatchingResponse;
 import com.doatec.exception.BusinessException;
 import com.doatec.model.account.AcaoTipo;
 import com.doatec.model.account.Aluno;
@@ -202,11 +201,11 @@ public class InventarioService {
 
     /**
      * Lista todos os equipamentos, opcionalmente filtrados por status.
-     * Mantido por compatibilidade — prefere {@link #listarEquipamentos(StatusEquipamento, EstadoConservacao, String, Integer)}.
+     * Mantido por compatibilidade — prefere a sobrecarga com filtros completos.
      */
     @Transactional(readOnly = true)
     public List<EquipamentoResponse> listarEquipamentos(StatusEquipamento status) {
-        return listarEquipamentos(status, null, null, null);
+        return listarEquipamentos(status, null, null, null, null);
     }
 
     /**
@@ -217,12 +216,14 @@ public class InventarioService {
      * @param origem        {@code "COM_VINCULO"}, {@code "SEM_VINCULO"} ou {@code null}
      *                      (ignorado se {@code doacaoId} for passado)
      * @param doacaoId      filtra por uma doação específica; precede o filtro de origem
+     * @param q             texto de busca livre — LIKE case-insensitive em tipo OU descrição
      */
     @Transactional(readOnly = true)
     public List<EquipamentoResponse> listarEquipamentos(StatusEquipamento status,
                                                         EstadoConservacao conservacao,
                                                         String origem,
-                                                        Integer doacaoId) {
+                                                        Integer doacaoId,
+                                                        String q) {
         Boolean hasDoacao = null;
         // doacaoId tem precedência: se passado, ignora 'origem'
         if (doacaoId == null && origem != null && !origem.isBlank()) {
@@ -237,7 +238,9 @@ public class InventarioService {
             }
         }
 
-        return equipamentoRepository.findWithFilters(status, conservacao, hasDoacao, doacaoId)
+        String qNormalizado = (q != null && !q.isBlank()) ? q.trim() : null;
+
+        return equipamentoRepository.findWithFilters(status, conservacao, hasDoacao, doacaoId, qNormalizado)
                 .stream()
                 .map(EquipamentoResponse::from)
                 .collect(Collectors.toList());
@@ -255,51 +258,6 @@ public class InventarioService {
     }
 
     /**
-     * Gera sugestões de matching para uma solicitação.
-     * Busca equipamentos disponíveis compatíveis com a preferência do aluno.
-     */
-    @Transactional(readOnly = true)
-    public SugestaoMatchingResponse sugerirMatchings(Integer solicitacaoId) {
-        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(solicitacaoId)
-                .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + solicitacaoId));
-
-        String preferencia = solicitacao.getPreferenciaEquipamento();
-        if (preferencia == null || preferencia.isBlank()) {
-            return SugestaoMatchingResponse.builder()
-                    .solicitacaoId(solicitacao.getId())
-                    .alunoNome(solicitacao.getAluno().getNome())
-                    .alunoEmail(solicitacao.getAluno().getEmail())
-                    .preferenciaEquipamento("Não especificada")
-                    .equipamentosCompativeis(List.of())
-                    .build();
-        }
-
-        // Busca equipamentos disponíveis que correspondam à preferência
-        List<Equipamento> equipamentosCompativeis = equipamentoRepository
-                .findDisponiveisByKeyword(preferencia);
-
-        List<SugestaoMatchingResponse.MatchEquipamentoResponse> matches = equipamentosCompativeis.stream()
-                .map(e -> SugestaoMatchingResponse.MatchEquipamentoResponse.builder()
-                        .equipamentoId(e.getId())
-                        .tipo(e.getTipo())
-                        .descricao(e.getDescricao())
-                        .estadoConservacao(e.getEstadoConservacao() != null
-                                ? e.getEstadoConservacao().getDescricao() : "Não informado")
-                        .scoreCompatibilidade(calcularScore(preferencia, e.getTipo()))
-                        .build())
-                .sorted((a, b) -> b.scoreCompatibilidade().compareTo(a.scoreCompatibilidade()))
-                .collect(Collectors.toList());
-
-        return SugestaoMatchingResponse.builder()
-                .solicitacaoId(solicitacao.getId())
-                .alunoNome(solicitacao.getAluno().getNome())
-                .alunoEmail(solicitacao.getAluno().getEmail())
-                .preferenciaEquipamento(preferencia)
-                .equipamentosCompativeis(matches)
-                .build();
-    }
-
-    /**
      * Atribui um equipamento a uma solicitação aprovada.
      */
     @Transactional
@@ -314,7 +272,11 @@ public class InventarioService {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findById(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + solicitacaoId));
 
-        if (!(solicitacao.getAluno() instanceof Aluno)) {
+        // Hibernate carrega solicitacao.getAluno() como proxy de Pessoa (LAZY),
+        // então `instanceof Aluno` falha mesmo quando a entidade real é Aluno.
+        // unproxy retorna a entidade concreta.
+        Pessoa alunoSolicitante = (Pessoa) org.hibernate.Hibernate.unproxy(solicitacao.getAluno());
+        if (!(alunoSolicitante instanceof Aluno)) {
             throw new BusinessException("A solicitação não pertence a um aluno válido.");
         }
 
@@ -323,7 +285,7 @@ public class InventarioService {
 
         equipamento.setStatus(StatusEquipamento.RESERVADO);
         equipamento.setSolicitacaoDestino(solicitacao);
-        equipamento.setAlunoDestinatario(solicitacao.getAluno());
+        equipamento.setAlunoDestinatario(alunoSolicitante);
         equipamento.setDataAtribuicao(LocalDateTime.now());
 
         Equipamento equipamentoAtualizado = equipamentoRepository.save(equipamento);
@@ -370,48 +332,6 @@ public class InventarioService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Calcula um score de compatibilidade entre a preferência e o tipo do equipamento.
-     * Score de 0 a 100.
-     */
-    private Integer calcularScore(String preferencia, String tipo) {
-        if (preferencia == null || tipo == null) {
-            return 0;
-        }
-
-        String prefLower = preferencia.toLowerCase();
-        String tipoLower = tipo.toLowerCase();
-
-        // Match exato
-        if (prefLower.equals(tipoLower)) {
-            return 100;
-        }
-
-        // Contém a preferência
-        if (tipoLower.contains(prefLower) || prefLower.contains(tipoLower)) {
-            return 80;
-        }
-
-        // Match parcial por palavras-chave
-        String[] palavrasPref = prefLower.split("[\\s,]+");
-        String[] palavrasTipo = tipoLower.split("[\\s,]+");
-
-        int matches = 0;
-        for (String palavraPref : palavrasPref) {
-            for (String palavraTipo : palavrasTipo) {
-                if (palavraPref.contains(palavraTipo) || palavraTipo.contains(palavraPref)) {
-                    matches++;
-                }
-            }
-        }
-
-        if (matches > 0) {
-            return 50 + (matches * 10);
-        }
-
-        // Nenhum match
-        return 20;
-    }
 
     /**
      * Valida que o adminId corresponde a um usuário com role ADMIN ou SUPER_ADMIN.

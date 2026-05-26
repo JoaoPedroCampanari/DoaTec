@@ -23,7 +23,11 @@ function escapeHtml(str) {
  */
 function formatDate(dateString) {
     if (!dateString) return '-';
-    const date = new Date(dateString + 'T00:00:00');
+    // Aceita LocalDate ("2026-05-25") e LocalDateTime ("2026-05-25T22:18:51").
+    // Anexa 'T00:00:00' só se a string for puramente data (sem 'T').
+    const iso = dateString.includes('T') ? dateString : dateString + 'T00:00:00';
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('pt-BR');
 }
 
