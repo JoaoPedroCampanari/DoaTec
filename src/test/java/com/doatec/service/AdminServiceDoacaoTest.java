@@ -60,7 +60,7 @@ class AdminServiceDoacaoTest {
 
         doacao = new Doacao();
         doacao.setId(1);
-        doacao.setStatus(StatusDoacao.EM_ANALISE);
+        doacao.setStatus(StatusDoacao.RECEBIDO);
         doacao.setDoador(admin);
     }
 
@@ -78,7 +78,7 @@ class AdminServiceDoacaoTest {
         @Test
         @DisplayName("EM_ANALISE -> FINALIZADO é válido")
         void emAnaliseParaFinalizadoValido() {
-            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setStatus(StatusDoacao.RECEBIDO);
             when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
             when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
             stubSaveMocks();
@@ -138,7 +138,7 @@ class AdminServiceDoacaoTest {
         @Test
         @DisplayName("EM_ANALISE -> REJEITADA é válido")
         void emAnaliseParaRejeitadaValido() {
-            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setStatus(StatusDoacao.RECEBIDO);
             when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
             when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
             stubSaveMocks();
@@ -214,8 +214,7 @@ class AdminServiceDoacaoTest {
         boolean transicaoValida = switch (atual) {
             case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
             case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
-            case RECEBIDO -> novo == StatusDoacao.EM_ANALISE || novo == StatusDoacao.REJEITADA;
-            case EM_ANALISE -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
+            case RECEBIDO -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
             case REJEITADA -> novo == StatusDoacao.EM_TRIAGEM;
             case FINALIZADO -> false;
         };
@@ -232,8 +231,7 @@ class AdminServiceDoacaoTest {
         boolean transicaoValida = switch (atual) {
             case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
             case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
-            case RECEBIDO -> novo == StatusDoacao.EM_ANALISE || novo == StatusDoacao.REJEITADA;
-            case EM_ANALISE -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
+            case RECEBIDO -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
             case REJEITADA -> novo == StatusDoacao.EM_TRIAGEM;
             case FINALIZADO -> false;
         };
@@ -250,8 +248,7 @@ class AdminServiceDoacaoTest {
         boolean transicaoValida = switch (atual) {
             case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
             case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
-            case RECEBIDO -> novo == StatusDoacao.EM_ANALISE || novo == StatusDoacao.REJEITADA;
-            case EM_ANALISE -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
+            case RECEBIDO -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
             case REJEITADA -> novo == StatusDoacao.EM_TRIAGEM;
             case FINALIZADO -> false;
         };

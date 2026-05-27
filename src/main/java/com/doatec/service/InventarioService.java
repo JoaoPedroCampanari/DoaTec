@@ -212,7 +212,7 @@ public class InventarioService {
      * Lista equipamentos aplicando filtros combinados (todos opcionais).
      *
      * @param status        DISPONIVEL/RESERVADO/ENTREGUE
-     * @param conservacao   NOVO/EXCELENTE/BOM/REGULAR/NECESSITA_REPARO
+     * @param conservacao   NOVO/EXCELENTE/BOM/REGULAR
      * @param origem        {@code "COM_VINCULO"}, {@code "SEM_VINCULO"} ou {@code null}
      *                      (ignorado se {@code doacaoId} for passado)
      * @param doacaoId      filtra por uma doação específica; precede o filtro de origem

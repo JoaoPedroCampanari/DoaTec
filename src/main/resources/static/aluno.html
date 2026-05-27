@@ -46,7 +46,6 @@
                     <div class="notifications-list"></div>
                 </div>
             </div>
-            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <ul class="nav-links-account">
                 <li id="minhaContaDropdownItem" class="nav-dropdown">
                     <a href="#" class="profile-trigger" title="Minha Conta" aria-label="Minha Conta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
@@ -68,12 +67,12 @@
         <div class="container">
             <div class="application-header">
                 <h1>Solicitação de Equipamento</h1>
-                <p style="max-width: 700px; margin: 0 auto;">Se você é um aluno já cadastrado, preencha o formulário abaixo para registrar sua necessidade de equipamento.</p>
+                <p style="max-width: 700px; margin: 0 auto;">Conte para a gente qual equipamento você precisa e por quê. Nossa equipe avaliará seu pedido.</p>
             </div>
 
             <form id="alunoRequestForm" class="application-form">
                 <fieldset>
-                    <legend>Seus Dados (Confirmação)</legend>
+                    <legend>Seus Dados</legend>
                     <div class="form-group">
                         <label for="nome">Nome Completo:</label>
                         <input type="text" id="nome" required disabled> </div>
@@ -98,8 +97,8 @@
                         <small>Explique por que você precisa do equipamento e como ele ajudará nos seus estudos.</small>
                     </div>
                     <div class="form-group">
-                        <label for="preferenciaEquipamento">Preferência de Equipamento:</label>
-                        <input type="text" id="preferenciaEquipamento" placeholder="Notebook, Teclado, Mouse, etc.">
+                        <label for="preferenciaEquipamento">Qual equipamento você precisa?</label>
+                        <input type="text" id="preferenciaEquipamento" placeholder="Ex.: notebook, teclado, mouse...">
                     </div>
                     <div class="form-group">
                         <label>Comprovante de Renda:</label>
@@ -212,13 +211,40 @@
             const submitBtn = form.querySelector('button[type="submit"]');
             DoaTec.setButtonLoading(submitBtn, true);
 
+            // Upload do comprovante (se enviado) antes de criar a solicitação
+            let urlComprovante = null;
+            if (comprovanteInput.files && comprovanteInput.files[0]) {
+                try {
+                    const fd = new FormData();
+                    fd.append('file', comprovanteInput.files[0]);
+                    const uploadResp = await apiFetch('/api/upload/comprovante', {
+                        method: 'POST',
+                        body: fd
+                    });
+                    if (uploadResp.ok) {
+                        urlComprovante = await uploadResp.text();
+                    } else {
+                        const errTxt = await uploadResp.text();
+                        DoaTec.showToast('Erro ao enviar comprovante: ' + errTxt, 'error');
+                        DoaTec.setButtonLoading(submitBtn, false);
+                        return;
+                    }
+                } catch (uploadErr) {
+                    console.error('Erro no upload do comprovante:', uploadErr);
+                    DoaTec.showToast('Não foi possível enviar o comprovante. Tente novamente.', 'error');
+                    DoaTec.setButtonLoading(submitBtn, false);
+                    return;
+                }
+            }
+
             const requestData = {
                 nome: nomeInput.value,
                 email: emailInput.value,
                 telefone: telefoneInput.value,
                 ra: raInput.value,
                 justificativa: document.getElementById('justificativa').value,
-                preferenciaEquipamento: document.getElementById('preferenciaEquipamento').value
+                preferenciaEquipamento: document.getElementById('preferenciaEquipamento').value,
+                urlComprovante: urlComprovante
             };
 
             try {

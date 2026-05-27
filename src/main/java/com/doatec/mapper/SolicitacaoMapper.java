@@ -14,6 +14,7 @@ public class SolicitacaoMapper {
                 .aluno(aluno)
                 .justificativa(request.justificativa())
                 .preferenciaEquipamento(request.preferenciaEquipamento())
+                .urlComprovante(request.urlComprovante())
                 .build();
     }
 

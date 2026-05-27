@@ -15,6 +15,7 @@ public record SolicitacaoResponse(
     String status,
     String justificativa,
     String preferenciaEquipamento,
+    String urlComprovante,
     String observacaoAdmin,
     String adminAvaliadorNome,
     LocalDateTime dataAvaliacao
@@ -28,6 +29,7 @@ public record SolicitacaoResponse(
                 .status(solicitacao.getStatus().name())
                 .justificativa(solicitacao.getJustificativa())
                 .preferenciaEquipamento(solicitacao.getPreferenciaEquipamento())
+                .urlComprovante(solicitacao.getUrlComprovante())
                 .observacaoAdmin(solicitacao.getObservacaoAdmin())
                 .adminAvaliadorNome(solicitacao.getAdminAvaliador() != null ? solicitacao.getAdminAvaliador().getNome() : null)
                 .dataAvaliacao(solicitacao.getDataAvaliacao())

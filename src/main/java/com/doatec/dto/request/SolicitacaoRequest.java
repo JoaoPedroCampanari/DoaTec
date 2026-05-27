@@ -15,5 +15,6 @@ public record SolicitacaoRequest(
 
     String ra,
     String justificativa,
-    String preferenciaEquipamento
+    String preferenciaEquipamento,
+    String urlComprovante
 ) {}

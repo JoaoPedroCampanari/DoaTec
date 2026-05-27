@@ -44,7 +44,7 @@ public record EquipamentoResponse(
                 .descricao(equipamento.getDescricao())
                 .status(equipamento.getStatus().name())
                 .estadoConservacao(equipamento.getEstadoConservacao() != null
-                        ? equipamento.getEstadoConservacao().getDescricao() : null)
+                        ? equipamento.getEstadoConservacao().name() : null)
                 .doadorOrigem(doadorNome)
                 .doacaoId(doacaoId)
                 .solicitacaoDestinoId(equipamento.getSolicitacaoDestino() != null

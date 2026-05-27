@@ -164,13 +164,13 @@ class AdminControllerTest {
         @DisplayName("PUT /doacoes/{id}/status retorna 200")
         void alterarStatusDoacao_retorna200() {
             mockAuthenticatedAdmin();
-            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("EM_ANALISE").build();
-            when(adminService.alterarStatusDoacao(eq(1), eq(StatusDoacao.EM_ANALISE), eq(1), any())).thenReturn(doacao);
+            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("RECEBIDO").build();
+            when(adminService.alterarStatusDoacao(eq(1), eq(StatusDoacao.RECEBIDO), eq(1), any())).thenReturn(doacao);
 
-            ResponseEntity<DoacaoResponse> response = controller.alterarStatusDoacao(1, StatusDoacao.EM_ANALISE, userDetails, null);
+            ResponseEntity<DoacaoResponse> response = controller.alterarStatusDoacao(1, StatusDoacao.RECEBIDO, userDetails, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("EM_ANALISE", response.getBody().status());
+            assertEquals("RECEBIDO", response.getBody().status());
         }
     }
 
@@ -183,7 +183,7 @@ class AdminControllerTest {
         @Test
         @DisplayName("GET /solicitacoes retorna 200 com página")
         void listarSolicitacoes_retorna200() {
-            SolicitacaoResponse sol = SolicitacaoResponse.builder().id(1).status("EM_ANALISE").build();
+            SolicitacaoResponse sol = SolicitacaoResponse.builder().id(1).status("RECEBIDO").build();
             Page<SolicitacaoResponse> page = new PageImpl<>(List.of(sol), pageable, 1);
             when(adminService.listarSolicitacoes(any(), any())).thenReturn(page);
 

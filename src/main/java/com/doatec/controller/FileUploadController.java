@@ -59,11 +59,42 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body("Arquivo excede o tamanho máximo de 5MB.");
         }
 
+        return saveFile(file, ".jpg");
+    }
+
+    /**
+     * Upload de comprovante (renda, matrícula, etc.). Aceita imagens e PDFs.
+     */
+    @PostMapping("/comprovante")
+    public ResponseEntity<String> uploadComprovante(@RequestParam("file") MultipartFile file) {
+        String contentType = file.getContentType();
+        boolean isImage = contentType != null && contentType.startsWith("image/");
+        boolean isPdf = "application/pdf".equals(contentType);
+
+        if (!isImage && !isPdf) {
+            return ResponseEntity.badRequest().body("Arquivo deve ser uma imagem ou PDF.");
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body("Arquivo excede o tamanho máximo de 5MB.");
+        }
+
+        if (isImage && !validateImageSignature(file, contentType)) {
+            return ResponseEntity.badRequest().body("Assinatura do arquivo não corresponde ao tipo declarado.");
+        }
+        if (isPdf && !validatePdfSignature(file)) {
+            return ResponseEntity.badRequest().body("Arquivo não é um PDF válido.");
+        }
+
+        return saveFile(file, isPdf ? ".pdf" : ".jpg");
+    }
+
+    private ResponseEntity<String> saveFile(MultipartFile file, String defaultExtension) {
         try {
             String originalFilename = file.getOriginalFilename();
             String extension = originalFilename != null && originalFilename.contains(".")
                     ? originalFilename.substring(originalFilename.lastIndexOf("."))
-                    : ".jpg";
+                    : defaultExtension;
             String uniqueFilename = UUID.randomUUID().toString() + extension;
 
             Path filePath = uploadDir.resolve(uniqueFilename);
@@ -73,6 +104,21 @@ public class FileUploadController {
 
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body("Erro ao salvar arquivo: " + e.getMessage());
+        }
+    }
+
+    private boolean validatePdfSignature(MultipartFile file) {
+        byte[] expected = new byte[]{0x25, 0x50, 0x44, 0x46}; // %PDF
+        try {
+            byte[] header = new byte[expected.length];
+            int bytesRead = file.getInputStream().read(header);
+            if (bytesRead < expected.length) return false;
+            for (int i = 0; i < expected.length; i++) {
+                if (header[i] != expected[i]) return false;
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
 

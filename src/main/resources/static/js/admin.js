@@ -82,7 +82,6 @@ const AdminPanel = {
             { value: 'EM_TRIAGEM', label: 'Em Triagem' },
             { value: 'AGUARDANDO_COLETA', label: 'Aguardando Coleta' },
             { value: 'RECEBIDO', label: 'Recebido' },
-            { value: 'EM_ANALISE', label: 'Em Análise' },
             { value: 'FINALIZADO', label: 'Finalizado' },
             { value: 'REJEITADA', label: 'Rejeitada' }
         ], 'doacoes');
@@ -241,8 +240,7 @@ const AdminPanel = {
                     { value: 'NOVO', label: 'Novo' },
                     { value: 'EXCELENTE', label: 'Excelente' },
                     { value: 'BOM', label: 'Bom' },
-                    { value: 'REGULAR', label: 'Regular' },
-                    { value: 'NECESSITA_REPARO', label: 'Necessita Reparo' }
+                    { value: 'REGULAR', label: 'Regular' }
                 ]
             },
             {
@@ -362,10 +360,22 @@ const AdminPanel = {
             <tr class="admin-detail-row" id="detail-doacao-${d.id}" style="display:none">
                 <td colspan="6">
                     <div class="admin-detail-content">
-                        <p><strong>Logística:</strong> ${escapeHtml(d.preferenciaEntrega || 'Não informada')}</p>
-                        ${d.enderecoRetirada ? `<p><strong>Endereço de retirada:</strong> ${escapeHtml(d.enderecoRetirada)}</p>` : ''}
+                        <p><strong>Entrega:</strong> ${escapeHtml(translateEntrega(d.preferenciaEntrega))}</p>
+                        <p><strong>Endereço:</strong> ${d.preferenciaEntrega === 'PONTO_DE_COLETA'
+                            ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000'
+                            : (d.enderecoRetirada ? escapeHtml(d.enderecoRetirada) : 'Não informado')}</p>
                         <p><strong>Descrição:</strong> ${escapeHtml(d.descricaoGeral || 'Não informada')}</p>
-                        ${d.urlFoto ? `<p><strong>Foto${d.urlFoto.includes(',') ? 's' : ''}:</strong> ${d.urlFoto.split(',').map(u => `<a href="${escapeHtml(u.trim())}" target="_blank">Ver imagem</a>`).join(' · ')}</p>` : ''}
+                        ${d.urlFoto ? (() => {
+                            const urls = d.urlFoto.split(',').map(u => u.trim()).filter(Boolean);
+                            return `<p><strong>Foto${urls.length > 1 ? 's' : ''}:</strong></p>
+                                <div class="admin-doacao-fotos">
+                                    ${urls.map(u => `
+                                        <a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="admin-doacao-foto-link">
+                                            <img src="${escapeHtml(u)}" alt="Foto da doação" class="admin-doacao-foto" loading="lazy" onerror="this.style.display='none'">
+                                        </a>
+                                    `).join('')}
+                                </div>`;
+                        })() : ''}
                         ${d.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(d.observacaoAdmin)}</p>` : ''}
                         ${d.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(d.adminAvaliadorNome)}${d.dataAvaliacao ? ' — ' + formatDate(d.dataAvaliacao) : ''}</p>` : ''}
                         ${d.itens && d.itens.length ? `
@@ -382,8 +392,7 @@ const AdminPanel = {
         const transicoes = {
             'EM_TRIAGEM': ['AGUARDANDO_COLETA', 'REJEITADA'],
             'AGUARDANDO_COLETA': ['RECEBIDO', 'REJEITADA'],
-            'RECEBIDO': ['EM_ANALISE', 'REJEITADA'],
-            'EM_ANALISE': ['FINALIZADO', 'REJEITADA'],
+            'RECEBIDO': ['FINALIZADO', 'REJEITADA'],
             'REJEITADA': ['EM_TRIAGEM']
         };
         return transicoes[status] || [];
@@ -394,7 +403,6 @@ const AdminPanel = {
             'EM_TRIAGEM': 'Em Triagem',
             'AGUARDANDO_COLETA': 'Aguardando Coleta',
             'RECEBIDO': 'Recebido',
-            'EM_ANALISE': 'Em Análise',
             'FINALIZADO': 'Finalizado',
             'REJEITADA': 'Rejeitar',
             'EM_ANALISE_SOL': 'Em Análise',
@@ -481,6 +489,25 @@ const AdminPanel = {
                     <div class="admin-detail-content">
                         <p><strong>Preferência:</strong> ${escapeHtml(s.preferenciaEquipamento || 'Não informada')}</p>
                         ${s.justificativa ? `<p><strong>Justificativa:</strong> ${escapeHtml(s.justificativa)}</p>` : ''}
+                        ${s.urlComprovante ? (() => {
+                            const url = s.urlComprovante.trim();
+                            const isPdf = /\.pdf(\?.*)?$/i.test(url);
+                            if (isPdf) {
+                                return `<p><strong>Comprovante de renda:</strong></p>
+                                    <div class="admin-doacao-fotos">
+                                        <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="admin-comprovante-pdf">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+                                            <span>Abrir PDF</span>
+                                        </a>
+                                    </div>`;
+                            }
+                            return `<p><strong>Comprovante de renda:</strong></p>
+                                <div class="admin-doacao-fotos">
+                                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="admin-doacao-foto-link">
+                                        <img src="${escapeHtml(url)}" alt="Comprovante de renda" class="admin-doacao-foto" loading="lazy" onerror="this.style.display='none'">
+                                    </a>
+                                </div>`;
+                        })() : ''}
                         ${s.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(s.observacaoAdmin)}</p>` : ''}
                         ${s.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(s.adminAvaliadorNome)}${s.dataAvaliacao ? ' — ' + formatDate(s.dataAvaliacao) : ''}</p>` : ''}
                         ${s.status === 'APROVADA' ? `
@@ -725,7 +752,6 @@ const AdminPanel = {
         if (d.includes('excelente')) return 'EXCELENTE';
         if (d.includes('bom')) return 'BOM';
         if (d.includes('regular')) return 'REGULAR';
-        if (d.includes('repar')) return 'NECESSITA_REPARO';
         return null;
     },
 

@@ -44,7 +44,6 @@
                     <div class="notifications-list"></div>
                 </div>
             </div>
-            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <ul class="nav-links-account">
                 <li id="minhaContaDropdownItem" class="nav-dropdown">
                     <a href="#" class="profile-trigger" title="Minha Conta" aria-label="Minha Conta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
@@ -172,7 +171,7 @@
                         <th>ID</th>
                         <th>Aluno</th>
                         <th>Data</th>
-                        <th>Preferência</th>
+                        <th>Equipamento</th>
                         <th>Status</th>
                         <th>Ações</th>
                     </tr>
@@ -416,11 +415,10 @@
             <div class="form-group">
                 <label for="modal-equipamento-conservacao">Estado de conservação *</label>
                 <select id="modal-equipamento-conservacao">
-                    <option value="NOVO">Novo, sem uso</option>
+                    <option value="NOVO">Novo</option>
                     <option value="EXCELENTE">Excelente</option>
                     <option value="BOM" selected>Bom</option>
                     <option value="REGULAR">Regular</option>
-                    <option value="NECESSITA_REPARO">Necessita reparo</option>
                 </select>
             </div>
 
@@ -430,7 +428,7 @@
                     <option value="">— Nenhuma (peça avulsa) —</option>
                 </select>
                 <small id="modal-equipamento-doacao-lock" style="color:var(--neutral-600);display:none;">
-                    O vínculo trava após o equipamento sair de Disponível para preservar histórico.
+                    O vínculo com a doação não pode ser alterado depois que o equipamento deixar de estar "Disponível", para preservar o histórico.
                 </small>
             </div>
         </div>

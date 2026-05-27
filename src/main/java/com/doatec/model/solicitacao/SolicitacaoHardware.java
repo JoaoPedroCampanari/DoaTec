@@ -41,6 +41,10 @@ public class SolicitacaoHardware {
 
     private String preferenciaEquipamento;
 
+    /** URL do comprovante de renda enviado pelo aluno (imagem ou PDF). */
+    @Column(length = 500)
+    private String urlComprovante;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_avaliador_id")
     private Pessoa adminAvaliador;

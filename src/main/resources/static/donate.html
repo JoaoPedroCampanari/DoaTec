@@ -47,7 +47,6 @@
                     <div class="notifications-list"></div>
                 </div>
             </div>
-            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <ul class="nav-links-account">
                 <li id="minhaContaDropdownItem" class="nav-dropdown">
                     <a href="#" class="profile-trigger" title="Minha Conta" aria-label="Minha Conta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
@@ -69,7 +68,7 @@
         <div class="container">
             <div class="application-header">
                 <h1>Formulário de Doação</h1>
-                <p style="max-width: 700px; margin: 0 auto;">Agradecemos seu interesse em ajudar! Pessoas físicas e jurídicas podem doar equipamentos completos ou componentes que serão usados para montar computadores para estudantes.</p>
+                <p style="max-width: 700px; margin: 0 auto;">Obrigado pelo seu interesse em ajudar! Aceitamos doações de pessoas físicas, empresas e alunos — desde equipamentos completos até componentes que serão usados para montar computadores para estudantes da Fatec Garça.</p>
             </div>
             <form id="donationForm" class="application-form">
                 <fieldset>
@@ -129,11 +128,11 @@
                         <label>Como prefere realizar a entrega?</label>
                         <div>
                             <input type="radio" id="deliveryDropoff" name="deliveryPreference" value="PONTO_DE_COLETA" checked>
-                            <label for="deliveryDropoff" class="radio-label">Posso levar até a faculdade Fatec-Garça</label>
+                            <label for="deliveryDropoff" class="radio-label">Posso levar até a Fatec Garça</label>
                         </div>
                         <div>
                             <input type="radio" id="deliveryPickup" name="deliveryPreference" value="SOLICITAR_RETIRADA">
-                            <label for="deliveryPickup" class="radio-label">Gostaria de solicitar a retirada no meu endereço (sujeito a análise de viabilidade)</label>
+                            <label for="deliveryPickup" class="radio-label">Gostaria de solicitar a retirada no meu endereço (sujeita a análise)</label>
                         </div>
                     </div>
                     <!-- Endereço de retirada — visível apenas quando SOLICITAR_RETIRADA -->
@@ -193,7 +192,7 @@
                 </fieldset>
                 <div class="form-group">
                     <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms" class="checkbox-label">Declaro que os itens doados são de minha propriedade e concordo em transferi-los para o projeto.</label>
+                    <label for="terms" class="checkbox-label">Declaro que os itens a serem doados são de minha propriedade e concordo em transferi-los à Doatec/Fatec Garça.</label>
                 </div>
                 <button type="submit" class="btn btn-primary btn-submit">Enviar Formulário de Doação</button>
             </form>
@@ -308,8 +307,8 @@
         }
 
 
-        // File upload — múltiplas fotos (até 3)
-        const MAX_FOTOS = 3;
+        // File upload — múltiplas fotos (até 2)
+        const MAX_FOTOS = 2;
         const selectedFiles = [];
         const btnAttach = document.getElementById('btnAttachPhoto');
         const photoCount = document.getElementById('photoCount');
@@ -524,7 +523,7 @@
                     const comp = document.getElementById('retComplemento').value.trim();
 
                     if (!cep || !num || !log || !bai || !cid) {
-                        DoaTec.showToast('O CEP deve ser válido para preencher o endereço.', 'warning');
+                        DoaTec.showToast('Preencha todos os campos obrigatórios do endereço de retirada.', 'warning');
                         DoaTec.setButtonLoading(submitBtn, false);
                         return;
                     }
@@ -544,7 +543,7 @@
                 });
 
                 if (response.ok) {
-                    DoaTec.showToast("Obrigado pela sua doação! Acompanhe o status em 'Minhas Doações'.", 'success');
+                    DoaTec.showToast('Obrigado pela sua doação! Acompanhe o status em "Minhas Doações".', 'success');
                     setTimeout(() => window.location.href = 'minhas-doacoes.html', 1500);
                 } else {
                     let errorMessage = 'Erro desconhecido.';

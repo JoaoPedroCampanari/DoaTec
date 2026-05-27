@@ -46,7 +46,6 @@
                     <div class="notifications-list"></div>
                 </div>
             </div>
-            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <ul class="nav-links-account">
                 <li id="minhaContaDropdownItem" class="nav-dropdown">
                     <a href="#" class="profile-trigger" title="Minha Conta" aria-label="Minha Conta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
@@ -89,7 +88,7 @@
                     </h3>
                     <div class="form-group">
                         <label class="faq-label">Quem pode doar?</label>
-                        <p class="form-text faq-text">Pessoas físicas, jurídicas e empresas parceiras podem doar componentes eletrônicos ou computadores completos.</p>
+                        <p class="form-text faq-text">Pessoas físicas, jurídicas e alunos podem doar componentes eletrônicos ou computadores completos.</p>
                     </div>
                     <div class="form-group">
                         <label class="faq-label">O que posso doar?</label>
@@ -112,11 +111,11 @@
                     </div>
                     <div class="form-group">
                         <label class="faq-label">Como funciona a fila de espera?</label>
-                        <p class="form-text faq-text">A instituição de ensino parceira, como a Fatec Garça, gerencia a fila de beneficiários. A seleção é baseada em critérios socioeconômicos a partir da análise dos documentos enviados no formulário de solicitação.</p>
+                        <p class="form-text faq-text">A instituição de ensino parceira, como a Fatec Garça, gerencia a fila de alunos solicitantes. A seleção é baseada em critérios socioeconômicos a partir da análise dos documentos enviados no formulário de solicitação.</p>
                     </div>
                     <div class="form-group">
                         <label class="faq-label">Como saberei se fui selecionado?</label>
-                        <p class="form-text faq-text">Nossa equipe administrativa entrará em contato através do telefone cadastrado ou via chat do ticket enviado para informar sobre a aprovação e os próximos passos para a retirada do equipamento.</p>
+                        <p class="form-text faq-text">Nossa equipe administrativa entrará em contato pelo telefone cadastrado ou pelo chat do seu ticket, informando a aprovação e os próximos passos para a retirada do equipamento.</p>
                     </div>
                 </div>
             </div>
@@ -238,7 +237,7 @@
                 });
 
                 if (response.ok) {
-                    DoaTec.showToast("Ticket aberto! Você pode ver o histórico em 'Meus Tickets'.", 'success');
+                    DoaTec.showToast('Ticket aberto! Você pode ver o histórico em "Meus Tickets".', 'success');
                     setTimeout(() => window.location.href = 'meus-tickets.html', 1500);
                 } else {
                     const errorData = await response.json().catch(() => ({}));
@@ -255,7 +254,7 @@
 
             } catch (error) {
                 console.error('Erro ao enviar formulário de suporte:', error);
-                DoaTec.showToast('Ocorreu um erro de conexão ao enviar sua mensagem. Verifique o console.', 'error');
+                DoaTec.showToast('Não foi possível enviar sua mensagem. Verifique sua conexão e tente novamente.', 'error');
             } finally {
                 DoaTec.setButtonLoading(submitBtn, false);
             }

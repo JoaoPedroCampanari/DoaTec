@@ -60,9 +60,9 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Intege
                 OR (:hasDoacao = FALSE AND e.doacao IS NULL)
               )
           AND (
-                :q IS NULL
-                OR LOWER(e.tipo) LIKE LOWER(CONCAT('%', :q, '%'))
-                OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :q, '%'))
+                CAST(:q AS string) IS NULL
+                OR LOWER(e.tipo) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%'))
+                OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%'))
               )
         ORDER BY e.dataEntradaInventario DESC
     """)

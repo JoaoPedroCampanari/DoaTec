@@ -1414,6 +1414,18 @@ body.perfil-page .login-box {
     box-shadow: var(--shadow-lg);
 }
 
+.donation-photos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    flex-shrink: 0;
+}
+
+.donation-photo-link {
+    display: block;
+    line-height: 0;
+}
+
 .donation-image {
     width: 100px;
     height: 100px;
@@ -1421,10 +1433,14 @@ body.perfil-page .login-box {
     object-fit: cover;
     background: var(--neutral-100);
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     color: var(--neutral-400);
+    cursor: zoom-in;
+    transition: transform var(--transition-base);
+}
+
+.donation-photo-link:hover .donation-image {
+    transform: scale(1.03);
 }
 
 .donation-content {
@@ -3347,6 +3363,58 @@ html.dark-mode .admin-table tr:hover td {
 
 .admin-detail-content strong {
     color: var(--neutral-900);
+}
+
+.admin-doacao-fotos {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 8px 0;
+}
+
+.admin-doacao-foto-link {
+    display: block;
+    line-height: 0;
+}
+
+.admin-doacao-foto {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-100);
+    cursor: zoom-in;
+    transition: transform var(--transition-base);
+}
+
+.admin-doacao-foto-link:hover .admin-doacao-foto {
+    transform: scale(1.04);
+}
+
+.admin-comprovante-pdf {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 120px;
+    height: 120px;
+    padding: 12px;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-100);
+    color: var(--neutral-700);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: transform var(--transition-base), background var(--transition-base);
+}
+
+.admin-comprovante-pdf:hover {
+    background: var(--neutral-200);
+    transform: scale(1.04);
 }
 
 html.dark-mode .admin-row-clickable:hover {

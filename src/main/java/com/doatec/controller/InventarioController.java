@@ -32,7 +32,7 @@ public class InventarioController {
      *
      * <ul>
      *   <li>{@code status} — DISPONIVEL, RESERVADO ou ENTREGUE</li>
-     *   <li>{@code conservacao} — NOVO, EXCELENTE, BOM, REGULAR ou NECESSITA_REPARO</li>
+     *   <li>{@code conservacao} — NOVO, EXCELENTE, BOM ou REGULAR</li>
      *   <li>{@code origem} — "COM_VINCULO" (vinculados a doação) ou "SEM_VINCULO" (avulsos);
      *       ignorado se {@code doacaoId} for passado</li>
      *   <li>{@code doacaoId} — filtra equipamentos vinculados a uma doação específica</li>

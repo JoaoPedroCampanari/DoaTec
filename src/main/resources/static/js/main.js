@@ -152,8 +152,8 @@ function translateStatus(status) {
 function translateEntrega(valor) {
     if (!valor) return 'Não informada';
     const map = {
-        'PONTO_DE_COLETA': 'Ponto de Coleta',
-        'SOLICITAR_RETIRADA': 'Retirada no Endereço (Análise de Viabilidade)'
+        'PONTO_DE_COLETA': 'Entrega na Fatec Garça',
+        'SOLICITAR_RETIRADA': 'Retirada no meu endereço (sujeita a análise)'
     };
     return map[valor] || capitalize(valor.replace(/_/g, ' '));
 }
@@ -168,7 +168,7 @@ function translateEquipamento(valor) {
         'COMPUTADOR_DESKTOP': 'Computador Desktop',
         'MONITOR': 'Monitor',
         'ACESSORIOS': 'Acessórios (Teclado, Mouse, etc.)',
-        'QUALQUER': 'Qualquer equipamento disponível'
+        'QUALQUER': 'Sem preferência'
     };
     return map[valor] || capitalize(valor.replace(/_/g, ' '));
 }

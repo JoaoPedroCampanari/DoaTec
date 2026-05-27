@@ -232,8 +232,7 @@ public class AdminService {
         boolean transicaoValida = switch (atual) {
             case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
             case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
-            case RECEBIDO -> novo == StatusDoacao.EM_ANALISE || novo == StatusDoacao.REJEITADA;
-            case EM_ANALISE -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
+            case RECEBIDO -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
             case REJEITADA -> novo == StatusDoacao.EM_TRIAGEM;
             default -> false;
         };

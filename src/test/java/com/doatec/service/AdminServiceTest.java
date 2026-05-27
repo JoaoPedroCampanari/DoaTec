@@ -297,7 +297,7 @@ class AdminServiceTest {
 
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setStatus(StatusDoacao.RECEBIDO);
             doacao.setDoador(doador);
             doacao.setItens(new java.util.ArrayList<>());
 
@@ -329,7 +329,7 @@ class AdminServiceTest {
 
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setStatus(StatusDoacao.RECEBIDO);
             doacao.setDoador(doador);
 
             when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));

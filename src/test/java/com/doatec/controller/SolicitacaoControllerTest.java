@@ -69,7 +69,7 @@ class SolicitacaoControllerTest {
             User userDetails = new User("aluno@teste.com", "", List.of());
             SolicitacaoRequest request = new SolicitacaoRequest(
                     "Aluno Teste", "aluno@teste.com", null, "2023001",
-                    "Preciso para aulas de programacao", "Notebook");
+                    "Preciso para aulas de programacao", "Notebook", null);
 
             when(solicitacaoService.criarSolicitacao(eq("aluno@teste.com"), any(SolicitacaoRequest.class)))
                     .thenReturn(solicitacao);
@@ -92,7 +92,7 @@ class SolicitacaoControllerTest {
             User userDetails = new User("aluno@teste.com", "", List.of());
             SolicitacaoRequest request = new SolicitacaoRequest(
                     "Aluno Teste", "aluno@teste.com", null, "2023001",
-                    "Justificativa", "Notebook");
+                    "Justificativa", "Notebook", null);
 
             when(solicitacaoService.criarSolicitacao(eq("aluno@teste.com"), any(SolicitacaoRequest.class)))
                     .thenThrow(new BusinessException("Apenas alunos podem fazer solicitacoes de hardware."));

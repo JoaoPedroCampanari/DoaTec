@@ -45,7 +45,6 @@
                     <div class="notifications-list"></div>
                 </div>
             </div>
-            <button id="theme-toggle" class="btn-theme-toggle">🌙</button>
             <ul class="nav-links-account">
                 <li id="minhaContaDropdownItem" class="nav-dropdown">
                     <a href="#" class="profile-trigger" title="Minha Conta" aria-label="Minha Conta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
@@ -149,7 +148,23 @@
                         itemsHtml += '</div>';
                     }
 
+                    // Build photos HTML — múltiplas URLs vêm separadas por vírgula
+                    let photosHtml = '';
+                    if (donation.urlFoto) {
+                        const urls = donation.urlFoto.split(',').map(u => u.trim()).filter(Boolean);
+                        if (urls.length > 0) {
+                            photosHtml = '<div class="donation-photos">' +
+                                urls.map(u => `
+                                    <a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="donation-photo-link">
+                                        <img src="${escapeHtml(u)}" alt="Foto da doação" class="donation-image" loading="lazy" onerror="this.style.display='none'">
+                                    </a>
+                                `).join('') +
+                                '</div>';
+                        }
+                    }
+
                     donationCard.innerHTML = `
+                        ${photosHtml}
                         <div class="donation-content" style="flex: 1;">
                             <div class="donation-header">
                                 <h3 class="donation-title">Doação #${donation.id}</h3>

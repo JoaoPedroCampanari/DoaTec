@@ -5,11 +5,10 @@ package com.doatec.model.inventory;
  */
 public enum EstadoConservacao {
 
-    NOVO("Novo, sem uso"),
+    NOVO("Novo"),
     EXCELENTE("Excelente estado"),
     BOM("Bom estado, pequenos desgastes"),
-    REGULAR("Funcional, com desgaste visível"),
-    NECESSITA_REPARO("Necessita reparos leves");
+    REGULAR("Funcional, com desgaste visível");
 
     private final String descricao;
 
