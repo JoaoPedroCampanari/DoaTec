@@ -43,11 +43,24 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        fixDoacaoStatusCheckConstraint();
+        jdbcTemplate.update("UPDATE doacao SET status = ? WHERE status = ?", "EM_TRIAGEM", "AGENDANDO_COLETA");
         fixRoleCheckConstraint();
         fixLogAcaoCheckConstraint();
         seedSuperAdmin();
         seedAlunoTeste();
         seedDoadoresTeste();
+    }
+
+    private void fixDoacaoStatusCheckConstraint() {
+        Integer existentes = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = 'doacao' AND constraint_name = 'doacao_status_check'", Integer.class);
+        if (existentes != null && existentes > 0) {
+            jdbcTemplate.execute("ALTER TABLE doacao DROP CONSTRAINT doacao_status_check");
+            jdbcTemplate.execute("ALTER TABLE doacao ADD CONSTRAINT doacao_status_check CHECK (status IN (" +
+                    "'EM_TRIAGEM','EM_ANALISE','REJEITADA','RECUSADO','APROVADO','FINALIZADO','RECEBIDO','AGUARDANDO_COLETA'," +
+                    "'AGUARDANDO_ENTREGA','ENTREGUE','AGENDANDO_COLETA','COLETA_AGENDADA','RETIRADO'))");
+        }
     }
 
     /**

@@ -4,6 +4,8 @@ import com.doatec.model.notification.Notificacao;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
  * DTO de resposta para dados de notificação.
@@ -13,7 +15,7 @@ public record NotificacaoResponse(
     Integer id,
     String titulo,
     String mensagem,
-    LocalDateTime dataCriacao,
+    OffsetDateTime dataCriacao,
     Boolean lida,
     LocalDateTime dataLeitura,
     String tipo,
@@ -25,7 +27,7 @@ public record NotificacaoResponse(
                 .id(notificacao.getId())
                 .titulo(notificacao.getTitulo())
                 .mensagem(notificacao.getMensagem())
-                .dataCriacao(notificacao.getDataCriacao())
+                .dataCriacao(notificacao.getDataCriacao() != null ? notificacao.getDataCriacao().atOffset(ZoneOffset.UTC) : null)
                 .lida(notificacao.getLida())
                 .dataLeitura(notificacao.getDataLeitura())
                 .tipo(notificacao.getTipo() != null ? notificacao.getTipo().name() : null)

@@ -17,6 +17,7 @@ import com.doatec.model.account.Role;
 import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.StatusDoacao;
+import com.doatec.model.donation.PreferenciaEntrega;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.model.solicitacao.StatusSolicitacao;
 import com.doatec.model.suporte.StatusSuporte;
@@ -90,8 +91,8 @@ class AdminServiceTest {
         when(solicitacaoRepository.countByStatus(StatusSolicitacao.EM_ANALISE)).thenReturn(3L);
         when(suporteFormularioRepository.countByStatus(StatusSuporte.ABERTO)).thenReturn(7L);
         when(pessoaRepository.countByAtivoTrue()).thenReturn(100L);
-        when(doacaoRepository.countByStatus(StatusDoacao.FINALIZADO)).thenReturn(40L);
-        when(doacaoRepository.countByStatus(StatusDoacao.REJEITADA)).thenReturn(5L);
+        when(doacaoRepository.countAprovadasHistoricas()).thenReturn(40L);
+        when(doacaoRepository.countByStatus(StatusDoacao.RECUSADO)).thenReturn(5L);
         when(solicitacaoRepository.countByStatus(StatusSolicitacao.APROVADA)).thenReturn(20L);
         when(solicitacaoRepository.countByStatus(StatusSolicitacao.REJEITADA)).thenReturn(2L);
 
@@ -119,17 +120,17 @@ class AdminServiceTest {
 
         Doacao doacao = new Doacao();
         doacao.setId(1);
-        doacao.setStatus(StatusDoacao.EM_TRIAGEM);
+        doacao.setStatus(StatusDoacao.EM_ANALISE);
         doacao.setDoador(doador);
 
         Page<Doacao> page = new PageImpl<>(List.of(doacao), pageable, 1);
-        when(doacaoRepository.findByStatus(StatusDoacao.EM_TRIAGEM, pageable)).thenReturn(page);
+        when(doacaoRepository.findByStatus(StatusDoacao.EM_ANALISE, pageable)).thenReturn(page);
 
-        Page<DoacaoResponse> result = service.listarDoacoes(StatusDoacao.EM_TRIAGEM, pageable);
+        Page<DoacaoResponse> result = service.listarDoacoes(StatusDoacao.EM_ANALISE, pageable);
 
         assertEquals(1, result.getTotalElements());
-        assertEquals("EM_TRIAGEM", result.getContent().get(0).status());
-        verify(doacaoRepository).findByStatus(StatusDoacao.EM_TRIAGEM, pageable);
+        assertEquals("EM_ANALISE", result.getContent().get(0).status());
+        verify(doacaoRepository).findByStatus(StatusDoacao.EM_ANALISE, pageable);
     }
 
     @Test
@@ -311,18 +312,19 @@ class AdminServiceTest {
 
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.RECEBIDO);
+            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setPreferenciaEntrega(PreferenciaEntrega.PONTO_DE_COLETA);
             doacao.setDoador(doador);
             doacao.setItens(new java.util.ArrayList<>());
 
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
+            when(doacaoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(doacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(doacaoRepository.save(any(Doacao.class))).thenReturn(doacao);
 
             DoacaoResponse result = service.aprovarDoacao(1, 1, null);
 
             assertNotNull(result);
-            assertEquals(StatusDoacao.FINALIZADO, doacao.getStatus());
+            assertEquals(StatusDoacao.AGUARDANDO_ENTREGA, doacao.getStatus());
             verify(notificacaoService).criarNotificacao(eq(10), any(), any(), any(), eq(1), eq("DOACAO"));
             verify(logAcaoRepository).save(any());
         }
@@ -343,17 +345,18 @@ class AdminServiceTest {
 
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.RECEBIDO);
+            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setPreferenciaEntrega(PreferenciaEntrega.PONTO_DE_COLETA);
             doacao.setDoador(doador);
 
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
+            when(doacaoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(doacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(doacaoRepository.save(any(Doacao.class))).thenReturn(doacao);
 
             DoacaoResponse result = service.rejeitarDoacao(1, 1, null);
 
             assertNotNull(result);
-            assertEquals(StatusDoacao.REJEITADA, doacao.getStatus());
+            assertEquals(StatusDoacao.RECUSADO, doacao.getStatus());
             verify(notificacaoService).criarNotificacao(eq(10), any(), any(), any(), eq(1), eq("DOACAO"));
             verify(logAcaoRepository).save(any());
         }
@@ -374,17 +377,18 @@ class AdminServiceTest {
 
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.EM_TRIAGEM);
+            doacao.setStatus(StatusDoacao.EM_ANALISE);
+            doacao.setPreferenciaEntrega(PreferenciaEntrega.PONTO_DE_COLETA);
             doacao.setDoador(doador);
 
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
+            when(doacaoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(doacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(doacaoRepository.save(any(Doacao.class))).thenReturn(doacao);
 
-            DoacaoResponse result = service.alterarStatusDoacao(1, StatusDoacao.AGUARDANDO_COLETA, 1, null);
+            DoacaoResponse result = service.alterarStatusDoacao(1, StatusDoacao.AGUARDANDO_ENTREGA, 1, null);
 
             assertNotNull(result);
-            assertEquals(StatusDoacao.AGUARDANDO_COLETA, doacao.getStatus());
+            assertEquals(StatusDoacao.AGUARDANDO_ENTREGA, doacao.getStatus());
             verify(notificacaoService).criarNotificacao(eq(10), any(), any(), any(), eq(1), eq("DOACAO"));
             verify(logAcaoRepository).save(any());
         }
@@ -394,13 +398,13 @@ class AdminServiceTest {
         void lancaExcecaoParaTransicaoInvalida() {
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.FINALIZADO);
+            doacao.setStatus(StatusDoacao.APROVADO);
 
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
+            when(doacaoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(doacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
 
             assertThrows(BusinessException.class,
-                    () -> service.alterarStatusDoacao(1, StatusDoacao.EM_TRIAGEM, 1, null));
+                    () -> service.alterarStatusDoacao(1, StatusDoacao.EM_ANALISE, 1, null));
         }
     }
 

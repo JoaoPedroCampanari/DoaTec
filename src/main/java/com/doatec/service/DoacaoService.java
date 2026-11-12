@@ -35,9 +35,9 @@ public class DoacaoService {
     public List<DoacaoResponse> listDoacoes(StatusDoacao status, Integer doadorId) {
         List<Doacao> doacoes;
         if (status != null && doadorId != null) {
-            doacoes = doacaoRepository.findByDoadorIdAndStatus(doadorId, status);
+            doacoes = status == StatusDoacao.APROVADO ? doacaoRepository.findAprovadasHistoricasDoDoador(doadorId) : doacaoRepository.findByDoadorIdAndStatus(doadorId, status);
         } else if (status != null) {
-            doacoes = doacaoRepository.findByStatus(status);
+            doacoes = status == StatusDoacao.APROVADO ? doacaoRepository.findAprovadasHistoricas() : doacaoRepository.findByStatus(status);
         } else if (doadorId != null) {
             doacoes = doacaoRepository.findByDoadorId(doadorId);
         } else {
@@ -48,7 +48,7 @@ public class DoacaoService {
 
     @Transactional(readOnly = true)
     public List<DoacaoResponse> findDoacoesByDoadorId(Integer doadorId) {
-        return doacaoRepository.findByDoadorId(doadorId).stream()
+        return doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(doadorId).stream()
                 .map(DoacaoMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -117,13 +117,13 @@ public class DoacaoService {
 
     @Transactional
     public void excluirDoacao(Integer id, String email) {
-        Doacao doacao = doacaoRepository.findById(id)
+        Doacao doacao = doacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Doação não encontrada."));
         if (!doacao.getDoador().getEmail().equals(email)) {
             throw new BusinessException("Você só pode excluir suas próprias doações.");
         }
-        if (doacao.getStatus() != StatusDoacao.EM_TRIAGEM) {
-            throw new BusinessException("Só é possível excluir doações em triagem.");
+        if (doacao.getStatus() != StatusDoacao.EM_ANALISE) {
+            throw new BusinessException("Só é possível excluir doações em análise.");
         }
         doacaoRepository.delete(doacao);
     }

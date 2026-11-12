@@ -28,7 +28,7 @@ public class SolicitacaoService {
 
     @Transactional(readOnly = true)
     public List<SolicitacaoResponse> findSolicitacoesByAlunoId(Integer alunoId) {
-        return solicitacaoHardwareRepository.findByAlunoId(alunoId).stream()
+        return solicitacaoHardwareRepository.findByAlunoIdOrderByDataSolicitacaoDescIdDesc(alunoId).stream()
                 .map(SolicitacaoMapper::toResponse)
                 .collect(Collectors.toList());
     }

@@ -15,6 +15,8 @@ import com.doatec.model.donation.Doacao;
 import com.doatec.model.suporte.SuporteFormulario;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.MensagemChatRepository;
+import com.doatec.repository.PessoaRepository;
+import com.doatec.model.notification.TipoNotificacao;
 import com.doatec.repository.SolicitacaoHardwareRepository;
 import com.doatec.repository.SuporteFormularioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +48,12 @@ class ChatServiceTest {
 
     @Mock
     private SolicitacaoHardwareRepository solicitacaoRepository;
+
+    @Mock
+    private PessoaRepository pessoaRepository;
+
+    @Mock
+    private NotificacaoService notificacaoService;
 
     @InjectMocks
     private ChatService service;
@@ -93,6 +101,8 @@ class ChatServiceTest {
             ticket.setAutor(autor);
 
             when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(pessoaRepository.findByRole(Role.ADMIN)).thenReturn(List.of(admin));
+            admin.setAtivo(true);
 
             MensagemChat salva = MensagemChat.builder()
                     .id(100)
@@ -115,6 +125,7 @@ class ChatServiceTest {
             assertEquals("Autor Teste", response.remetenteNome());
             assertEquals("USER", response.remetenteRole());
             verify(mensagemChatRepository).save(any(MensagemChat.class));
+            verify(notificacaoService).criarNotificacao(eq(10), anyString(), anyString(), eq(TipoNotificacao.SISTEMA), eq(1), eq("SUPORTE"));
         }
 
         @Test
@@ -139,6 +150,9 @@ class ChatServiceTest {
         @Test
         @DisplayName("ADMIN: pode enviar mensagem em qualquer contexto")
         void enviarMensagem_admin_qualquerContexto_sucesso() {
+            SuporteFormulario ticket = new SuporteFormulario();
+            ticket.setAutor(autor);
+            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
             MensagemChat salva = MensagemChat.builder()
                     .id(200)
                     .conteudo("Resposta do admin")

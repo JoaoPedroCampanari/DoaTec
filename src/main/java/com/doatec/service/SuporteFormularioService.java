@@ -40,7 +40,7 @@ public class SuporteFormularioService {
 
     @Transactional(readOnly = true)
     public List<SuporteResponse> getTicketsByAutorId(Integer autorId) {
-        return suporteRepository.findByAutorId(autorId).stream()
+        return suporteRepository.findByAutorIdOrderByDataCriacaoDescIdDesc(autorId).stream()
                 .map(SuporteMapper::toResponse)
                 .toList();
     }

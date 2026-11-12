@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface SolicitacaoHardwareRepository extends JpaRepository<SolicitacaoHardware, Integer> {
     List<SolicitacaoHardware> findByAlunoId(Integer alunoId);
+    List<SolicitacaoHardware> findByAlunoIdOrderByDataSolicitacaoDescIdDesc(Integer alunoId);
     List<SolicitacaoHardware> findByStatus(StatusSolicitacao status);
     Page<SolicitacaoHardware> findByStatus(StatusSolicitacao status, Pageable pageable);
     long countByStatus(StatusSolicitacao status);

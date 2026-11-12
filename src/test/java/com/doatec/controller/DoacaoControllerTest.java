@@ -52,7 +52,7 @@ class DoacaoControllerTest {
                 .id(10)
                 .doador(doador)
                 .dataDoacao(LocalDate.now())
-                .status(StatusDoacao.EM_TRIAGEM)
+                .status(StatusDoacao.EM_ANALISE)
                 .descricaoGeral("Notebook usado")
                 .build();
     }

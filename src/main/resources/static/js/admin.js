@@ -79,11 +79,12 @@ const AdminPanel = {
         // Doações
         this.createFilterButtons('doacoes-filters', [
             { value: '', label: 'Todos' },
-            { value: 'EM_TRIAGEM', label: 'Em Triagem' },
-            { value: 'AGUARDANDO_COLETA', label: 'Aguardando Coleta' },
-            { value: 'RECEBIDO', label: 'Recebido' },
-            { value: 'FINALIZADO', label: 'Finalizado' },
-            { value: 'REJEITADA', label: 'Rejeitada' }
+            { value: 'EM_ANALISE', label: 'Em análise' },
+            { value: 'AGUARDANDO_ENTREGA', label: 'Aguardando entrega' },
+            { value: 'ENTREGUE', label: 'Entregue' },
+            { value: 'COLETA_AGENDADA', label: 'Coleta agendada' },
+            { value: 'RETIRADO', label: 'Retirado' },
+            { value: 'RECUSADO', label: 'Recusado' }
         ], 'doacoes');
 
         // Solicitações
@@ -340,13 +341,13 @@ const AdminPanel = {
         }
 
         tbody.innerHTML = doacoes.map(d => {
-            const proximosStatus = this.getProximosStatusDoacao(d.status);
+            const proximosStatus = this.getProximosStatusDoacao(d.status, d.preferenciaEntrega);
             return `
             <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'doacao', ${d.id}, event)">
                 <td>#${d.id}</td>
                 <td>${escapeHtml(d.doadorNome || '-')}<br><small>${escapeHtml(d.doadorEmail || '')}</small></td>
                 <td>${formatDate(d.dataDoacao)}</td>
-                <td>${this.createPillHtml(d.status)}</td>
+                <td>${this.createPillHtml(d.status === 'APROVADO' ? 'Situação anterior' : d.status)}</td>
                 <td>${escapeHtml(d.descricaoGeral || '-')}</td>
                 <td class="admin-actions">
                     ${proximosStatus.length ?
@@ -360,7 +361,7 @@ const AdminPanel = {
             <tr class="admin-detail-row" id="detail-doacao-${d.id}" style="display:none">
                 <td colspan="6">
                     <div class="admin-detail-content">
-                        <p><strong>Entrega:</strong> ${escapeHtml(translateEntrega(d.preferenciaEntrega))}</p>
+                        <p><strong>Entrega:</strong> ${escapeHtml(d.preferenciaEntrega === 'SOLICITAR_RETIRADA' ? 'Retirada no endereço do doador' : translateEntrega(d.preferenciaEntrega))}</p>
                         <p><strong>Endereço:</strong> ${d.preferenciaEntrega === 'PONTO_DE_COLETA'
                             ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000'
                             : (d.enderecoRetirada ? escapeHtml(d.enderecoRetirada) : 'Não informado')}</p>
@@ -388,18 +389,24 @@ const AdminPanel = {
         `;}).join('');
     },
 
-    getProximosStatusDoacao(status) {
-        const transicoes = {
-            'EM_TRIAGEM': ['AGUARDANDO_COLETA', 'REJEITADA'],
-            'AGUARDANDO_COLETA': ['RECEBIDO', 'REJEITADA'],
-            'RECEBIDO': ['FINALIZADO', 'REJEITADA'],
-            'REJEITADA': []
-        };
-        return transicoes[status] || [];
+    getProximosStatusDoacao(status, modalidade) {
+        const inicial = modalidade === 'PONTO_DE_COLETA' ? 'AGUARDANDO_ENTREGA' : modalidade === 'SOLICITAR_RETIRADA' ? 'COLETA_AGENDADA' : null;
+        if (status === 'EM_ANALISE') return inicial ? [inicial, 'RECUSADO'] : ['RECUSADO'];
+        if (status === 'APROVADO') return modalidade === 'PONTO_DE_COLETA' ? ['AGUARDANDO_ENTREGA', 'ENTREGUE'] : modalidade === 'SOLICITAR_RETIRADA' ? ['COLETA_AGENDADA', 'RETIRADO'] : [];
+        if (status === 'AGUARDANDO_ENTREGA' && modalidade === 'PONTO_DE_COLETA') return ['ENTREGUE'];
+        if (status === 'COLETA_AGENDADA' && modalidade === 'SOLICITAR_RETIRADA') return ['RETIRADO'];
+        return [];
     },
 
     formatStatusLabel(status) {
         const labels = {
+            'EM_ANALISE': 'Em análise',
+            'APROVADO': 'Aprovar',
+            'AGUARDANDO_ENTREGA': 'Aguardando entrega',
+            'ENTREGUE': 'Entregue',
+            'COLETA_AGENDADA': 'Coleta agendada',
+            'RETIRADO': 'Retirado',
+            'RECUSADO': 'Recusar',
             'EM_TRIAGEM': 'Em Triagem',
             'AGUARDANDO_COLETA': 'Aguardando Coleta',
             'RECEBIDO': 'Recebido',
@@ -414,10 +421,10 @@ const AdminPanel = {
 
     alterarStatusDoacao(id, novoStatus) {
         if (!novoStatus) return;
-        const isRejeicao = novoStatus === 'REJEITADA';
+        const isRejeicao = novoStatus === 'RECUSADO';
         this.openAvaliacaoModal(
             'Alterar Status — Doação #' + id,
-            isRejeicao ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            isRejeicao ? 'Informe o motivo da recusa. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração para ' + this.formatStatusLabel(novoStatus) + '.',
             isRejeicao,
             async (observacao) => {
                 try {
@@ -533,7 +540,7 @@ const AdminPanel = {
         if (!novoStatus) return;
         this.openAvaliacaoModal(
             'Alterar Status — Solicitação #' + id,
-            novoStatus === 'REJEITADA' ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            novoStatus === 'REJEITADA' ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a aprovação. Esta ação é permanente e não poderá ser desfeita.',
             novoStatus === 'REJEITADA',
             async (observacao) => {
                 try {

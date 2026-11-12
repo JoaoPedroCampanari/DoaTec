@@ -188,6 +188,13 @@ public class GlobalExceptionHandler {
      * Trata RuntimeException genéricas.
      * Retorna HTTP 400.
      */
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(org.springframework.web.server.ResponseStatusException ex) {
+        int status = ex.getStatusCode().value();
+        ErrorResponse response = ErrorResponse.of(status, "Erro", ex.getReason());
+        return ResponseEntity.status(ex.getStatusCode()).body(response);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
         ErrorResponse response = ErrorResponse.of(

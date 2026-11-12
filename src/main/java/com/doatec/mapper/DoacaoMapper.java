@@ -13,7 +13,7 @@ public class DoacaoMapper {
     public static Doacao toDoacao(DoacaoRequest request, Pessoa doador) {
         return Doacao.builder()
                 .doador(doador)
-                .status(StatusDoacao.EM_TRIAGEM)
+                .status(StatusDoacao.EM_ANALISE)
                 .preferenciaEntrega(request.preferenciaEntrega())
                 .enderecoRetirada(request.enderecoRetirada())
                 .descricaoGeral(request.descricaoGeral())

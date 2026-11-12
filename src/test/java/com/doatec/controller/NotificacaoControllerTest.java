@@ -52,7 +52,7 @@ class NotificacaoControllerTest {
                 .id(100)
                 .titulo("Doacao aprovada")
                 .mensagem("Sua doacao foi aprovada com sucesso.")
-                .dataCriacao(LocalDateTime.now())
+                .dataCriacao(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC))
                 .lida(false)
                 .tipo("DOACAO")
                 .entidadeRelacionadaId(10)

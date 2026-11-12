@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Entidade que representa uma notificação no sistema.
@@ -33,7 +34,7 @@ public class Notificacao {
 
     @Builder.Default
     @Column(nullable = false)
-    private LocalDateTime dataCriacao = LocalDateTime.now();
+    private LocalDateTime dataCriacao = LocalDateTime.now(ZoneOffset.UTC);
 
     @Builder.Default
     @Column(nullable = false)
@@ -62,7 +63,7 @@ public class Notificacao {
     @PrePersist
     protected void onCreate() {
         if (dataCriacao == null) {
-            dataCriacao = LocalDateTime.now();
+            dataCriacao = LocalDateTime.now(ZoneOffset.UTC);
         }
     }
 }

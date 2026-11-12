@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface SuporteFormularioRepository extends JpaRepository<SuporteFormulario, Integer> {
     List<SuporteFormulario> findByAutorId(Integer autorId);
+    List<SuporteFormulario> findByAutorIdOrderByDataCriacaoDescIdDesc(Integer autorId);
     List<SuporteFormulario> findByStatus(StatusSuporte status);
     Page<SuporteFormulario> findByStatus(StatusSuporte status, Pageable pageable);
     long countByStatus(StatusSuporte status);

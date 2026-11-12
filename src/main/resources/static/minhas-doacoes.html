@@ -128,7 +128,7 @@
                 // Create cards for each donation
                 donations.forEach(donation => {
                     const statusClass = getStatusClass(donation.status);
-                    const statusText = translateStatus(donation.status);
+                    const statusText = donation.status === 'APROVADO' ? 'Situação anterior' : translateStatus(donation.status);
 
                     const donationCard = document.createElement('div');
                     donationCard.className = 'donation-card';
@@ -181,10 +181,11 @@
                                     <strong>Endereço:</strong> ${donation.preferenciaEntrega === 'PONTO_DE_COLETA' ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000' : (donation.enderecoRetirada ? escapeHtml(donation.enderecoRetirada) : 'Não informado')}
                                 </span>
                             </div>
+                            ${donation.observacaoAdmin && donation.observacaoAdmin.trim() ? `<div class="donation-meta"><span class="donation-meta-item" style="white-space:pre-wrap;overflow-wrap:anywhere;"><strong>Observação da equipe:</strong> ${escapeHtml(donation.observacaoAdmin)}</span></div>` : ''}
                             ${itemsHtml}
                             <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
                                 <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação #${donation.id}')">Conversar</button>
-                                ${donation.status === 'EM_TRIAGEM' ? `<button class="btn btn-outline btn-excluir" onclick="excluirDoacao(${donation.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                                ${donation.status === 'EM_ANALISE' ? `<button class="btn btn-outline btn-excluir" onclick="excluirDoacao(${donation.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
                             </div>
                         </div>
                     `;

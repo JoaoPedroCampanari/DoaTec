@@ -170,7 +170,7 @@ class DoacaoServiceTest {
 
             assertNotNull(resultado);
             assertEquals(doadorPF, resultado.getDoador());
-            assertEquals(StatusDoacao.EM_TRIAGEM, resultado.getStatus());
+            assertEquals(StatusDoacao.EM_ANALISE, resultado.getStatus());
             assertEquals("Notebook usado em bom estado", resultado.getDescricaoGeral());
             assertEquals(PreferenciaEntrega.PONTO_DE_COLETA, resultado.getPreferenciaEntrega());
 
@@ -192,13 +192,13 @@ class DoacaoServiceTest {
             doacao = new Doacao();
             doacao.setId(10);
             doacao.setDoador(doadorPF);
-            doacao.setStatus(StatusDoacao.EM_TRIAGEM);
+            doacao.setStatus(StatusDoacao.EM_ANALISE);
         }
 
         @Test
         @DisplayName("Deve lançar exceção quando doação não pertence ao solicitante")
         void ownershipDiferente_deveLancarExcecao() {
-            when(doacaoRepository.findById(10))
+            when(doacaoRepository.findByIdForUpdate(10))
                     .thenReturn(Optional.of(doacao));
 
             BusinessException ex = assertThrows(BusinessException.class, () ->
@@ -212,9 +212,9 @@ class DoacaoServiceTest {
         @Test
         @DisplayName("Deve lançar exceção quando status não é EM_TRIAGEM")
         void statusNaoEmTriagem_deveLancarExcecao() {
-            doacao.setStatus(StatusDoacao.AGUARDANDO_COLETA);
+            doacao.setStatus(StatusDoacao.APROVADO);
 
-            when(doacaoRepository.findById(10))
+            when(doacaoRepository.findByIdForUpdate(10))
                     .thenReturn(Optional.of(doacao));
 
             BusinessException ex = assertThrows(BusinessException.class, () ->
@@ -228,7 +228,7 @@ class DoacaoServiceTest {
         @Test
         @DisplayName("Deve excluir doação com sucesso")
         void sucesso_deveExcluirDoacao() {
-            when(doacaoRepository.findById(10))
+            when(doacaoRepository.findByIdForUpdate(10))
                     .thenReturn(Optional.of(doacao));
 
             assertDoesNotThrow(() ->
@@ -252,32 +252,32 @@ class DoacaoServiceTest {
             doacaoComDoador = new Doacao();
             doacaoComDoador.setId(1);
             doacaoComDoador.setDoador(doadorPF);
-            doacaoComDoador.setStatus(StatusDoacao.EM_TRIAGEM);
+            doacaoComDoador.setStatus(StatusDoacao.EM_ANALISE);
             doacaoComDoador.setDescricaoGeral("Teste");
         }
 
         @Test
         @DisplayName("Deve filtrar por status e doadorId quando ambos informados")
         void comStatusEDoadorId_deveFiltrarPorAmbos() {
-            when(doacaoRepository.findByDoadorIdAndStatus(1, StatusDoacao.EM_TRIAGEM))
+            when(doacaoRepository.findByDoadorIdAndStatus(1, StatusDoacao.EM_ANALISE))
                     .thenReturn(List.of(doacaoComDoador));
 
-            List<DoacaoResponse> resultado = service.listDoacoes(StatusDoacao.EM_TRIAGEM, 1);
+            List<DoacaoResponse> resultado = service.listDoacoes(StatusDoacao.EM_ANALISE, 1);
 
             assertEquals(1, resultado.size());
-            verify(doacaoRepository).findByDoadorIdAndStatus(1, StatusDoacao.EM_TRIAGEM);
+            verify(doacaoRepository).findByDoadorIdAndStatus(1, StatusDoacao.EM_ANALISE);
         }
 
         @Test
         @DisplayName("Deve filtrar apenas por status quando doadorId é nulo")
         void apenasStatus_deveFiltrarPorStatus() {
-            when(doacaoRepository.findByStatus(StatusDoacao.EM_TRIAGEM))
+            when(doacaoRepository.findByStatus(StatusDoacao.EM_ANALISE))
                     .thenReturn(List.of(doacaoComDoador));
 
-            List<DoacaoResponse> resultado = service.listDoacoes(StatusDoacao.EM_TRIAGEM, null);
+            List<DoacaoResponse> resultado = service.listDoacoes(StatusDoacao.EM_ANALISE, null);
 
             assertEquals(1, resultado.size());
-            verify(doacaoRepository).findByStatus(StatusDoacao.EM_TRIAGEM);
+            verify(doacaoRepository).findByStatus(StatusDoacao.EM_ANALISE);
         }
 
         @Test
@@ -321,15 +321,15 @@ class DoacaoServiceTest {
         void filtraPorStatusEDoadorId() {
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.EM_TRIAGEM);
+            doacao.setStatus(StatusDoacao.EM_ANALISE);
 
-            when(doacaoRepository.findByDoadorIdAndStatus(5, StatusDoacao.EM_TRIAGEM))
+            when(doacaoRepository.findByDoadorIdAndStatus(5, StatusDoacao.EM_ANALISE))
                     .thenReturn(List.of(doacao));
 
-            List<DoacaoResponse> resultado = service.listDoacoes(StatusDoacao.EM_TRIAGEM, 5);
+            List<DoacaoResponse> resultado = service.listDoacoes(StatusDoacao.EM_ANALISE, 5);
 
             assertEquals(1, resultado.size());
-            verify(doacaoRepository).findByDoadorIdAndStatus(5, StatusDoacao.EM_TRIAGEM);
+            verify(doacaoRepository).findByDoadorIdAndStatus(5, StatusDoacao.EM_ANALISE);
         }
     }
 
@@ -386,15 +386,15 @@ class DoacaoServiceTest {
 
             Doacao doacao = new Doacao();
             doacao.setId(1);
-            doacao.setStatus(StatusDoacao.EM_TRIAGEM);
+            doacao.setStatus(StatusDoacao.EM_ANALISE);
             doacao.setDoador(doador);
 
-            when(doacaoRepository.findByDoadorId(5)).thenReturn(List.of(doacao));
+            when(doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(5)).thenReturn(List.of(doacao));
 
             List<DoacaoResponse> resultado = service.findDoacoesByDoadorId(5);
 
             assertEquals(1, resultado.size());
-            verify(doacaoRepository).findByDoadorId(5);
+            verify(doacaoRepository).findByDoadorIdOrderByDataDoacaoDescIdDesc(5);
         }
     }
 

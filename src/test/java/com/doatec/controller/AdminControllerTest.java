@@ -122,7 +122,7 @@ class AdminControllerTest {
         void listarDoacoes_retorna200() {
             DoacaoResponse doacao = DoacaoResponse.builder()
                     .id(1)
-                    .status("EM_TRIAGEM")
+                    .status("EM_ANALISE")
                     .build();
 
             Page<DoacaoResponse> page = new PageImpl<>(List.of(doacao), pageable, 1);
@@ -138,39 +138,39 @@ class AdminControllerTest {
         @DisplayName("PUT /doacoes/{id}/aprovar retorna 200")
         void aprovarDoacao_retorna200() {
             mockAuthenticatedAdmin();
-            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("FINALIZADO").build();
+            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("APROVADO").build();
             when(adminService.aprovarDoacao(eq(1), eq(1), any())).thenReturn(doacao);
 
             ResponseEntity<DoacaoResponse> response = controller.aprovarDoacao(1, userDetails, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("FINALIZADO", response.getBody().status());
+            assertEquals("APROVADO", response.getBody().status());
         }
 
         @Test
         @DisplayName("PUT /doacoes/{id}/rejeitar retorna 200")
         void rejeitarDoacao_retorna200() {
             mockAuthenticatedAdmin();
-            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("REJEITADA").build();
+            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("RECUSADO").build();
             when(adminService.rejeitarDoacao(eq(1), eq(1), any())).thenReturn(doacao);
 
             ResponseEntity<DoacaoResponse> response = controller.rejeitarDoacao(1, userDetails, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("REJEITADA", response.getBody().status());
+            assertEquals("RECUSADO", response.getBody().status());
         }
 
         @Test
         @DisplayName("PUT /doacoes/{id}/status retorna 200")
         void alterarStatusDoacao_retorna200() {
             mockAuthenticatedAdmin();
-            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("RECEBIDO").build();
-            when(adminService.alterarStatusDoacao(eq(1), eq(StatusDoacao.RECEBIDO), eq(1), any())).thenReturn(doacao);
+            DoacaoResponse doacao = DoacaoResponse.builder().id(1).status("APROVADO").build();
+            when(adminService.alterarStatusDoacao(eq(1), eq(StatusDoacao.APROVADO), eq(1), any())).thenReturn(doacao);
 
-            ResponseEntity<DoacaoResponse> response = controller.alterarStatusDoacao(1, StatusDoacao.RECEBIDO, userDetails, null);
+            ResponseEntity<DoacaoResponse> response = controller.alterarStatusDoacao(1, StatusDoacao.APROVADO, userDetails, null);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("RECEBIDO", response.getBody().status());
+            assertEquals("APROVADO", response.getBody().status());
         }
     }
 

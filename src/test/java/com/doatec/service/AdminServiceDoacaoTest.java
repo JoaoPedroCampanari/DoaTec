@@ -1,215 +1,129 @@
 package com.doatec.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
+import com.doatec.exception.BusinessException;
+import com.doatec.dto.request.AvaliacaoRequest;
 import com.doatec.model.account.DoadorPF;
-import com.doatec.model.account.Pessoa;
 import com.doatec.model.account.Role;
 import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.StatusDoacao;
-import com.doatec.exception.BusinessException;
-import com.doatec.repository.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
+import com.doatec.model.donation.PreferenciaEntrega;
+import com.doatec.repository.DoacaoRepository;
+import com.doatec.repository.LogAcaoRepository;
+import com.doatec.repository.PessoaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AdminService - Transições de Status de Doação")
 class AdminServiceDoacaoTest {
+    @Mock DoacaoRepository doacoes;
+    @Mock PessoaRepository pessoas;
+    @Mock LogAcaoRepository logs;
+    @Mock NotificacaoService notificacoes;
+    @InjectMocks AdminService service;
 
-    @Mock
-    private DoacaoService doacaoService;
-
-    @Mock
-    private DoacaoRepository doacaoRepository;
-
-    @Mock
-    private PessoaRepository pessoaRepository;
-
-    @Mock
-    private EquipamentoRepository equipamentoRepository;
-
-    @Mock
-    private NotificacaoService notificacaoService;
-
-    @Mock
-    private LogAcaoRepository logAcaoRepository;
-
-    @InjectMocks
-    private AdminService adminService;
-
-    private Pessoa admin;
-    private Doacao doacao;
-
-    @BeforeEach
-    void setUp() {
-        admin = new DoadorPF("123.456.789-00");
-        admin.setId(1);
-        admin.setNome("Admin Teste");
-        admin.setEmail("admin@doatec.com");
-        admin.setAtivo(true);
-        admin.setRole(Role.ADMIN);
-
-        doacao = new Doacao();
-        doacao.setId(1);
-        doacao.setStatus(StatusDoacao.RECEBIDO);
-        doacao.setDoador(admin);
+    private Doacao preparar(StatusDoacao status) {
+        DoadorPF admin = new DoadorPF("12345678900");
+        admin.setId(1); admin.setRole(Role.ADMIN); admin.setAtivo(true);
+        Doacao doacao = new Doacao(); doacao.setId(1); doacao.setDoador(admin); doacao.setStatus(status); doacao.setPreferenciaEntrega(PreferenciaEntrega.PONTO_DE_COLETA);
+        when(doacoes.findByIdForUpdate(1)).thenReturn(Optional.of(doacao));
+        when(pessoas.findById(1)).thenReturn(Optional.of(admin));
+        return doacao;
     }
 
-    private void stubSaveMocks() {
-        when(doacaoRepository.save(any(Doacao.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(logAcaoRepository.save(any())).thenReturn(null);
-        when(notificacaoService.criarNotificacao(anyInt(), anyString(), anyString(), any(), anyInt(), anyString()))
-                .thenReturn(null);
+    @ParameterizedTest
+    @EnumSource(value = StatusDoacao.class, names = {"AGUARDANDO_ENTREGA", "RECUSADO"})
+    void analisePodeSerDecidida(StatusDoacao decisao) {
+        Doacao d = preparar(StatusDoacao.EM_ANALISE);
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        service.alterarStatusDoacao(1, decisao, 1, null);
+        assertEquals(decisao, d.getStatus());
+        verify(notificacoes).criarNotificacao(eq(1), anyString(), anyString(), any(), eq(1), eq("DOACAO"));
     }
 
-    @Nested
-    @DisplayName("aprovarDoacao validacao de transicao")
-    class AprovarDoacaoTests {
-
-        @Test
-        @DisplayName("EM_ANALISE -> FINALIZADO é válido")
-        void emAnaliseParaFinalizadoValido() {
-            doacao.setStatus(StatusDoacao.RECEBIDO);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-            stubSaveMocks();
-
-            assertDoesNotThrow(() -> adminService.aprovarDoacao(1, admin.getId(), null));
-            assertEquals(StatusDoacao.FINALIZADO, doacao.getStatus());
+    @ParameterizedTest
+    @EnumSource(value = StatusDoacao.class, names = {"ENTREGUE", "RETIRADO", "RECUSADO"})
+    void decisaoFinalNaoPodeSerAlterada(StatusDoacao finalizado) {
+        Doacao d = preparar(finalizado);
+        for (StatusDoacao tentativa : StatusDoacao.values()) {
+            assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, tentativa, 1, null));
         }
-
-        @Test
-        @DisplayName("EM_TRIAGEM -> FINALIZADO lança BusinessException")
-        void emTriagemParaFinalizadoInvalido() {
-            doacao.setStatus(StatusDoacao.EM_TRIAGEM);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-
-            BusinessException ex = assertThrows(BusinessException.class, () ->
-                    adminService.aprovarDoacao(1, admin.getId(), null));
-
-            assertNotNull(ex.getMessage());
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("Transição"));
-            assertEquals(StatusDoacao.EM_TRIAGEM, doacao.getStatus());
-        }
-
-        @Test
-        @DisplayName("RECEBIDO -> FINALIZADO lança BusinessException")
-        void recebidoParaFinalizadoInvalido() {
-            doacao.setStatus(StatusDoacao.RECEBIDO);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-
-            BusinessException ex = assertThrows(BusinessException.class, () ->
-                    adminService.aprovarDoacao(1, admin.getId(), null));
-
-            assertNotNull(ex.getMessage());
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("Transição"));
-        }
-
-        @Test
-        @DisplayName("FINALIZADO -> FINALIZADO lança BusinessException (idempotente)")
-        void finalizadoParaFinalizadoInvalido() {
-            doacao.setStatus(StatusDoacao.FINALIZADO);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-
-            BusinessException ex = assertThrows(BusinessException.class, () ->
-                    adminService.aprovarDoacao(1, admin.getId(), null));
-
-            assertNotNull(ex.getMessage());
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("Transição"));
-        }
-    }
-
-    @Nested
-    @DisplayName("rejeitarDoacao validacao de transicao")
-    class RejeitarDoacaoTests {
-
-        @Test
-        @DisplayName("EM_ANALISE -> REJEITADA é válido")
-        void emAnaliseParaRejeitadaValido() {
-            doacao.setStatus(StatusDoacao.RECEBIDO);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-            stubSaveMocks();
-
-            assertDoesNotThrow(() -> adminService.rejeitarDoacao(1, admin.getId(), null));
-            assertEquals(StatusDoacao.REJEITADA, doacao.getStatus());
-        }
-
-        @Test
-        @DisplayName("RECEBIDO -> REJEITADA é válido")
-        void recebidoParaRejeitadaValido() {
-            doacao.setStatus(StatusDoacao.RECEBIDO);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-            stubSaveMocks();
-
-            assertDoesNotThrow(() -> adminService.rejeitarDoacao(1, admin.getId(), null));
-            assertEquals(StatusDoacao.REJEITADA, doacao.getStatus());
-        }
-
-        @Test
-        @DisplayName("AGUARDANDO_COLETA -> REJEITADA é válido")
-        void aguardandoColetaParaRejeitadaValido() {
-            doacao.setStatus(StatusDoacao.AGUARDANDO_COLETA);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-            stubSaveMocks();
-
-            assertDoesNotThrow(() -> adminService.rejeitarDoacao(1, admin.getId(), null));
-            assertEquals(StatusDoacao.REJEITADA, doacao.getStatus());
-        }
-
-        @Test
-        @DisplayName("FINALIZADO -> REJEITADA lança BusinessException")
-        void finalizadoParaRejeitadaInvalido() {
-            doacao.setStatus(StatusDoacao.FINALIZADO);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-
-            BusinessException ex = assertThrows(BusinessException.class, () ->
-                    adminService.rejeitarDoacao(1, admin.getId(), null));
-
-            assertNotNull(ex.getMessage());
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("Transição"));
-            assertEquals(StatusDoacao.FINALIZADO, doacao.getStatus());
-        }
-
-        @Test
-        @DisplayName("REJEITADA -> REJEITADA lança BusinessException")
-        void rejeitadaParaRejeitadaInvalido() {
-            doacao.setStatus(StatusDoacao.REJEITADA);
-            when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-
-            BusinessException ex = assertThrows(BusinessException.class, () ->
-                    adminService.rejeitarDoacao(1, admin.getId(), null));
-
-            assertNotNull(ex.getMessage());
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("Transição"));
-        }
+        assertEquals(finalizado, d.getStatus());
+        verify(doacoes, never()).save(any());
     }
 
     @Test
-    @DisplayName("Doacao rejeitada nao pode ser reaberta")
-    void doacaoRejeitadaNaoPodeSerReaberta() {
-        doacao.setStatus(StatusDoacao.REJEITADA);
-        when(doacaoRepository.findById(1)).thenReturn(Optional.of(doacao));
-        when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-        assertThrows(BusinessException.class, () ->
-                adminService.alterarStatusDoacao(1, StatusDoacao.EM_TRIAGEM, admin.getId(), null));
-        assertEquals(StatusDoacao.REJEITADA, doacao.getStatus());
-        verify(doacaoRepository, never()).save(any());
+    void entregaSegueApenasSeuFluxo() {
+        Doacao d = preparar(StatusDoacao.EM_ANALISE);
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, StatusDoacao.COLETA_AGENDADA, 1, null));
+        assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, StatusDoacao.ENTREGUE, 1, null));
+        service.alterarStatusDoacao(1, StatusDoacao.AGUARDANDO_ENTREGA, 1, null);
+        service.alterarStatusDoacao(1, StatusDoacao.ENTREGUE, 1, null);
+        assertEquals(StatusDoacao.ENTREGUE, d.getStatus());
+    }
+
+    @Test
+    void coletaSegueApenasSeuFluxo() {
+        Doacao d = preparar(StatusDoacao.EM_ANALISE);
+        d.setPreferenciaEntrega(PreferenciaEntrega.SOLICITAR_RETIRADA);
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, StatusDoacao.AGUARDANDO_ENTREGA, 1, null));
+        assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, StatusDoacao.RETIRADO, 1, null));
+        service.alterarStatusDoacao(1, StatusDoacao.COLETA_AGENDADA, 1, null);
+        service.alterarStatusDoacao(1, StatusDoacao.RETIRADO, 1, null);
+        assertEquals(StatusDoacao.RETIRADO, d.getStatus());
+    }
+
+    @Test
+    void aprovarRetiradaAgendaColetaDiretamente() {
+        Doacao d = preparar(StatusDoacao.EM_ANALISE);
+        d.setPreferenciaEntrega(PreferenciaEntrega.SOLICITAR_RETIRADA);
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertEquals("COLETA_AGENDADA", service.aprovarDoacao(1, 1, null).status());
+    }
+
+    @Test
+    void atualizaObservacaoEmCadaEtapa() {
+        Doacao d = preparar(StatusDoacao.EM_ANALISE);
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        service.alterarStatusDoacao(1, StatusDoacao.AGUARDANDO_ENTREGA, 1, new AvaliacaoRequest("  Primeira observação  "));
+        assertEquals("Primeira observação", d.getObservacaoAdmin());
+        var response = service.alterarStatusDoacao(1, StatusDoacao.ENTREGUE, 1, new AvaliacaoRequest("  Recebido na Fatec  "));
+        assertEquals("Recebido na Fatec", d.getObservacaoAdmin());
+        assertEquals("Recebido na Fatec", response.observacaoAdmin());
+    }
+
+    @Test
+    void observacaoEmBrancoNaoApagaUltimaObservacao() {
+        Doacao d = preparar(StatusDoacao.AGUARDANDO_ENTREGA);
+        d.setObservacaoAdmin("Informação anterior");
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        var response = service.alterarStatusDoacao(1, StatusDoacao.ENTREGUE, 1, new AvaliacaoRequest("  "));
+        assertEquals("Informação anterior", response.observacaoAdmin());
+    }
+
+    @Test
+    void doacaoAntigaPodeSerMarcadaEntregueDiretamente() {
+        preparar(StatusDoacao.APROVADO);
+        when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
+        var response = service.alterarStatusDoacao(1, StatusDoacao.ENTREGUE, 1, null);
+        assertEquals("ENTREGUE", response.status());
+    }
+
+    @Test
+    void endpointsDedicadosRespeitamEstadoFinal() {
+        preparar(StatusDoacao.RECUSADO);
+        assertThrows(BusinessException.class, () -> service.aprovarDoacao(1, 1, null));
+        assertThrows(BusinessException.class, () -> service.rejeitarDoacao(1, 1, null));
+        verify(doacoes, never()).save(any());
     }
 }

@@ -19,6 +19,7 @@ import com.doatec.model.account.Role;
 import com.doatec.model.account.TipoPessoa;
 import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.StatusDoacao;
+import com.doatec.model.donation.PreferenciaEntrega;
 import com.doatec.model.notification.TipoNotificacao;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.model.solicitacao.StatusSolicitacao;
@@ -76,8 +77,8 @@ public class AdminService {
         long totalTicketsAbertos = suporteRepository.countByStatus(StatusSuporte.ABERTO);
         long totalUsuariosAtivos = pessoaRepository.countByAtivoTrue();
 
-        long doacoesAprovadas = doacaoRepository.countByStatus(StatusDoacao.FINALIZADO);
-        long doacoesRejeitadas = doacaoRepository.countByStatus(StatusDoacao.REJEITADA);
+        long doacoesAprovadas = doacaoRepository.countAprovadasHistoricas();
+        long doacoesRejeitadas = doacaoRepository.countByStatus(StatusDoacao.RECUSADO);
 
         long solicitacoesAprovadas = solicitacaoRepository.countByStatus(StatusSolicitacao.APROVADA);
         long solicitacoesRejeitadas = solicitacaoRepository.countByStatus(StatusSolicitacao.REJEITADA);
@@ -99,7 +100,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public Page<DoacaoResponse> listarDoacoes(StatusDoacao status, Pageable pageable) {
         Page<Doacao> doacoes = status != null
-                ? doacaoRepository.findByStatus(status, pageable)
+                ? (status == StatusDoacao.APROVADO ? doacaoRepository.findAprovadasHistoricas(pageable) : doacaoRepository.findByStatus(status, pageable))
                 : doacaoRepository.findAll(pageable);
 
         return doacoes.map(DoacaoMapper::toResponse);
@@ -107,14 +108,15 @@ public class AdminService {
 
     @Transactional
     public DoacaoResponse aprovarDoacao(Integer id, Integer adminId, AvaliacaoRequest request) {
-        Doacao doacao = doacaoRepository.findById(id)
+        Doacao doacao = doacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
-        validarTransicaoDoacao(doacao.getStatus(), StatusDoacao.FINALIZADO);
+        StatusDoacao proximo = statusInicialAprovado(doacao);
+        validarTransicaoDoacao(doacao, proximo);
 
-        doacao.setStatus(StatusDoacao.FINALIZADO);
+        doacao.setStatus(proximo);
         doacao.setAdminAvaliador(admin);
         doacao.setDataAvaliacao(LocalDateTime.now());
         if (request != null && request.observacao() != null) {
@@ -131,7 +133,7 @@ public class AdminService {
         // Notificar o doador
         notificacaoService.criarNotificacao(
                 doacao.getDoador().getId(),
-                "Doação Aprovada",
+                "Doação aceita",
                 "Sua doação #" + doacao.getId() + " foi aprovada! Obrigado por contribuir com o DoaTec.",
                 TipoNotificacao.DOACAO_APROVADA,
                 doacao.getId(),
@@ -145,14 +147,14 @@ public class AdminService {
 
     @Transactional
     public DoacaoResponse rejeitarDoacao(Integer id, Integer adminId, AvaliacaoRequest request) {
-        Doacao doacao = doacaoRepository.findById(id)
+        Doacao doacao = doacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
-        validarTransicaoDoacao(doacao.getStatus(), StatusDoacao.REJEITADA);
+        validarTransicaoDoacao(doacao, StatusDoacao.RECUSADO);
 
-        doacao.setStatus(StatusDoacao.REJEITADA);
+        doacao.setStatus(StatusDoacao.RECUSADO);
         doacao.setAdminAvaliador(admin);
         doacao.setDataAvaliacao(LocalDateTime.now());
         if (request != null && request.observacao() != null) {
@@ -162,13 +164,13 @@ public class AdminService {
         Doacao doacaoAtualizada = doacaoRepository.save(doacao);
 
         // Notificar o doador
-        String mensagem = "Infelizmente sua doação #" + doacao.getId() + " foi rejeitada.";
+        String mensagem = "Infelizmente sua doação #" + doacao.getId() + " foi recusada.";
         if (request != null && request.observacao() != null) {
             mensagem += " Motivo: " + request.observacao();
         }
         notificacaoService.criarNotificacao(
                 doacao.getDoador().getId(),
-                "Doação Rejeitada",
+                "Doação Recusada",
                 mensagem,
                 TipoNotificacao.DOACAO_REJEITADA,
                 doacao.getId(),
@@ -182,20 +184,22 @@ public class AdminService {
 
     @Transactional
     public DoacaoResponse alterarStatusDoacao(Integer id, StatusDoacao novoStatus, Integer adminId, AvaliacaoRequest request) {
-        Doacao doacao = doacaoRepository.findById(id)
+        Doacao doacao = doacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Doação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
         // Validar transição de status
-        validarTransicaoDoacao(doacao.getStatus(), novoStatus);
+        validarTransicaoDoacao(doacao, novoStatus);
 
         StatusDoacao statusAnterior = doacao.getStatus();
         doacao.setStatus(novoStatus);
-        doacao.setAdminAvaliador(admin);
-        doacao.setDataAvaliacao(LocalDateTime.now());
-        if (request != null && request.observacao() != null) {
-            doacao.setObservacaoAdmin(request.observacao());
+        if (statusAnterior == StatusDoacao.EM_ANALISE) {
+            doacao.setAdminAvaliador(admin);
+            doacao.setDataAvaliacao(LocalDateTime.now());
+        }
+        if (request != null && request.observacao() != null && !request.observacao().isBlank()) {
+            doacao.setObservacaoAdmin(request.observacao().trim());
         }
 
         // Criação automática de equipamentos desligada — admin faz triagem manual.
@@ -207,9 +211,9 @@ public class AdminService {
         notificacaoService.criarNotificacao(
                 doacao.getDoador().getId(),
                 "Status da Doação Atualizado",
-                "O status da sua doação #" + doacao.getId() + " foi alterado de " + statusAnterior.name() + " para " + novoStatus.name() + ".",
-                novoStatus == StatusDoacao.REJEITADA ? TipoNotificacao.DOACAO_REJEITADA
-                        : novoStatus == StatusDoacao.FINALIZADO ? TipoNotificacao.DOACAO_APROVADA
+                "Sua doação #" + doacao.getId() + " está com o status: " + rotuloStatusDoacao(novoStatus) + ". Combine os detalhes pelo chat.",
+                novoStatus == StatusDoacao.RECUSADO ? TipoNotificacao.DOACAO_REJEITADA
+                        : statusAnterior == StatusDoacao.EM_ANALISE ? TipoNotificacao.DOACAO_APROVADA
                         : TipoNotificacao.DOACAO_STATUS_ATUALIZADO,
                 doacao.getId(),
                 "DOACAO"
@@ -221,25 +225,36 @@ public class AdminService {
         return DoacaoMapper.toResponse(doacaoAtualizada);
     }
 
-    private void validarTransicaoDoacao(StatusDoacao atual, StatusDoacao novo) {
-        if (atual == novo) {
-            throw new BusinessException("Doação já está com status " + atual.name());
-        }
-        if (atual == StatusDoacao.FINALIZADO) {
-            throw new BusinessException("Doação com status " + atual.name() + " não pode ser alterada.");
-        }
+    private StatusDoacao statusInicialAprovado(Doacao doacao) {
+        if (doacao.getPreferenciaEntrega() == PreferenciaEntrega.PONTO_DE_COLETA) return StatusDoacao.AGUARDANDO_ENTREGA;
+        if (doacao.getPreferenciaEntrega() == PreferenciaEntrega.SOLICITAR_RETIRADA) return StatusDoacao.COLETA_AGENDADA;
+        throw new BusinessException("A modalidade de entrega da doação não foi informada.");
+    }
 
-        boolean transicaoValida = switch (atual) {
-            case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
-            case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
-            case RECEBIDO -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
-            case REJEITADA -> false;
+    private void validarTransicaoDoacao(Doacao doacao, StatusDoacao novo) {
+        StatusDoacao atual = doacao.getStatus();
+        boolean entrega = doacao.getPreferenciaEntrega() == PreferenciaEntrega.PONTO_DE_COLETA;
+        boolean coleta = doacao.getPreferenciaEntrega() == PreferenciaEntrega.SOLICITAR_RETIRADA;
+        boolean valida = switch (atual) {
+            case EM_ANALISE -> novo == StatusDoacao.RECUSADO || entrega && novo == StatusDoacao.AGUARDANDO_ENTREGA || coleta && novo == StatusDoacao.COLETA_AGENDADA;
+            case APROVADO -> entrega && (novo == StatusDoacao.AGUARDANDO_ENTREGA || novo == StatusDoacao.ENTREGUE) || coleta && (novo == StatusDoacao.COLETA_AGENDADA || novo == StatusDoacao.RETIRADO);
+            case AGUARDANDO_ENTREGA -> entrega && novo == StatusDoacao.ENTREGUE;
+            case COLETA_AGENDADA -> coleta && novo == StatusDoacao.RETIRADO;
             default -> false;
         };
+        if (!valida) throw new BusinessException("Transição de status inválida para esta modalidade de doação.");
+    }
 
-        if (!transicaoValida) {
-            throw new BusinessException("Transição de status inválida: " + atual.name() + " → " + novo.name());
-        }
+    private String rotuloStatusDoacao(StatusDoacao status) {
+        return switch (status) {
+            case EM_ANALISE -> "Em análise";
+            case RECUSADO -> "Recusado";
+            case AGUARDANDO_ENTREGA -> "Aguardando entrega";
+            case ENTREGUE -> "Entregue";
+            case COLETA_AGENDADA -> "Coleta agendada";
+            case RETIRADO -> "Retirado";
+            case APROVADO -> "Aprovado";
+        };
     }
 
     // ==================== SOLICITAÇÕES ====================

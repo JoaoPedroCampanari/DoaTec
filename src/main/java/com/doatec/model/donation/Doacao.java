@@ -39,8 +39,8 @@ public class Doacao {
     private LocalDate dataDoacao = LocalDate.now();
 
     @Builder.Default
-    @Enumerated(EnumType.STRING)
-    private StatusDoacao status = StatusDoacao.EM_TRIAGEM;
+    @Convert(converter = StatusDoacaoConverter.class)
+    private StatusDoacao status = StatusDoacao.EM_ANALISE;
 
     @Enumerated(EnumType.STRING)
     private PreferenciaEntrega preferenciaEntrega;

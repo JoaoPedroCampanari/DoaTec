@@ -57,7 +57,7 @@ class DoacaoIntegrationTest extends BaseIntegrationTest {
                         .content(doacaoJson()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.status").value("EM_TRIAGEM"))
+                .andExpect(jsonPath("$.status").value("EM_ANALISE"))
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode node = objectMapper.readTree(response);
@@ -81,7 +81,7 @@ class DoacaoIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.id").isNumber())
                     .andExpect(jsonPath("$.doadorNome").value("Doador Integração"))
                     .andExpect(jsonPath("$.doadorEmail").value(doador.getEmail()))
-                    .andExpect(jsonPath("$.status").value("EM_TRIAGEM"))
+                    .andExpect(jsonPath("$.status").value("EM_ANALISE"))
                     .andExpect(jsonPath("$.descricaoGeral").value("Computador desktop para doação"))
                     .andExpect(jsonPath("$.preferenciaEntrega").value("PONTO_DE_COLETA"));
         }
@@ -97,7 +97,7 @@ class DoacaoIntegrationTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].doadorEmail").value(doador.getEmail()))
-                    .andExpect(jsonPath("$[0].status").value("EM_TRIAGEM"));
+                    .andExpect(jsonPath("$[0].status").value("EM_ANALISE"));
         }
 
         @Test
@@ -124,36 +124,19 @@ class DoacaoIntegrationTest extends BaseIntegrationTest {
     class FluxoAprovacaoTests {
 
         @Test
-        @DisplayName("PUT /api/admin/doacoes/{id}/aprovar - admin aprova doação retorna 200 com status FINALIZADO")
+        @DisplayName("PUT /api/admin/doacoes/{id}/aprovar - admin aprova doação retorna 200 com status APROVADO")
         void aprovarDoacao_retorna200() throws Exception {
             int doacaoId = criarDoacaoViaApi();
 
             DoadorPF admin = criarAdmin("admin-integ@test.com", "Admin Integração");
 
-            // Mover doação para EM_ANALISE primeiro (EM_TRIAGEM -> AGUARDANDO_COLETA -> RECEBIDO -> EM_ANALISE)
-            mockMvc.perform(put("/api/admin/doacoes/" + doacaoId + "/status")
-                            .with(SecurityMockMvcRequestPostProcessors.user("admin-integ@test.com").roles("ADMIN"))
-                            .param("novoStatus", "AGUARDANDO_COLETA"))
-                    .andExpect(status().isOk());
-
-            mockMvc.perform(put("/api/admin/doacoes/" + doacaoId + "/status")
-                            .with(SecurityMockMvcRequestPostProcessors.user("admin-integ@test.com").roles("ADMIN"))
-                            .param("novoStatus", "RECEBIDO"))
-                    .andExpect(status().isOk());
-
-            mockMvc.perform(put("/api/admin/doacoes/" + doacaoId + "/status")
-                            .with(SecurityMockMvcRequestPostProcessors.user("admin-integ@test.com").roles("ADMIN"))
-                            .param("novoStatus", "EM_ANALISE"))
-                    .andExpect(status().isOk());
-
-            // Agora pode aprovar (EM_ANALISE -> FINALIZADO)
             mockMvc.perform(put("/api/admin/doacoes/" + doacaoId + "/aprovar")
                             .with(SecurityMockMvcRequestPostProcessors.user("admin-integ@test.com").roles("ADMIN"))
                             .contentType("application/json")
                             .content("{\"observacao\": \"Doação aprovada com sucesso\"}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(doacaoId))
-                    .andExpect(jsonPath("$.status").value("FINALIZADO"))
+                    .andExpect(jsonPath("$.status").value("APROVADO"))
                     .andExpect(jsonPath("$.observacaoAdmin").value("Doação aprovada com sucesso"));
         }
     }
