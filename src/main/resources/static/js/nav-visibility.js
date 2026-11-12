@@ -122,7 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Mostra dropdown "Suporte" - TODOS os usuários logados
         if (suporteDropdownItem) {
+            suporteDropdownItem.classList.add('nav-dropdown');
             suporteDropdownItem.classList.add('dropdown-visible');
+            const link = suporteDropdownItem.querySelector('a');
+            if (link) {
+                link.href = '#';
+            }
             populateSuporteDropdown(suporteDropdownItem);
             setupDropdownToggle(suporteDropdownItem);
         }
@@ -140,11 +145,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } else {
         // Usuário deslogado - dropdowns permanecem ocultos (já ocultos por CSS)
-        // Suporte visível para deslogados (FAQ + formulário)
+        // Suporte visível como link direto para suporte.html (sem dropdown)
         if (suporteDropdownItem) {
-            suporteDropdownItem.classList.add('dropdown-visible');
-            populateSuporteDropdown(suporteDropdownItem);
-            setupDropdownToggle(suporteDropdownItem);
+            suporteDropdownItem.classList.remove('nav-dropdown');
+            suporteDropdownItem.classList.remove('dropdown-open');
+            const link = suporteDropdownItem.querySelector('a');
+            if (link) {
+                link.href = 'suporte.html';
+            }
+            const dropdownMenu = suporteDropdownItem.querySelector('.dropdown-menu');
+            if (dropdownMenu) {
+                dropdownMenu.innerHTML = '';
+            }
         }
         // Mostra botão de login
         if (profileButton) {

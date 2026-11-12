@@ -233,7 +233,7 @@ public class AdminService {
             case EM_TRIAGEM -> novo == StatusDoacao.AGUARDANDO_COLETA || novo == StatusDoacao.REJEITADA;
             case AGUARDANDO_COLETA -> novo == StatusDoacao.RECEBIDO || novo == StatusDoacao.REJEITADA;
             case RECEBIDO -> novo == StatusDoacao.FINALIZADO || novo == StatusDoacao.REJEITADA;
-            case REJEITADA -> novo == StatusDoacao.EM_TRIAGEM;
+            case REJEITADA -> false;
             default -> false;
         };
 
@@ -257,7 +257,7 @@ public class AdminService {
         boolean transicaoValida = switch (atual) {
             case EM_ANALISE -> novo == StatusSolicitacao.APROVADA || novo == StatusSolicitacao.REJEITADA;
             case APROVADA -> novo == StatusSolicitacao.CONCLUIDA;
-            case REJEITADA -> novo == StatusSolicitacao.EM_ANALISE;
+            case REJEITADA -> false;
             case CONCLUIDA -> false;
         };
 
@@ -419,6 +419,7 @@ public class AdminService {
 
         Pessoa admin = validarAdmin(adminId);
 
+        validarTicketAberto(ticket);
         ticket.setResposta(request.resposta());
         ticket.setAdminResponsavel(admin);
         ticket.setStatus(StatusSuporte.RESOLVIDO);
@@ -449,11 +450,24 @@ public class AdminService {
         SuporteFormulario ticket = suporteRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Ticket não encontrado com ID: " + id));
 
+        validarTicketAberto(ticket);
+        if (ticket.getStatus() == novoStatus) {
+            throw new BusinessException("O ticket já está com este status.");
+        }
         ticket.setStatus(novoStatus);
+        if (novoStatus == StatusSuporte.RESOLVIDO || novoStatus == StatusSuporte.FECHADO) {
+            ticket.setDataResolucao(LocalDateTime.now());
+        }
 
         SuporteFormulario ticketAtualizado = suporteRepository.save(ticket);
 
         return SuporteMapper.toResponse(ticketAtualizado);
+    }
+
+    private void validarTicketAberto(SuporteFormulario ticket) {
+        if (ticket.getStatus() == StatusSuporte.RESOLVIDO || ticket.getStatus() == StatusSuporte.FECHADO) {
+            throw new BusinessException("Tickets resolvidos ou fechados não podem ser alterados.");
+        }
     }
 
     // ==================== USUÁRIOS ====================

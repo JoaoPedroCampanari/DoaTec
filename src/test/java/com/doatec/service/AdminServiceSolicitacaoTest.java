@@ -140,17 +140,15 @@ class AdminServiceSolicitacaoTest {
         }
 
         @Test
-        @DisplayName("REJEITADA -> EM_ANALISE e valida (undo rejeicao)")
+        @DisplayName("Solicitacao rejeitada nao pode ser reaberta")
         void rejeitadaParaEmAnalise() {
             solicitacao.setStatus(StatusSolicitacao.REJEITADA);
             when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
             when(solicitacaoRepository.findById(1)).thenReturn(Optional.of(solicitacao));
-            stubSAVEMocks();
-
-            assertDoesNotThrow(() ->
+            assertThrows(BusinessException.class, () ->
                     adminService.alterarStatusSolicitacao(1, StatusSolicitacao.EM_ANALISE, admin.getId(), null));
-
-            assertEquals(StatusSolicitacao.EM_ANALISE, solicitacao.getStatus());
+            assertEquals(StatusSolicitacao.REJEITADA, solicitacao.getStatus());
+            verify(solicitacaoRepository, never()).save(any());
         }
 
         @Test

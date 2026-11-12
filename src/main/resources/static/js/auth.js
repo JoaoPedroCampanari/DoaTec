@@ -19,6 +19,10 @@ async function apiFetch(url, options = {}) {
     options.credentials = options.credentials || 'include';
     const method = (options.method || 'GET').toUpperCase();
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        if (!getCsrfToken()) {
+            const csrfResponse = await fetch('/api/csrf', { credentials: 'include', cache: 'no-store' });
+            if (!csrfResponse.ok) throw new Error('Não foi possível obter o token de segurança');
+        }
         const token = getCsrfToken();
         if (token) {
             options.headers = {

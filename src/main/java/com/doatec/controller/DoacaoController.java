@@ -32,7 +32,12 @@ public class DoacaoController {
     }
 
     @PostMapping
-    public ResponseEntity<DoacaoResponse> createDonation(@Valid @RequestBody DoacaoRequest doacaoRequest) {
+    public ResponseEntity<DoacaoResponse> createDonation(@Valid @RequestBody DoacaoRequest doacaoRequest,
+                                                          @AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (!userDetails.getUsername().equalsIgnoreCase(doacaoRequest.email())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         Doacao novaDoacao = doacaoService.registrarDoacao(doacaoRequest);
         DoacaoResponse response = DoacaoMapper.toResponse(novaDoacao);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

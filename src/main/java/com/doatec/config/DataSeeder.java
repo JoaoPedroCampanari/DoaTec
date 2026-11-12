@@ -2,6 +2,7 @@ package com.doatec.config;
 
 import com.doatec.model.account.Aluno;
 import com.doatec.model.account.DoadorPF;
+import com.doatec.model.account.DoadorPJ;
 import com.doatec.model.account.Role;
 import com.doatec.repository.AlunoRepository;
 import com.doatec.repository.PessoaRepository;
@@ -24,6 +25,7 @@ public class DataSeeder implements CommandLineRunner {
     private static final String ALUNO_EMAIL = "teste@gmail.com";
     private static final String ALUNO_SENHA = "123456";
     private static final String ALUNO_CEP = "17404542";
+    private static final String ALUNO_RA = "1190482321008";
 
     private final PessoaRepository pessoaRepository;
     private final AlunoRepository alunoRepository;
@@ -45,6 +47,7 @@ public class DataSeeder implements CommandLineRunner {
         fixLogAcaoCheckConstraint();
         seedSuperAdmin();
         seedAlunoTeste();
+        seedDoadoresTeste();
     }
 
     /**
@@ -108,12 +111,26 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAlunoTeste() {
-        if (alunoRepository.existsByEmail(ALUNO_EMAIL)) {
-            log.info("Aluno de teste já existe, pulando seed...");
+        var alunoExistente = alunoRepository.findByEmail(ALUNO_EMAIL);
+        if (alunoExistente.isPresent()) {
+            Aluno aluno = alunoExistente.get();
+            if ("593364".equals(aluno.getRa())) {
+                if (alunoRepository.existsByRaAndIdNot(ALUNO_RA, aluno.getId())) {
+                    log.warn("RA fixo do aluno de teste já está em uso; RA anterior preservado");
+                } else {
+                    aluno.setRa(ALUNO_RA);
+                    alunoRepository.save(aluno);
+                    log.info("RA antigo do aluno de teste atualizado para {}", ALUNO_RA);
+                }
+            }
             return;
         }
 
-        String ra = String.format("%d", 100000 + (int)(Math.random() * 900000));
+        String ra = ALUNO_RA;
+        if (alunoRepository.existsByRa(ra)) {
+            log.warn("Aluno de teste não criado: RA {} já cadastrado", ra);
+            return;
+        }
         String telefone = String.format("(14) 9%s", 10000 + (int)(Math.random() * 90000));
         String numero = String.valueOf(10 + (int)(Math.random() * 990));
 
@@ -142,4 +159,61 @@ public class DataSeeder implements CommandLineRunner {
         log.info("  RA: {}", ra);
         log.info("═══════════════════════════════════════════════════════");
     }
+    private void seedDoadoresTeste() {
+        String senha = "123456";
+        String emailPf = "pessoa@gmail.com";
+        String emailPj = "empresa@gmail.com";
+
+        atualizarEmailTeste("doador.pf@doatec.test", emailPf, "doador_pf", "cpf", "34439757715", senha);
+        atualizarEmailTeste("pessoa@teste.com", emailPf, "doador_pf", "cpf", "34439757715", senha);
+        atualizarEmailTeste("doador.pj@doatec.test", emailPj, "doador_pj", "cnpj", "79914219000156", senha);
+        atualizarEmailTeste("empresa@teste.com", emailPj, "doador_pj", "cnpj", "79914219000156", senha);
+
+        if (!seedExiste(emailPf, "doador_pf", "cpf", "34439757715")) {
+            pessoaRepository.save(DoadorPF.builder()
+                    .nome("Marina Oliveira")
+                    .email(emailPf)
+                    .senha(passwordEncoder.encode(senha))
+                    .cpf("34439757715")
+                    .endereco("17404542").logradouro("Rua das Flores").numero("123")
+                    .bairro("Centro").cidade("São Manuel").estado("SP")
+                    .telefone("(14) 99999-1234").role(Role.USER).ativo(true).build());
+            log.info("Doador pessoa física de teste criado: {}", emailPf);
+        }
+
+        if (!seedExiste(emailPj, "doador_pj", "cnpj", "79914219000156")) {
+            pessoaRepository.save(DoadorPJ.builder()
+                    .nome("Empresa Horizonte")
+                    .razaoSocial("Horizonte Tecnologia Ltda")
+                    .email(emailPj)
+                    .senha(passwordEncoder.encode(senha))
+                    .cnpj("79914219000156")
+                    .endereco("17404542").logradouro("Rua das Palmeiras").numero("456")
+                    .bairro("Centro").cidade("São Manuel").estado("SP")
+                    .telefone("(14) 3333-4567").role(Role.USER).ativo(true).build());
+            log.info("Doador pessoa jurídica de teste criado: {}", emailPj);
+        }
+    }
+
+    private void atualizarEmailTeste(String anterior, String novo, String tabela, String coluna, String documento, String senha) {
+        String sql = "UPDATE pessoa SET email = ?, senha = ? WHERE email = ? "
+                + "AND NOT EXISTS (SELECT 1 FROM pessoa WHERE email = ?) "
+                + "AND id IN (SELECT id FROM " + tabela + " WHERE REPLACE(REPLACE(REPLACE("
+                + coluna + ", '.', ''), '-', ''), '/', '') = ?)";
+        int atualizados = jdbcTemplate.update(sql, novo, passwordEncoder.encode(senha), anterior, novo, documento);
+        if (atualizados > 0) log.info("E-mail da conta de teste atualizado: {}", novo);
+    }
+
+    private boolean seedExiste(String email, String tabela, String coluna, String documento) {
+        Integer emails = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM pessoa WHERE email = ?", Integer.class, email);
+        String sql = "SELECT COUNT(*) FROM " + tabela + " WHERE REPLACE(REPLACE(REPLACE(" + coluna
+                + ", '.', ''), '-', ''), '/', '') = ?";
+        Integer documentos = jdbcTemplate.queryForObject(sql, Integer.class, documento);
+        if (emails != null && emails > 0 || documentos != null && documentos > 0) {
+            log.info("Doador de teste não criado: e-mail ou documento já cadastrado ({})", email);
+            return true;
+        }
+        return false;
+    }
+
 }

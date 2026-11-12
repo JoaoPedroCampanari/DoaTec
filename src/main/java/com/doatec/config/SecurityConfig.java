@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,7 +38,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .exceptionHandling(exception -> exception
@@ -51,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/sobre.html", "/suporte.html").permitAll()
 
                         // 3. APIs PÚBLICAS
-                        .requestMatchers("/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/dashboard/stats", "/api/suporte").permitAll()
+                        .requestMatchers("/api/csrf", "/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/dashboard/stats").permitAll()
 
                         // 4. PROTEÇÃO DE PÁGINAS PRIVADAS (Exige Login)
                         .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html", "/admin.html").authenticated()
@@ -59,7 +62,7 @@ public class SecurityConfig {
                         // 6. PROTEÇÃO DE APIs (Exige Role Específica)
                         .requestMatchers("/api/super-admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                        .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte/**", "/api/users/**", "/api/dashboard/**", "/api/notificacoes/**").hasAnyRole("USER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte", "/api/suporte/**", "/api/users/**", "/api/dashboard/**", "/api/notificacoes/**").hasAnyRole("USER", "ADMIN", "SUPER_ADMIN")
 
                         .anyRequest().authenticated()
                 )

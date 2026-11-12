@@ -132,26 +132,38 @@ class SecurityIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("POST /api/suporte deve retornar 201")
-        void enviarSuporte_deveRetornar201() throws Exception {
-            // Registrar um usuario primeiro (suporte exige usuario cadastrado)
-            String registro = alunoPayload(
-                    "Suporte User", "suporte.user@test.com", "123456", "RASUPORT"
-            );
-            mockMvc.perform(post("/api/register/aluno")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(registro))
-                    .andExpect(status().isCreated());
-
-            // Enviar ticket de suporte com o email/nome do usuario registrado
-            String body = suportePayload(
-                    "Suporte User", "suporte.user@test.com", "Duvida", "Preciso de ajuda com o sistema"
-            );
+        @DisplayName("POST /api/suporte sem login deve retornar 401")
+        void enviarSuporteSemLogin_deveRetornar401() throws Exception {
+            String body = suportePayload("Pessoa", "pessoa@test.com", "Duvida", "Mensagem");
             mockMvc.perform(post("/api/suporte")
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(body))
-                    .andExpect(status().isCreated());
+                    .andExpect(status().isUnauthorized());
         }
+
+        @Test
+        @DisplayName("Usuario nao pode criar ticket em nome de outra pessoa")
+        void suporteOutroUsuario_deveRetornar403() throws Exception {
+            String body = suportePayload("Vitima", "vitima@test.com", "Duvida", "Mensagem");
+            mockMvc.perform(post("/api/suporte")
+                            .with(SecurityMockMvcRequestPostProcessors.user("atacante@test.com").roles("USER"))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("Usuario nao pode criar doacao em nome de outra pessoa")
+        void doacaoOutroUsuario_deveRetornar403() throws Exception {
+            String body = "{\"nome\":\"Vitima\",\"email\":\"vitima@test.com\",\"descricaoGeral\":\"Teste\"}";
+            mockMvc.perform(post("/api/donations")
+                            .with(SecurityMockMvcRequestPostProcessors.user("atacante@test.com").roles("USER"))
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isForbidden());
+        }
+
     }
 
     // ==================== ENDPOINTS PROTEGIDOS ====================

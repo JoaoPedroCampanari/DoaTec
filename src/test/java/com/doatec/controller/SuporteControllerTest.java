@@ -74,7 +74,7 @@ class SuporteControllerTest {
 
             when(suporteService.criarTicket(request)).thenReturn(ticket);
 
-            ResponseEntity<SuporteResponse> response = suporteController.receberFormulario(request);
+            ResponseEntity<SuporteResponse> response = suporteController.receberFormulario(request, new User(request.email(), "", List.of()));
 
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -98,9 +98,17 @@ class SuporteControllerTest {
             when(suporteService.criarTicket(request))
                     .thenThrow(new RuntimeException("Nenhuma conta encontrada com o email fornecido."));
 
-            assertThrows(RuntimeException.class, () -> suporteController.receberFormulario(request));
+            assertThrows(RuntimeException.class, () -> suporteController.receberFormulario(request, new User(request.email(), "", List.of())));
             verify(suporteService).criarTicket(request);
         }
+    }
+
+    @Test
+    void criarTicketEmNomeDeOutroUsuarioDeveSerProibido() {
+        SuporteFormularioRequest request = SuporteFormularioRequest.builder().email("vitima@teste.com").build();
+        var response = suporteController.receberFormulario(request, new User("outro@teste.com", "", List.of()));
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verifyNoInteractions(suporteService);
     }
 
     @Nested

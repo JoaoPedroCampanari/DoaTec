@@ -74,7 +74,7 @@ class DoacaoControllerTest {
 
             when(doacaoService.registrarDoacao(any(DoacaoRequest.class))).thenReturn(doacao);
 
-            ResponseEntity<DoacaoResponse> responseEntity = doacaoController.createDonation(request);
+            ResponseEntity<DoacaoResponse> responseEntity = doacaoController.createDonation(request, new User("doador@teste.com", "", List.of()));
 
             assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
             assertNotNull(responseEntity.getBody());
@@ -83,6 +83,14 @@ class DoacaoControllerTest {
 
             verify(doacaoService).registrarDoacao(any(DoacaoRequest.class));
         }
+    }
+
+    @Test
+    void criarDoacaoEmNomeDeOutroUsuarioDeveSerProibido() {
+        DoacaoRequest request = DoacaoRequest.builder().email("vitima@teste.com").build();
+        var response = doacaoController.createDonation(request, new User("outro@teste.com", "", List.of()));
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verifyNoInteractions(doacaoService);
     }
 
     @Nested

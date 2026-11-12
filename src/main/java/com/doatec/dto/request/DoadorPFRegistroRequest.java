@@ -21,7 +21,7 @@ public record DoadorPFRegistroRequest(
     String email,
 
     @NotBlank(message = "O campo senha e obrigatorio")
-    @Size(min = 6, message = "A senha deve ter no minimo 6 digitos")
+    @Size(min = 6, max = 20, message = "A senha deve ter entre 6 e 20 caracteres")
     String senha,
 
     @NotBlank(message = "O campo CPF e obrigatorio")

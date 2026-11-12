@@ -35,7 +35,12 @@ public class SuporteController {
     private PessoaRepository pessoaRepository;
 
     @PostMapping
-    public ResponseEntity<SuporteResponse> receberFormulario(@Valid @RequestBody SuporteFormularioRequest dto) {
+    public ResponseEntity<SuporteResponse> receberFormulario(@Valid @RequestBody SuporteFormularioRequest dto,
+                                                               @AuthenticationPrincipal User userDetails) {
+        if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (!userDetails.getUsername().equalsIgnoreCase(dto.email())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         SuporteFormulario ticket = suporteService.criarTicket(dto);
         SuporteResponse response = SuporteMapper.toResponse(ticket);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

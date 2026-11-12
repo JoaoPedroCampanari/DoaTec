@@ -1,6 +1,5 @@
 package com.doatec.dto.request;
 
-import com.doatec.validation.ValidRA;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -21,11 +20,11 @@ public record AlunoRegistroRequest(
     String email,
 
     @NotBlank(message = "O campo senha e obrigatorio")
-    @Size(min = 6, message = "A senha deve ter no minimo 6 digitos")
+    @Size(min = 6, max = 20, message = "A senha deve ter entre 6 e 20 caracteres")
     String senha,
 
     @NotBlank(message = "O campo RA e obrigatorio")
-    @ValidRA
+    @Pattern(regexp = "[0-9]{13}", message = "O RA deve conter exatamente 13 digitos numericos")
     String ra,
 
     String telefone,

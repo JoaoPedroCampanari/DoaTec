@@ -282,6 +282,20 @@ class AdminServiceTest {
         verify(suporteFormularioRepository).save(ticket);
     }
 
+    @Test
+    void ticketFinalizadoNaoPodeMudarStatusOuReceberOutraResposta() {
+        for (StatusSuporte status : List.of(StatusSuporte.RESOLVIDO, StatusSuporte.FECHADO)) {
+            SuporteFormulario ticket = SuporteFormulario.builder().id(1).status(status).build();
+            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
+            assertThrows(BusinessException.class, () -> service.atualizarStatusTicket(1, StatusSuporte.ABERTO));
+            assertThrows(BusinessException.class, () -> service.responderTicket(1, admin.getId(),
+                    RespostaSuporteRequest.builder().resposta("Outra resposta").build()));
+            assertEquals(status, ticket.getStatus());
+        }
+        verify(suporteFormularioRepository, never()).save(any());
+    }
+
     // ==================== APROVAR DOAÇÃO ====================
 
     @Nested

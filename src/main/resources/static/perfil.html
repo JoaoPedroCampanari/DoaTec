@@ -186,7 +186,7 @@
 <script src="js/auth.js?v=2"></script>
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
-<script src="js/nav-visibility.js?v=2"></script>
+<script src="js/nav-visibility.js?v=3"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         // Form elements
@@ -430,8 +430,8 @@
         if (!tipo) return 'Usuário';
         const roles = {
             'ALUNO': 'Aluno',
-            'DOADOR_PF': 'Doador (Pessoa Física)',
-            'DOADOR_PJ': 'Doador (Pessoa Jurídica)',
+            'DOADOR_PF': 'Pessoa Física',
+            'DOADOR_PJ': 'Pessoa Jurídica',
             'ADMIN': 'Administrador'
         };
         return roles[tipo] || tipo;
@@ -439,6 +439,14 @@
 
     function formatDocument(userData) {
         if (!userData.documento) return '-';
+        const documento = String(userData.documento);
+        const digits = documento.replace(/\D/g, '');
+        if (userData.tipoPessoa === 'DOADOR_PF' && digits.length === 11) {
+            return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+        }
+        if (userData.tipoPessoa === 'DOADOR_PJ' && digits.length === 14) {
+            return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        }
         return userData.documento;
     }
 

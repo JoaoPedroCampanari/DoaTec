@@ -350,7 +350,7 @@ const AdminPanel = {
                 <td>${escapeHtml(d.descricaoGeral || '-')}</td>
                 <td class="admin-actions">
                     ${proximosStatus.length ?
-                        `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusDoacao(${d.id}, this.value)">
+                        `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusDoacao(${d.id}, this.value); this.value = ''">
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : '<span style="color:var(--neutral-400)">-</span>'}
@@ -393,7 +393,7 @@ const AdminPanel = {
             'EM_TRIAGEM': ['AGUARDANDO_COLETA', 'REJEITADA'],
             'AGUARDANDO_COLETA': ['RECEBIDO', 'REJEITADA'],
             'RECEBIDO': ['FINALIZADO', 'REJEITADA'],
-            'REJEITADA': ['EM_TRIAGEM']
+            'REJEITADA': []
         };
         return transicoes[status] || [];
     },
@@ -417,7 +417,7 @@ const AdminPanel = {
         const isRejeicao = novoStatus === 'REJEITADA';
         this.openAvaliacaoModal(
             'Alterar Status — Doação #' + id,
-            isRejeicao ? 'Informe o motivo da rejeição.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            isRejeicao ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
             isRejeicao,
             async (observacao) => {
                 try {
@@ -477,7 +477,7 @@ const AdminPanel = {
                 <td>${this.createPillHtml(s.status)}</td>
                 <td class="admin-actions">
                     ${proximosStatus.length ?
-                        `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusSolicitacao(${s.id}, this.value)">
+                        `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusSolicitacao(${s.id}, this.value); this.value = ''">
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : ''}
@@ -523,8 +523,8 @@ const AdminPanel = {
     getProximosStatusSolicitacao(status) {
         const transicoes = {
             'EM_ANALISE': ['APROVADA', 'REJEITADA'],
-            'APROVADA': ['CONCLUIDA', 'REJEITADA'],
-            'REJEITADA': ['EM_ANALISE']
+            'APROVADA': ['CONCLUIDA'],
+            'REJEITADA': []
         };
         return transicoes[status] || [];
     },
@@ -533,8 +533,8 @@ const AdminPanel = {
         if (!novoStatus) return;
         this.openAvaliacaoModal(
             'Alterar Status — Solicitação #' + id,
-            'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
-            false,
+            novoStatus === 'REJEITADA' ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração de status para: ' + this.formatStatusLabel(novoStatus),
+            novoStatus === 'REJEITADA',
             async (observacao) => {
                 try {
                     const res = await apiFetch('/api/admin/solicitacoes/' + id + '/status?novoStatus=' + novoStatus, {
@@ -867,8 +867,8 @@ const AdminPanel = {
                 <td>${this.createPillHtml(t.status)}</td>
                 <td>${t.dataCriacao ? new Date(t.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
                 <td class="admin-actions">
-                    <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>
-                    <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id})">Status</button>
+                    ${!['RESOLVIDO', 'FECHADO'].includes(t.status) ? `<button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>
+                    <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id}, '${t.status}')">Status</button>` : '<span>Finalizado</span>'}
                     <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
                 </td>
             </tr>
@@ -900,6 +900,7 @@ const AdminPanel = {
                 warning.style.display = 'block';
                 return;
             }
+            if (!window.confirm('Enviar a resposta marcará o ticket como resolvido permanentemente. Deseja continuar?')) return;
             try {
                 const res = await apiFetch('/api/admin/suporte/' + id + '/responder', {
                     method: 'PUT',
@@ -918,8 +919,10 @@ const AdminPanel = {
         this.openModal('modal-resposta');
     },
 
-    alterarStatusSuporte(id) {
+    alterarStatusSuporte(id, statusAtual) {
         const select = document.getElementById('modal-status-suporte-select');
+        select.value = statusAtual === 'ABERTO' ? 'EM_ANDAMENTO' : 'FECHADO';
+        for (const option of select.options) option.disabled = option.value === statusAtual;
         const confirmBtn = document.getElementById('modal-status-suporte-confirm');
         const newBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
@@ -927,6 +930,7 @@ const AdminPanel = {
         newBtn.addEventListener('click', async () => {
             try {
                 const status = select.value;
+                if (['RESOLVIDO', 'FECHADO'].includes(status) && !window.confirm('Este status é permanente e não poderá ser alterado. Deseja continuar?')) return;
                 const res = await apiFetch('/api/admin/suporte/' + id + '/status?status=' + status, {
                     method: 'PUT'
                 });
