@@ -9,6 +9,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .password-field { position: relative; }
+        .form-group .password-field input { padding-right: 48px; }
+        .password-field input::-ms-reveal { display: none; }
+        .password-toggle {
+            position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            border: 0; border-radius: 6px; background: transparent; color: var(--neutral-600); cursor: pointer;
+        }
+        .password-toggle:focus-visible { outline: 2px solid var(--primary-600); outline-offset: -2px; }
+        .password-toggle svg { width: 20px; height: 20px; }
+        #passwordFeedback[hidden] { display: none; }
+    </style>
     <script src="js/vendor/imask.min.js"></script>
     <script src="js/main.js?v=2"></script>
     <script src="js/auth.js?v=2"></script>
@@ -55,12 +68,23 @@
                 </div>
                 <div class="form-group">
                     <label for="regPassword">Crie uma Senha</label>
-                    <input type="password" id="regPassword" name="password" minlength="6" maxlength="20" required>
+                    <div class="password-field">
+                        <input type="password" id="regPassword" name="password" minlength="6" maxlength="20" required>
+                        <button type="button" class="password-toggle" data-password-target="regPassword" aria-controls="regPassword" aria-label="Mostrar senha" title="Mostrar senha">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="password-toggle-slash" d="M4 4l16 16"/></svg>
+                        </button>
+                    </div>
                     <small class="form-text">Mínimo de 6 caracteres</small>
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">Confirme a Senha</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" maxlength="20" required>
+                    <div class="password-field">
+                        <input type="password" id="confirmPassword" name="confirmPassword" maxlength="20" aria-describedby="passwordFeedback" required>
+                        <button type="button" class="password-toggle" data-password-target="confirmPassword" aria-controls="confirmPassword" aria-label="Mostrar confirmação de senha" title="Mostrar confirmação de senha">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="password-toggle-slash" d="M4 4l16 16"/></svg>
+                        </button>
+                    </div>
+                    <small id="passwordFeedback" class="form-text" style="color: var(--color-danger-text);" aria-live="polite" hidden></small>
                 </div>
             </div>
 
@@ -195,6 +219,19 @@
         const emailFeedback = document.getElementById('emailFeedback');
         const passwordInput = document.getElementById('regPassword');
         const confirmPasswordInput = document.getElementById('confirmPassword');
+        const passwordFeedback = document.getElementById('passwordFeedback');
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = document.getElementById(button.dataset.passwordTarget);
+                const visible = input.type === 'password';
+                input.type = visible ? 'text' : 'password';
+                const fieldName = input === confirmPasswordInput ? 'confirmação de senha' : 'senha';
+                const label = `${visible ? 'Ocultar' : 'Mostrar'} ${fieldName}`;
+                button.setAttribute('aria-label', label);
+                button.title = label;
+                button.querySelector('.password-toggle-slash').style.display = visible ? 'none' : '';
+            });
+        });
 
         // Regex de validacao de email estrita
         const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -211,8 +248,17 @@
             if (currentStep === 1) {
                 const senha = passwordInput.value;
                 const confirma = confirmPasswordInput.value;
+                const senhasDiferentes = confirma.length > 0 && senha !== confirma;
                 const senhasValidas = senha.length >= 6 && senha === confirma;
 
+                passwordFeedback.textContent = senhasDiferentes ? 'As senhas não coincidem.' : '';
+                passwordFeedback.hidden = !senhasDiferentes;
+                confirmPasswordInput.classList.toggle('is-invalid', senhasDiferentes);
+                if (senhasDiferentes) {
+                    confirmPasswordInput.setAttribute('aria-invalid', 'true');
+                } else {
+                    confirmPasswordInput.removeAttribute('aria-invalid');
+                }
                 nextBtn.disabled = !emailValido || !senhasValidas;
             }
         }
