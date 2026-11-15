@@ -22,6 +22,12 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
 
     Optional<Pessoa> findByEmail(String email);
 
+    Optional<Pessoa> findByEmailIgnoreCase(String email);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Pessoa p WHERE p.id = :id")
+    Optional<Pessoa> findByIdForPasswordReset(@Param("id") Integer id);
+
     @Query(value = "SELECT p.id FROM pessoa p LEFT JOIN aluno a ON a.id = p.id LEFT JOIN doador_pf pf ON pf.id = p.id LEFT JOIN doador_pj pj ON pj.id = p.id WHERE p.deleted_at IS NULL AND ((:tipo = 'RA' AND UPPER(a.ra) = :documento) OR (:tipo = 'CPF' AND REPLACE(REPLACE(pf.cpf, '.', ''), '-', '') = :documento) OR (:tipo = 'CNPJ' AND REPLACE(REPLACE(REPLACE(pj.cnpj, '.', ''), '-', ''), '/', '') = :documento))", nativeQuery = true)
     List<Integer> buscarIdsPorDocumento(@Param("tipo") String tipo, @Param("documento") String documento);
 

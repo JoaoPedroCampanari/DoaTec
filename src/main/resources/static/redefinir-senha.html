@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir senha - DoaTec</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark-mode')})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .redefinir-botao { display: block; width: auto; max-width: 100%; margin: 8px auto 0; padding: 9px 18px; font-size: 0.9rem; }
+        .redefinir-botao[hidden] { display: none; }
+    </style>
+    <link rel="icon" href="doatec_logo.png" type="image/png">
+</head>
+<body class="login-page">
+<div class="back-button-container"><a href="login.html" class="btn btn-secondary">← Voltar ao login</a></div>
+<div class="login-container"><div class="login-box">
+    <div class="logo"><a href="index.html"><img src="doatec_logo.png" width="200" alt="Logo DoaTec"></a></div>
+    <h1>Redefinir senha</h1>
+    <p class="form-text">Informe o e-mail cadastrado na sua conta.</p>
+    <form id="solicitarForm" class="application-form" novalidate>
+        <div class="form-group">
+            <label for="emailRecuperacao">E-mail</label>
+            <input type="email" id="emailRecuperacao" maxlength="120" autocomplete="email" aria-describedby="emailRecuperacaoErro" required>
+            <div><small id="emailRecuperacaoErro" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
+        </div>
+        <button type="submit" id="enviarCodigo" class="btn btn-primary redefinir-botao">Enviar código</button>
+    </form>
+    <div id="etapaCodigo" hidden>
+        <form id="redefinirForm" class="application-form" novalidate>
+            <div class="form-group">
+                <label for="codigoRecuperacao">Código de confirmação</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="text" id="codigoRecuperacao" style="flex: 1 1 0; width: 100%; min-width: 0; max-width: 180px;" inputmode="numeric" maxlength="8" autocomplete="one-time-code" aria-describedby="codigoRecuperacaoErro" required>
+                    <button type="submit" form="solicitarForm" id="reenviarCodigo" class="btn btn-secondary" style="flex: 0 0 auto; padding: 8px 12px; font-size: 0.875rem; white-space: nowrap;">Reenviar código</button>
+                </div>
+                <div><small id="codigoRecuperacaoErro" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
+            </div>
+            <div class="form-group">
+                <label for="novaSenha">Nova senha</label>
+                <input type="password" id="novaSenha" minlength="6" maxlength="20" autocomplete="new-password" aria-describedby="novaSenhaErro" required>
+                <div><small id="novaSenhaErro" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
+            </div>
+            <div class="form-group">
+                <label for="confirmarNovaSenha">Confirme a nova senha</label>
+                <input type="password" id="confirmarNovaSenha" minlength="6" maxlength="20" autocomplete="new-password" aria-describedby="confirmarNovaSenhaErro" required>
+                <div><small id="confirmarNovaSenhaErro" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
+            </div>
+            <button type="submit" id="confirmarRedefinicao" class="btn btn-primary redefinir-botao">Redefinir senha</button>
+        </form>
+    </div>
+</div></div>
+<script src="js/theme-switcher.js"></script>
+<script src="js/main.js?v=2"></script>
+<script src="js/auth.js?v=login-doc2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const solicitar = document.getElementById('solicitarForm');
+    const redefinir = document.getElementById('redefinirForm');
+    const email = document.getElementById('emailRecuperacao');
+    const codigo = document.getElementById('codigoRecuperacao');
+    const senha = document.getElementById('novaSenha');
+    const confirmacao = document.getElementById('confirmarNovaSenha');
+    const etapa = document.getElementById('etapaCodigo');
+    const enviarCodigo = document.getElementById('enviarCodigo');
+    let emailSolicitado = '';
+    function erro(input, texto) {
+        const feedback = document.getElementById(input.id + 'Erro');
+        feedback.textContent = texto;
+        feedback.hidden = !texto;
+        input.classList.toggle('is-invalid', !!texto);
+        if (texto) input.setAttribute('aria-invalid', 'true');
+        else input.removeAttribute('aria-invalid');
+    }
+    [email, codigo, senha, confirmacao].forEach(input => input.addEventListener('input', () => erro(input, '')));
+    email.addEventListener('input', () => {
+        if (email.value.trim().toLowerCase() !== emailSolicitado) {
+            etapa.hidden = true;
+            enviarCodigo.hidden = false;
+        }
+    });
+    solicitar.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) { erro(email, 'Informe um e-mail válido.'); email.focus(); return; }
+        const botao = event.submitter || enviarCodigo;
+        DoaTec.setButtonLoading(botao, true);
+        try {
+            const endereco = email.value.trim();
+            await apiFetch('/api/redefinicao-senha/solicitar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: endereco }) });
+            if (email.value.trim().toLowerCase() !== endereco.toLowerCase()) return;
+            emailSolicitado = endereco.toLowerCase();
+            codigo.value = '';
+            erro(codigo, '');
+            etapa.hidden = false;
+            enviarCodigo.hidden = true;
+            codigo.focus();
+        } catch (e) { erro(email, e.message || 'Não foi possível solicitar o código. Tente novamente.'); }
+        finally { DoaTec.setButtonLoading(botao, false); }
+    });
+    redefinir.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!/^[0-9]{8}$/.test(codigo.value.trim())) { erro(codigo, 'Informe o código de 8 dígitos.'); codigo.focus(); return; }
+        if (senha.value.trim().length < 6 || senha.value.length > 20) { erro(senha, 'A senha deve ter entre 6 e 20 caracteres.'); senha.focus(); return; }
+        if (senha.value !== confirmacao.value) { erro(confirmacao, 'As senhas não coincidem.'); confirmacao.focus(); return; }
+        const botao = document.getElementById('confirmarRedefinicao');
+        DoaTec.setButtonLoading(botao, true);
+        try {
+            await apiFetch('/api/redefinicao-senha/confirmar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ codigo: codigo.value.trim(), novaSenha: senha.value }) });
+            sessionStorage.setItem('senhaRedefinida', '1');
+            window.location.href = 'login.html';
+        } catch (e) {
+            if (e.status === 400) { erro(codigo, e.message || 'Código inválido ou expirado.'); codigo.focus(); }
+            else DoaTec.showToast(e.message || 'Não foi possível redefinir a senha.', 'error');
+        } finally { DoaTec.setButtonLoading(botao, false); }
+    });
+});
+</script>
+</body>
+</html>

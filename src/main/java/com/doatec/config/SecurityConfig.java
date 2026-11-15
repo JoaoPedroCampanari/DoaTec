@@ -51,10 +51,10 @@ public class SecurityConfig {
                         .requestMatchers("/style.css", "/doatec_logo.png", "/js/**", "/css/**", "/images/**", "/uploads/**").permitAll()
 
                         // 2. PÁGINAS PÚBLICAS
-                        .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/sobre.html", "/suporte.html").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/redefinir-senha.html", "/sobre.html", "/suporte.html").permitAll()
 
                         // 3. APIs PÚBLICAS
-                        .requestMatchers("/api/csrf", "/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/register/verificar-email", "/api/register/enviar-codigo", "/api/register/confirmar-codigo", "/api/register/verificar-documento", "/api/dashboard/stats").permitAll()
+                        .requestMatchers("/api/csrf", "/api/login", "/api/redefinicao-senha/solicitar", "/api/redefinicao-senha/confirmar", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/register/verificar-email", "/api/register/enviar-codigo", "/api/register/confirmar-codigo", "/api/register/verificar-documento", "/api/dashboard/stats").permitAll()
 
                         // 4. PROTEÇÃO DE PÁGINAS PRIVADAS (Exige Login)
                         .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html", "/admin.html").authenticated()

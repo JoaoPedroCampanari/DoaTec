@@ -46,6 +46,11 @@ public class EmailService {
         enviar(para, "Status da sua solicitação atualizado - DoaTec", "Atualização da solicitação", texto, corpo);
     }
 
+    public void enviarCodigoRedefinicaoSenha(String para, String codigo) {
+        enviarCodigo(para, codigo, "Redefinição de senha - DoaTec", "Redefina sua senha",
+                "Use o código abaixo para redefinir a senha da sua conta DoaTec.");
+    }
+
     public void enviarCodigoCadastro(String para, String codigo) {
         enviarCodigo(para, codigo, "Confirme seu e-mail para criar sua conta - DoaTec", "Confirme seu e-mail",
                 "Use o código abaixo para confirmar seu e-mail e continuar seu cadastro no DoaTec.");

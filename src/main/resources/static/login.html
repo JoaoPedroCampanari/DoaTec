@@ -32,6 +32,7 @@
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="password" minlength="6" aria-describedby="loginFeedback" required>
             </div>
+            <p style="text-align: right; margin: 0 0 14px;"><a href="redefinir-senha.html">Esqueci minha senha</a></p>
             <div id="loginFeedback" role="alert" style="color: var(--color-danger-text); margin-bottom: 12px;" hidden></div>
             <button type="submit" class="btn btn-primary btn-submit">Entrar</button>
         </form>
@@ -49,6 +50,15 @@
             // Já está logado, redireciona para home
             window.location.href = 'index.html';
             return;
+        }
+
+        if (sessionStorage.getItem('senhaRedefinida')) {
+            const mensagem = document.createElement('p');
+            mensagem.setAttribute('role', 'status');
+            mensagem.className = 'form-text';
+            mensagem.textContent = 'Senha redefinida com sucesso. Entre usando sua nova senha.';
+            document.getElementById('loginForm').before(mensagem);
+            sessionStorage.removeItem('senhaRedefinida');
         }
 
         const emailAlterado = sessionStorage.getItem('emailAlterado');
