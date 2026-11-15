@@ -12,12 +12,14 @@ public record RegistroRequest(
     String tipoPessoa,
 
     @NotBlank(message = "O campo nome é obrigatório")
+    @Size(max = 100, message = "O nome deve ter no máximo 100 caracteres")
     String nome,
 
     @NotBlank(message = "O campo documento é obrigatório")
     String documento,
 
     @NotBlank(message = "O campo email é obrigatório")
+    @Size(max = 120, message = "O e-mail deve ter no máximo 120 caracteres")
     @Email(message = "O campo email deve ter um formato válido")
     String email,
 

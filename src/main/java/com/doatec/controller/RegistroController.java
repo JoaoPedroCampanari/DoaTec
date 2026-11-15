@@ -8,11 +8,17 @@ import com.doatec.dto.response.UserLoginResponse;
 import com.doatec.mapper.PessoaMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.service.PessoaService;
+import com.doatec.repository.PessoaRepository;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.Map;
 
 /**
  * Controlador para o registro de novos usuários.
@@ -31,6 +37,38 @@ public class RegistroController {
 
     @Autowired
     private PessoaService pessoaService;
+
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    public record ConsultaEmailRequest(
+            @NotBlank @Size(max = 120)
+            @Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$") String email) {}
+
+    @PostMapping("/verificar-email")
+    public Map<String, Boolean> verificarEmail(@Valid @RequestBody ConsultaEmailRequest request) {
+        return Map.of("disponivel", !pessoaRepository.emailJaUtilizado(request.email().trim()));
+    }
+
+    public enum TipoConsultaDocumento { CPF, CNPJ, RA }
+
+    public record ConsultaDocumentoRequest(
+            @jakarta.validation.constraints.NotNull TipoConsultaDocumento tipo,
+            @NotBlank @Pattern(regexp = "[0-9]{11,14}") String documento) {}
+
+    @PostMapping("/verificar-documento")
+    public Map<String, Boolean> verificarDocumento(@Valid @RequestBody ConsultaDocumentoRequest request) {
+        int tamanho = switch (request.tipo()) { case CPF -> 11; case CNPJ -> 14; case RA -> 13; };
+        if (request.documento().length() != tamanho) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Documento incompleto.");
+        }
+        boolean utilizado = switch (request.tipo()) {
+            case CPF -> pessoaRepository.cpfJaUtilizado(request.documento());
+            case CNPJ -> pessoaRepository.cnpjJaUtilizado(request.documento());
+            case RA -> pessoaRepository.raJaUtilizado(request.documento());
+        };
+        return Map.of("disponivel", !utilizado);
+    }
 
     /**
      * Registro de aluno (beneficiário).

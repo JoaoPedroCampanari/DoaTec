@@ -23,10 +23,24 @@ public record NotificacaoResponse(
     String entidadeRelacionadaTipo
 ) {
     public static NotificacaoResponse from(Notificacao notificacao) {
+        return from(notificacao, null);
+    }
+
+    public static NotificacaoResponse from(Notificacao notificacao, Integer numeroDoacao) {
+        String mensagem = notificacao.getMensagem();
+        if (mensagem != null && "DOACAO".equalsIgnoreCase(notificacao.getEntidadeRelacionadaTipo())
+                && notificacao.getEntidadeRelacionadaId() != null) {
+            Integer id = notificacao.getEntidadeRelacionadaId();
+            String referencia = numeroDoacao == null
+                    ? "doação (ID " + id + ")"
+                    : "doação N° " + numeroDoacao + " (ID " + id + ")";
+            mensagem = mensagem.replaceFirst("(?i)doa(?:ç|c)(?:ã|a)o\\s*#\\s*" + id + "(?!\\d)",
+                    java.util.regex.Matcher.quoteReplacement(referencia));
+        }
         return NotificacaoResponse.builder()
                 .id(notificacao.getId())
                 .titulo(notificacao.getTitulo())
-                .mensagem(notificacao.getMensagem())
+                .mensagem(mensagem)
                 .dataCriacao(notificacao.getDataCriacao() != null ? notificacao.getDataCriacao().atOffset(ZoneOffset.UTC) : null)
                 .lida(notificacao.getLida())
                 .dataLeitura(notificacao.getDataLeitura())

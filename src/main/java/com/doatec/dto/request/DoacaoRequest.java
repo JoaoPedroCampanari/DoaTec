@@ -20,6 +20,7 @@ public record DoacaoRequest(
     @NotBlank(message = "O campo descrição geral é obrigatório")
     String descricaoGeral,
 
+    @NotBlank(message = "Adicione pelo menos uma foto dos equipamentos")
     String urlFoto,
 
     PreferenciaEntrega preferenciaEntrega,

@@ -34,6 +34,18 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
 
     boolean existsByEmail(String email);
 
+    @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM pessoa WHERE LOWER(email) = LOWER(:email)", nativeQuery = true)
+    boolean emailJaUtilizado(@Param("email") String email);
+
+    @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM doador_pf WHERE REPLACE(REPLACE(cpf, '.', ''), '-', '') = :documento", nativeQuery = true)
+    boolean cpfJaUtilizado(@Param("documento") String documento);
+
+    @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM doador_pj WHERE REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '-', ''), '/', '') = :documento", nativeQuery = true)
+    boolean cnpjJaUtilizado(@Param("documento") String documento);
+
+    @Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END FROM aluno WHERE ra = :documento", nativeQuery = true)
+    boolean raJaUtilizado(@Param("documento") String documento);
+
     boolean existsByEmailAndIdNot(String email, Integer id);
 
     Page<Pessoa> findByRoleIn(Collection<Role> roles, Pageable pageable);

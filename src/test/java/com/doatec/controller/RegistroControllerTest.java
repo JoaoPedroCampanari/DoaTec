@@ -10,6 +10,7 @@ import com.doatec.model.account.DoadorPF;
 import com.doatec.model.account.DoadorPJ;
 import com.doatec.model.account.Pessoa;
 import com.doatec.service.PessoaService;
+import com.doatec.repository.PessoaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,8 +32,30 @@ class RegistroControllerTest {
     @Mock
     private PessoaService pessoaService;
 
+    @Mock
+    private PessoaRepository pessoaRepository;
+
     @InjectMocks
     private RegistroController registroController;
+
+    @Test
+    void verificarEmailInformaDisponibilidade() {
+        when(pessoaRepository.emailJaUtilizado("usado@teste.com")).thenReturn(true);
+        assertFalse(registroController.verificarEmail(new RegistroController.ConsultaEmailRequest("usado@teste.com")).get("disponivel"));
+        assertTrue(registroController.verificarEmail(new RegistroController.ConsultaEmailRequest("livre@teste.com")).get("disponivel"));
+    }
+
+    @Test
+    void verificarDocumentoConsultaCadaTipo() {
+        when(pessoaRepository.cpfJaUtilizado("52998224725")).thenReturn(true);
+        when(pessoaRepository.cnpjJaUtilizado("11222333000181")).thenReturn(true);
+        when(pessoaRepository.raJaUtilizado("1190482321008")).thenReturn(true);
+        assertFalse(registroController.verificarDocumento(new RegistroController.ConsultaDocumentoRequest(RegistroController.TipoConsultaDocumento.CPF, "52998224725")).get("disponivel"));
+        assertFalse(registroController.verificarDocumento(new RegistroController.ConsultaDocumentoRequest(RegistroController.TipoConsultaDocumento.CNPJ, "11222333000181")).get("disponivel"));
+        assertFalse(registroController.verificarDocumento(new RegistroController.ConsultaDocumentoRequest(RegistroController.TipoConsultaDocumento.RA, "1190482321008")).get("disponivel"));
+        assertTrue(registroController.verificarDocumento(new RegistroController.ConsultaDocumentoRequest(RegistroController.TipoConsultaDocumento.RA, "1234567890123")).get("disponivel"));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> registroController.verificarDocumento(new RegistroController.ConsultaDocumentoRequest(RegistroController.TipoConsultaDocumento.CPF, "123")));
+    }
 
     // --- Fixtures ---
 

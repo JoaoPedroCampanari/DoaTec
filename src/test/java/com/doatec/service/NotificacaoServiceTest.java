@@ -8,6 +8,8 @@ import com.doatec.model.account.Aluno;
 import com.doatec.model.account.Pessoa;
 import com.doatec.model.notification.Notificacao;
 import com.doatec.model.notification.TipoNotificacao;
+import com.doatec.model.donation.Doacao;
+import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.NotificacaoRepository;
 import com.doatec.repository.PessoaRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -31,8 +33,37 @@ class NotificacaoServiceTest {
     @Mock
     private PessoaRepository pessoaRepository;
 
+    @Mock
+    private DoacaoRepository doacaoRepository;
+
     @InjectMocks
     private NotificacaoService service;
+
+    @Test
+    void notificacoesUsamNumeracaoAtualDoDoadorEIdSeparado() {
+        Doacao recente = Doacao.builder().id(18).build();
+        Doacao antiga = Doacao.builder().id(5).build();
+        Notificacao status = Notificacao.builder().mensagem("Sua doação #18 foi aprovada.")
+                .entidadeRelacionadaTipo("DOACAO").entidadeRelacionadaId(18).build();
+        Notificacao chat = Notificacao.builder().mensagem("Nova mensagem em doacao #5")
+                .entidadeRelacionadaTipo("DOACAO").entidadeRelacionadaId(5).build();
+        Notificacao apagada = Notificacao.builder().mensagem("Sua doação #99 foi recusada.")
+                .entidadeRelacionadaTipo("DOACAO").entidadeRelacionadaId(99).build();
+        var notificacoes = List.of(status, chat, apagada);
+        when(notificacaoRepository.findByDestinatarioIdOrderByDataCriacaoDesc(1)).thenReturn(notificacoes);
+        when(doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(1))
+                .thenReturn(List.of(recente, antiga), List.of(recente));
+
+        var primeiraConsulta = service.listarPorDestinatario(1);
+        assertEquals("Sua doação N° 2 (ID 18) foi aprovada.", primeiraConsulta.get(0).mensagem());
+        assertEquals("Nova mensagem em doação N° 1 (ID 5)", primeiraConsulta.get(1).mensagem());
+        assertEquals("Sua doação (ID 99) foi recusada.", primeiraConsulta.get(2).mensagem());
+        assertEquals("Sua doação #18 foi aprovada.", status.getMensagem());
+
+        var aposExclusao = service.listarPorDestinatario(1);
+        assertEquals("Sua doação N° 1 (ID 18) foi aprovada.", aposExclusao.get(0).mensagem());
+        assertEquals("Nova mensagem em doação (ID 5)", aposExclusao.get(1).mensagem());
+    }
 
     // =====================================================================
     // criarNotificacao

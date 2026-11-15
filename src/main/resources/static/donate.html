@@ -72,22 +72,22 @@
             </div>
             <form id="donationForm" class="application-form">
                 <fieldset>
-                    <legend>Informações do Doador</legend>
+                    <legend>Suas informações</legend>
                     <div class="form-group">
-                        <label for="donorName">Seu Nome ou Nome da Empresa:</label>
+                        <label for="donorName">Nome</label>
                         <input type="text" id="donorName" name="donorName" required disabled>
                     </div>
 
                     <div class="form-group">
-                        <label for="documentNumber" id="documentLabel">Documento:</label>
+                        <label for="documentNumber" id="documentLabel">Documento</label>
                         <input type="text" id="documentNumber" name="documentNumber" required>
                     </div>
                     <div class="form-group">
-                        <label for="email">Email para Contato*:</label>
+                        <label for="email">Email</label>
                         <input type="email" id="email" name="email" required disabled>
                     </div>
                     <div class="form-group">
-                        <label for="phone">Telefone:</label>
+                        <label for="phone">Telefone</label>
                         <input type="tel" id="phone" name="phone" disabled>
                         <small class="form-text">Ajuda a agilizar o contato, se necessário.</small>
                     </div>
@@ -96,11 +96,12 @@
                     <legend>Detalhes da Doação</legend>
                     <div class="form-group">
                         <label for="descricaoGeral">Descrição Geral da Doação *</label>
-                        <textarea id="descricaoGeral" name="descricaoGeral" rows="5" required placeholder="Descreva os equipamentos que deseja doar, incluindo quantidade, estado de conservação e qualquer informação relevante..."></textarea>
+                        <textarea id="descricaoGeral" name="descricaoGeral" rows="5" aria-describedby="descricaoFeedback" required placeholder="Descreva os equipamentos que deseja doar, incluindo quantidade, estado de conservação e qualquer informação relevante..."></textarea>
+                        <div><small id="descricaoFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Informe a descrição da doação.</small></div>
                         <small class="form-text">Exemplo: "2 notebooks Dell em bom estado, 1 desktop completo sem monitor, 3 teclados e 2 mouses usados."</small>
                     </div>
                     <div class="form-group">
-                        <label>Foto dos Equipamentos:</label>
+                        <label>Foto dos Equipamentos</label>
                         <input type="file" id="fotoDoacao" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
                         <div class="photo-upload-box" id="photoUploadBox">
                             <div class="file-upload-previews" id="fotoPreviews"></div>
@@ -111,13 +112,14 @@
                                 <p>Arraste ou clique para enviar</p>
                             </div>
                         </div>
-                        <button type="button" class="btn-attach-photo" id="btnAttachPhoto">
+                        <button type="button" class="btn-attach-photo" id="btnAttachPhoto" aria-describedby="fotoFeedback">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
                                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
                             </svg>
                             <span>Anexar fotos</span>
                             <span class="photo-count" id="photoCount"></span>
                         </button>
+                        <div><small id="fotoFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Para enviar sua doação, adicione pelo menos uma foto dos equipamentos.</small></div>
                         <small class="form-text">Formatos: JPEG, PNG, GIF, WebP. Máximo 5MB por foto.</small>
                     </div>
                 </fieldset>
@@ -137,13 +139,13 @@
                     </div>
                     <!-- Endereço de retirada — visível apenas quando SOLICITAR_RETIRADA -->
                     <div id="enderecoRetiradaSection" class="endereco-retirada-section" style="display:none;">
-                        <label>Endereço de retirada:</label>
+                        <label>Endereço de retirada</label>
                         <div class="endereco-cards" id="enderecoCards">
                             <!-- Card do endereço cadastrado — preenchido via JS -->
                             <div class="endereco-card" id="enderecoCadastradoCard">
                                 <input type="radio" id="enderecoCadastrado" name="enderecoOption" value="cadastrado" checked>
                                 <label for="enderecoCadastrado" class="endereco-card-label">
-                                    <strong>Meu endereço cadastrado</strong>
+                                    <strong>Endereço</strong>
                                     <span id="enderecoCadastradoText">—</span>
                                 </label>
                             </div>
@@ -191,8 +193,9 @@
                     </div>
                 </fieldset>
                 <div class="form-group">
-                    <input type="checkbox" id="terms" name="terms" required>
+                    <input type="checkbox" id="terms" name="terms" aria-describedby="termsFeedback" required>
                     <label for="terms" class="checkbox-label">Declaro que os itens a serem doados são de minha propriedade e concordo em transferi-los à Doatec/Fatec Garça.</label>
+                    <div><small id="termsFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Para enviar a doação, marque a caixa para confirmar que você concorda com os termos.</small></div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-submit">Enviar Formulário de Doação</button>
             </form>
@@ -218,6 +221,42 @@
         const emailInput = document.getElementById('email');
         const phoneInput = document.getElementById('phone');
         const donationForm = document.getElementById('donationForm');
+        const terms = document.getElementById('terms');
+        const termsFeedback = document.getElementById('termsFeedback');
+        const descricaoInput = document.getElementById('descricaoGeral');
+        const descricaoFeedback = document.getElementById('descricaoFeedback');
+
+        function atualizarDescricao() {
+            const vazia = !descricaoInput.value.trim();
+            descricaoInput.setCustomValidity(vazia ? 'Informe a descrição da doação.' : '');
+            if (!vazia) {
+                descricaoFeedback.hidden = true;
+                descricaoInput.classList.remove('is-invalid');
+                descricaoInput.removeAttribute('aria-invalid');
+            }
+        }
+        descricaoInput.addEventListener('input', atualizarDescricao);
+        descricaoInput.addEventListener('invalid', event => {
+            event.preventDefault();
+            descricaoFeedback.hidden = false;
+            descricaoInput.classList.add('is-invalid');
+            descricaoInput.setAttribute('aria-invalid', 'true');
+            if (donationForm.querySelector(':invalid') === descricaoInput) descricaoInput.focus();
+        });
+        atualizarDescricao();
+
+        terms.addEventListener('invalid', event => {
+            event.preventDefault();
+            termsFeedback.hidden = false;
+            terms.setAttribute('aria-invalid', 'true');
+            if ([...donationForm.querySelectorAll(':invalid')].every(field => field === terms)) terms.focus();
+        });
+        terms.addEventListener('change', () => {
+            if (terms.checked) {
+                termsFeedback.hidden = true;
+                terms.removeAttribute('aria-invalid');
+            }
+        });
 
         // Verifica sessão com backend
         const loggedInUser = await Auth.checkSession();
@@ -252,19 +291,19 @@
                     let maskOptions; // Opções da máscara a serem aplicadas
 
                     if (userData.tipoPessoa === 'DOADOR_PF') {
-                        documentLabel.textContent = 'CPF:';
+                        documentLabel.textContent = 'CPF';
                         usuarioTipoDocumento = 'cpf';
                         maskOptions = { mask: '000.000.000-00' };
                     } else if (userData.tipoPessoa === 'DOADOR_PJ') {
-                        documentLabel.textContent = 'CNPJ:';
+                        documentLabel.textContent = 'CNPJ';
                         usuarioTipoDocumento = 'cnpj';
                         maskOptions = { mask: '00.000.000/0000-00' };
                     } else if (userData.tipoPessoa === 'ALUNO') {
-                        documentLabel.textContent = 'RA:';
+                        documentLabel.textContent = 'RA';
                         usuarioTipoDocumento = 'aluno';
                         maskOptions = { mask: '0000000000000' };
                     } else {
-                        documentLabel.textContent = 'Documento:';
+                        documentLabel.textContent = 'Documento';
                         documentInput.removeAttribute('required');
                         usuarioTipoDocumento = '';
                     }
@@ -316,6 +355,20 @@
         const fotoPreviews = document.getElementById('fotoPreviews');
         const photoPlaceholder = document.getElementById('photoPlaceholder');
         const photoUploadBox = document.getElementById('photoUploadBox');
+        const fotoFeedback = document.getElementById('fotoFeedback');
+        let fotoObrigatoriaExibida = false;
+
+        function validarFotos() {
+            if (selectedFiles.length > 0) return true;
+            fotoObrigatoriaExibida = true;
+            fotoFeedback.hidden = false;
+            btnAttach.setAttribute('aria-invalid', 'true');
+            return false;
+        }
+
+        // O navegador dispara invalid antes de submit quando outro campo obrigatório está vazio.
+        donationForm.addEventListener('invalid', validarFotos, true);
+        donationForm.querySelector('button[type="submit"]').addEventListener('click', validarFotos);
 
         function renderPreviews() {
             fotoPreviews.innerHTML = '';
@@ -355,9 +408,13 @@
             if (selectedFiles.length > 0) {
                 photoPlaceholder.style.display = 'none';
                 photoCount.textContent = `${selectedFiles.length}/${MAX_FOTOS}`;
+                fotoFeedback.hidden = true;
+                btnAttach.removeAttribute('aria-invalid');
             } else {
                 photoPlaceholder.style.display = '';
                 photoCount.textContent = '';
+                fotoFeedback.hidden = !fotoObrigatoriaExibida;
+                if (fotoObrigatoriaExibida) btnAttach.setAttribute('aria-invalid', 'true');
             }
         }
 
@@ -445,13 +502,18 @@
         donationForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            if (!validarFotos()) {
+                btnAttach.focus();
+                return;
+            }
+
             const submitBtn = donationForm.querySelector('button[type="submit"]');
             DoaTec.setButtonLoading(submitBtn, true);
 
             // Pega o valor "limpo" da máscara, se ela existir
             const numeroDocumento = documentMask ? documentMask.unmaskedValue : documentInput.value;
 
-            const descricaoGeral = document.getElementById('descricaoGeral').value;
+            const descricaoGeral = descricaoInput.value;
             const preferenciaEntrega = document.querySelector('input[name="deliveryPreference"]:checked').value;
             const termsAccepted = document.getElementById('terms').checked;
 
@@ -460,12 +522,7 @@
                 return;
             }
 
-            if (!descricaoGeral.trim()) {
-                DoaTec.showToast('Por favor, preencha a descrição geral da doação.', 'warning');
-                return;
-            }
-
-            // Upload das fotos (se houver)
+            // Upload das fotos
             const urlFotos = [];
             for (const file of selectedFiles) {
                 const formData = new FormData();
@@ -482,11 +539,13 @@
                     } else {
                         const errorMsg = await uploadResponse.text();
                         DoaTec.showToast('Erro ao enviar foto: ' + errorMsg, 'error');
+                        DoaTec.setButtonLoading(submitBtn, false);
                         return;
                     }
                 } catch (uploadError) {
                     console.error('Erro no upload:', uploadError);
                     DoaTec.showToast('Erro ao enviar foto. Tente novamente.', 'error');
+                    DoaTec.setButtonLoading(submitBtn, false);
                     return;
                 }
             }

@@ -74,17 +74,17 @@
                 <fieldset>
                     <legend>Seus Dados</legend>
                     <div class="form-group">
-                        <label for="nome">Nome Completo:</label>
+                        <label for="nome">Nome Completo</label>
                         <input type="text" id="nome" required disabled> </div>
                     <div class="form-group">
-                        <label for="email">Email de Cadastro:</label>
+                        <label for="email">Email de Cadastro</label>
                         <input type="email" id="email" required disabled>
                     </div>
                     <div class="form-group">
-                        <label for="telefone">Telefone:</label>
+                        <label for="telefone">Telefone</label>
                         <input type="tel" id="telefone" disabled> </div>
                     <div class="form-group">
-                        <label for="ra">RA (Registro do Aluno):</label>
+                        <label for="ra">RA</label>
                         <input type="text" id="ra" required disabled>
                     </div>
                 </fieldset>
@@ -92,24 +92,27 @@
                 <fieldset>
                     <legend>Detalhes da Necessidade</legend>
                     <div class="form-group">
-                        <label for="justificativa">Justificativa da Necessidade:</label>
-                        <textarea id="justificativa" rows="6" required></textarea>
-                        <small>Explique por que você precisa do equipamento e como ele ajudará nos seus estudos.</small>
+                        <label for="justificativa">Justificativa da Necessidade</label>
+                        <textarea id="justificativa" rows="6" aria-describedby="justificativaOrientacao justificativaFeedback" required></textarea>
+                        <small id="justificativaOrientacao">Explique por que você precisa do equipamento e como ele ajudará nos seus estudos.</small>
+                        <div><small id="justificativaFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Conte por que você precisa do equipamento para enviar sua solicitação.</small></div>
                     </div>
                     <div class="form-group">
                         <label for="preferenciaEquipamento">Qual equipamento você precisa?</label>
-                        <input type="text" id="preferenciaEquipamento" placeholder="Ex.: notebook, teclado, mouse...">
+                        <input type="text" id="preferenciaEquipamento" placeholder="Ex.: notebook, teclado, mouse..." aria-describedby="equipamentoFeedback" required>
+                        <div><small id="equipamentoFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Informe qual equipamento você precisa para enviar sua solicitação.</small></div>
                     </div>
                     <div class="form-group">
-                        <label>Comprovante de Renda:</label>
+                        <label for="comprovante">Comprovante de renda (opcional)</label>
                         <div class="file-upload-area" id="fileUploadArea">
-                            <input type="file" id="comprovante" accept="image/*,.pdf" hidden>
+                            <input type="file" id="comprovante" accept="image/*,.pdf" aria-describedby="comprovanteOrientacao" hidden>
                             <svg class="file-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                             </svg>
                             <p class="file-upload-text">Clique ou arraste seu comprovante</p>
                             <p class="file-upload-hint" id="fileUploadHint">Nenhum arquivo selecionado</p>
                         </div>
+                        <small id="comprovanteOrientacao" class="form-text">Se tiver um comprovante, você pode anexá-lo. O documento poderá ser solicitado posteriormente, se necessário.</small>
                     </div>
                 </fieldset>
 
@@ -138,6 +141,30 @@
         const telefoneInput = document.getElementById('telefone');
         const raInput = document.getElementById('ra');
         let phoneMask;
+
+        [
+            { input: document.getElementById('justificativa'), feedback: document.getElementById('justificativaFeedback') },
+            { input: document.getElementById('preferenciaEquipamento'), feedback: document.getElementById('equipamentoFeedback') }
+        ].forEach(({ input, feedback }) => {
+            const atualizarValidade = () => {
+                const vazio = !input.value.trim();
+                input.setCustomValidity(vazio ? feedback.textContent : '');
+                if (!vazio) {
+                    feedback.hidden = true;
+                    input.classList.remove('is-invalid');
+                    input.removeAttribute('aria-invalid');
+                }
+            };
+            input.addEventListener('input', atualizarValidade);
+            input.addEventListener('invalid', event => {
+                event.preventDefault();
+                feedback.hidden = false;
+                input.classList.add('is-invalid');
+                input.setAttribute('aria-invalid', 'true');
+                if (form.querySelector(':invalid') === input) input.focus();
+            });
+            atualizarValidade();
+        });
 
         // Verifica sessão com backend
         const loggedInUser = await Auth.checkSession();

@@ -26,12 +26,13 @@
         <form id="loginForm" class="application-form">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" aria-describedby="loginFeedback" required>
             </div>
             <div class="form-group">
                 <label for="password">Senha</label>
-                <input type="password" id="password" name="password" minlength="6" required>
+                <input type="password" id="password" name="password" minlength="6" aria-describedby="loginFeedback" required>
             </div>
+            <div id="loginFeedback" role="alert" style="color: var(--color-danger-text); margin-bottom: 12px;" hidden></div>
             <button type="submit" class="btn btn-primary btn-submit">Entrar</button>
         </form>
         <p class="footer-link" style="margin-top: 24px; text-align: center;">Não tem uma conta? <a href="registro.html" style="color: var(--primary-600); font-weight: 500;">Crie uma aqui</a></p>
@@ -39,7 +40,7 @@
 </div>
 <script src="js/theme-switcher.js"></script>
 <script src="js/main.js?v=2"></script>
-<script src="js/auth.js?v=2"></script>
+<script src="js/auth.js?v=4"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         // Verifica se já está logado
@@ -51,9 +52,37 @@
         }
 
         const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginFeedback = document.getElementById('loginFeedback');
+
+        function limparErroLogin() {
+            loginFeedback.hidden = true;
+            loginFeedback.textContent = '';
+            [emailInput, passwordInput].forEach(input => {
+                input.classList.remove('is-invalid');
+                input.removeAttribute('aria-invalid');
+            });
+        }
+
+        [emailInput, passwordInput].forEach(input => {
+            input.addEventListener('input', limparErroLogin);
+            input.addEventListener('invalid', event => {
+                event.preventDefault();
+                if (loginForm.querySelector(':invalid') !== input) return;
+                loginFeedback.textContent = input === emailInput
+                    ? 'Informe um e-mail válido para entrar.'
+                    : 'Informe sua senha com pelo menos 6 caracteres.';
+                loginFeedback.hidden = false;
+                input.classList.add('is-invalid');
+                input.setAttribute('aria-invalid', 'true');
+                input.focus();
+            });
+        });
 
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
+            limparErroLogin();
 
             const submitBtn = loginForm.querySelector('button[type="submit"]');
             DoaTec.setButtonLoading(submitBtn, true);
@@ -67,7 +96,14 @@
                 if (result.success) {
                     window.location.href = 'index.html';
                 } else {
-                    DoaTec.showToast('Erro no login: ' + result.error, 'error');
+                    loginFeedback.textContent = result.error;
+                    loginFeedback.hidden = false;
+                    if (result.status === 401) {
+                        [emailInput, passwordInput].forEach(input => {
+                            input.classList.add('is-invalid');
+                            input.setAttribute('aria-invalid', 'true');
+                        });
+                    }
                 }
             } finally {
                 DoaTec.setButtonLoading(submitBtn, false);

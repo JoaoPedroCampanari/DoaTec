@@ -6,6 +6,7 @@ import com.doatec.model.account.Pessoa;
 import com.doatec.model.notification.Notificacao;
 import com.doatec.model.notification.TipoNotificacao;
 import com.doatec.repository.NotificacaoRepository;
+import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.PessoaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +29,20 @@ public class NotificacaoService {
 
     @Autowired
     private PessoaRepository pessoaRepository;
+
+    @Autowired
+    private DoacaoRepository doacaoRepository;
+
+    private List<NotificacaoResponse> respostasComNumeroDeDoacao(List<Notificacao> notificacoes, Integer destinatarioId) {
+        Map<Integer, Integer> numeros = new HashMap<>();
+        if (notificacoes.stream().anyMatch(n -> "DOACAO".equalsIgnoreCase(n.getEntidadeRelacionadaTipo()))) {
+            var doacoes = doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(destinatarioId);
+            for (int i = 0; i < doacoes.size(); i++) numeros.put(doacoes.get(i).getId(), doacoes.size() - i);
+        }
+        return notificacoes.stream()
+                .map(n -> NotificacaoResponse.from(n, numeros.get(n.getEntidadeRelacionadaId())))
+                .toList();
+    }
 
     /**
      * Cria uma nova notificação para um destinatário específico.
@@ -77,10 +94,7 @@ public class NotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<NotificacaoResponse> listarPorDestinatario(Integer destinatarioId) {
-        return notificacaoRepository.findByDestinatarioIdOrderByDataCriacaoDesc(destinatarioId)
-                .stream()
-                .map(NotificacaoResponse::from)
-                .collect(Collectors.toList());
+        return respostasComNumeroDeDoacao(notificacaoRepository.findByDestinatarioIdOrderByDataCriacaoDesc(destinatarioId), destinatarioId);
     }
 
     /**
@@ -88,10 +102,7 @@ public class NotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<NotificacaoResponse> listarNaoLidas(Integer destinatarioId) {
-        return notificacaoRepository.findByDestinatarioIdAndLidaFalseOrderByDataCriacaoDesc(destinatarioId)
-                .stream()
-                .map(NotificacaoResponse::from)
-                .collect(Collectors.toList());
+        return respostasComNumeroDeDoacao(notificacaoRepository.findByDestinatarioIdAndLidaFalseOrderByDataCriacaoDesc(destinatarioId), destinatarioId);
     }
 
     /**
@@ -128,10 +139,7 @@ public class NotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<NotificacaoResponse> listarUltimas(Integer destinatarioId, int limit) {
-        return notificacaoRepository.findTopByDestinatarioId(destinatarioId, limit)
-                .stream()
-                .map(NotificacaoResponse::from)
-                .collect(Collectors.toList());
+        return respostasComNumeroDeDoacao(notificacaoRepository.findTopByDestinatarioId(destinatarioId, limit), destinatarioId);
     }
 
     /**

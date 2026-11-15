@@ -304,6 +304,44 @@ function formatRelativeDate(dateStr) {
     return date.toLocaleDateString('pt-BR');
 }
 
+/** Pede confirmação antes de uma exclusão e devolve o foco ao controle anterior. */
+function confirmarExclusao({ titulo, mensagem, botao = 'Excluir' }) {
+    return new Promise(resolve => {
+        const focoAnterior = document.activeElement;
+        const dialog = document.createElement('dialog');
+        dialog.className = 'confirm-delete-dialog';
+        dialog.setAttribute('aria-labelledby', 'confirm-delete-title');
+        dialog.setAttribute('aria-describedby', 'confirm-delete-message');
+        dialog.innerHTML = `
+            <div class="confirm-delete-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v6m4-6v6"/></svg>
+            </div>
+            <h2 id="confirm-delete-title"></h2>
+            <p id="confirm-delete-message"></p>
+            <p class="confirm-delete-hint">Esta ação não pode ser desfeita pelo site.</p>
+            <div class="confirm-delete-actions">
+                <button type="button" class="btn btn-secondary" data-action="cancelar">Cancelar</button>
+                <button type="button" class="btn confirm-delete-button" data-action="excluir"></button>
+            </div>`;
+        dialog.querySelector('#confirm-delete-title').textContent = titulo;
+        dialog.querySelector('#confirm-delete-message').textContent = mensagem;
+        const cancelar = dialog.querySelector('[data-action="cancelar"]');
+        const excluir = dialog.querySelector('[data-action="excluir"]');
+        excluir.textContent = botao;
+        cancelar.addEventListener('click', () => dialog.close('cancelar'));
+        excluir.addEventListener('click', () => dialog.close('excluir'));
+        dialog.addEventListener('close', () => {
+            const confirmado = dialog.returnValue === 'excluir';
+            dialog.remove();
+            if (focoAnterior && typeof focoAnterior.focus === 'function') focoAnterior.focus();
+            resolve(confirmado);
+        }, { once: true });
+        document.body.appendChild(dialog);
+        dialog.showModal();
+        cancelar.focus();
+    });
+}
+
 // Export for global use
 window.DoaTec = {
     formatDate,
@@ -319,6 +357,7 @@ window.DoaTec = {
     formatUserRole,
     formatDocument,
     getAvatarColor,
-    formatRelativeDate
+    formatRelativeDate,
+    confirmarExclusao
 };
 

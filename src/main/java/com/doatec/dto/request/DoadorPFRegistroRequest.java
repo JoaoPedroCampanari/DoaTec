@@ -14,9 +14,11 @@ import lombok.Builder;
 @Builder
 public record DoadorPFRegistroRequest(
     @NotBlank(message = "O campo nome e obrigatorio")
+    @Size(max = 100, message = "O nome deve ter no máximo 100 caracteres")
     String nome,
 
     @NotBlank(message = "O campo email e obrigatorio")
+    @Size(max = 120, message = "O e-mail deve ter no máximo 120 caracteres")
     @Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", message = "Insira um e-mail valido")
     String email,
 
@@ -32,6 +34,7 @@ public record DoadorPFRegistroRequest(
 
     String cep,
     String logradouro,
+    @Size(max = 10, message = "O número deve ter no máximo 10 caracteres")
     String numero,
     String bairro,
     String cidade,

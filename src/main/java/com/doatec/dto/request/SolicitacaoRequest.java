@@ -14,7 +14,9 @@ public record SolicitacaoRequest(
     String telefone,
 
     String ra,
+    @NotBlank(message = "Conte por que você precisa do equipamento")
     String justificativa,
+    @NotBlank(message = "Informe qual equipamento você precisa")
     String preferenciaEquipamento,
     String urlComprovante
 ) {}

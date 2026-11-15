@@ -33,6 +33,7 @@ class DoacaoIntegrationTest extends BaseIntegrationTest {
                     "numeroDocumento": "%s",
                     "email": "%s",
                     "descricaoGeral": "Computador desktop para doação",
+                    "urlFoto": "/uploads/foto-teste.jpg",
                     "preferenciaEntrega": "PONTO_DE_COLETA"
                 }
                 """.formatted(doador.getCpf(), doador.getEmail());
@@ -45,7 +46,8 @@ class DoacaoIntegrationTest extends BaseIntegrationTest {
                     "tipoDocumento": "cpf",
                     "numeroDocumento": "%s",
                     "email": "%s",
-                    "descricaoGeral": "Computador desktop para doação"
+                    "descricaoGeral": "Computador desktop para doação",
+                    "urlFoto": "/uploads/foto-teste.jpg"
                 }
                 """.formatted(doador.getCpf(), email);
     }

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=confirmacao1">
     <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
@@ -80,7 +80,7 @@
     </div>
 </footer>
 
-<script src="js/main.js?v=2"></script>
+<script src="js/main.js?v=confirmacao1"></script>
 <script src="js/auth.js?v=2"></script>
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
@@ -135,7 +135,8 @@
                     return;
                 }
 
-                pedidos.forEach(pedido => {
+                pedidos.forEach((pedido, index) => {
+                    const numeroPedido = pedidos.length - index;
                     const pedidoCard = document.createElement('div');
                     pedidoCard.className = 'donation-card';
 
@@ -145,10 +146,12 @@
                     pedidoCard.innerHTML = `
                         <div class="donation-content" style="flex: 1;">
                             <div class="donation-header">
-                                <h3 class="donation-title">Pedido #${pedido.id}</h3>
+                                <div>
+                                    <h3 class="donation-title">Pedido N° ${numeroPedido}</h3>
+                                    <div class="donation-date">ID: ${pedido.id} · ${formatDate(pedido.dataSolicitacao)}</div>
+                                </div>
                                 <span class="status-pill ${statusClass}">${statusText}</span>
                             </div>
-                            <span class="donation-date">${formatDate(pedido.dataSolicitacao)}</span>
                             <div class="donation-meta">
                                 <span class="donation-meta-item">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
@@ -166,8 +169,8 @@
                                 </div>
                             </div>
                             <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-                                <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido #${pedido.id}')">Conversar</button>
-                                ${pedido.status === 'EM_ANALISE' ? `<button class="btn btn-outline btn-excluir" onclick="excluirPedido(${pedido.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                                <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido ${numeroPedido} (ID ${pedido.id})')">Conversar</button>
+                                ${pedido.status === 'EM_ANALISE' ? `<button class="btn btn-outline btn-excluir" onclick="excluirPedido(${pedido.id}, event, ${numeroPedido})" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -194,9 +197,9 @@
 
     // Usando funções globais de DoaTec (main.js)
 
-    async function excluirPedido(id, event) {
+    async function excluirPedido(id, event, numero) {
         event.stopPropagation();
-        if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+        if (!await DoaTec.confirmarExclusao({ titulo: 'Excluir solicitação?', mensagem: `Deseja excluir o pedido ${numero} (ID ${id})?`, botao: 'Excluir solicitação' })) return;
         try {
             const response = await apiFetch('/api/solicitacoes/' + id, { method: 'DELETE', credentials: 'include' });
             if (response.ok) {

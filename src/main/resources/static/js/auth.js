@@ -122,7 +122,15 @@ const Auth = {
             }
         } catch (error) {
             console.error('Erro no login:', error);
-            return { success: false, error: 'Erro de conexão com o servidor' };
+            return {
+                success: false,
+                status: error.status,
+                error: error.status === 401
+                    ? 'E-mail ou senha incorretos'
+                    : error.status
+                        ? 'Não foi possível entrar agora. Tente novamente mais tarde.'
+                        : 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+            };
         }
     },
 

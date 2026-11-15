@@ -130,13 +130,19 @@ public class GlobalExceptionHandler {
         if (constraintName != null) {
             // Mapeia nomes de constraint para mensagens amigáveis
             String lower = constraintName.toLowerCase();
-            if (lower.contains("email")) {
+            Throwable rootCause = ex.getRootCause();
+            String detail = rootCause != null && rootCause.getMessage() != null ? rootCause.getMessage() : "";
+            boolean chaveEmail = java.util.regex.Pattern.compile("(?i)(key|chave)\\s*\\(email\\)").matcher(detail).find();
+            boolean chaveCpf = java.util.regex.Pattern.compile("(?i)(key|chave)\\s*\\(cpf\\)").matcher(detail).find();
+            boolean chaveCnpj = java.util.regex.Pattern.compile("(?i)(key|chave)\\s*\\(cnpj\\)").matcher(detail).find();
+            boolean chaveRa = java.util.regex.Pattern.compile("(?i)(key|chave)\\s*\\(ra\\)").matcher(detail).find();
+            if (lower.contains("email") || chaveEmail) {
                 message = "Email já cadastrado no sistema";
-            } else if (lower.contains("cpf")) {
+            } else if (lower.contains("cpf") || chaveCpf) {
                 message = "CPF já cadastrado no sistema";
-            } else if (lower.contains("cnpj")) {
+            } else if (lower.contains("cnpj") || chaveCnpj) {
                 message = "CNPJ já cadastrado no sistema";
-            } else if (lower.equals("ra") || lower.endsWith("_ra") || lower.startsWith("ra_") || lower.contains("uk_ra") || lower.contains("un_ra") || lower.contains("unique_ra")) {
+            } else if (chaveRa || lower.equals("ra") || lower.endsWith("_ra") || lower.startsWith("ra_") || lower.contains("uk_ra") || lower.contains("un_ra") || lower.contains("unique_ra")) {
                 message = "RA já cadastrado no sistema";
             } else if (lower.contains("documento")) {
                 message = "Documento já cadastrado no sistema";

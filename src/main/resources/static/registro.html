@@ -21,6 +21,8 @@
         .password-toggle:focus-visible { outline: 2px solid var(--primary-600); outline-offset: -2px; }
         .password-toggle svg { width: 20px; height: 20px; }
         #passwordFeedback[hidden] { display: none; }
+        .limit-feedback[hidden] { display: none; }
+        #cpfFeedback[hidden], #cnpjFeedback[hidden], #raFeedback[hidden] { display: none; }
     </style>
     <script src="js/vendor/imask.min.js"></script>
     <script src="js/main.js?v=2"></script>
@@ -62,9 +64,10 @@
             <!-- ETAPA 1: Dados de Acesso -->
             <div class="form-step" data-step="1">
                 <div class="form-group">
-                    <label for="regEmail">Email *</label>
-                    <input type="email" id="regEmail" name="email" required>
-                    <small id="emailFeedback" class="email-feedback"></small>
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" name="email" maxlength="120" aria-describedby="emailFeedback regEmailLimit" required>
+                    <small id="emailFeedback" class="email-feedback" aria-live="polite"></small>
+                    <small id="regEmailLimit" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 120 caracteres atingido.</small>
                 </div>
                 <div class="form-group">
                     <label for="regPassword">Crie uma Senha</label>
@@ -108,11 +111,13 @@
                 <div id="pfFields">
                     <div class="form-group">
                         <label for="fullNamePf">Nome Completo</label>
-                        <input type="text" id="fullNamePf" name="fullNamePf" required>
+                        <input type="text" id="fullNamePf" name="fullNamePf" maxlength="100" aria-describedby="fullNamePfLimit" required>
+                        <small id="fullNamePfLimit" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 100 caracteres atingido.</small>
                     </div>
                     <div class="form-group">
                         <label for="cpf">CPF</label>
-                        <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+                        <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" aria-describedby="cpfFeedback" required>
+                        <small id="cpfFeedback" class="form-text" style="color: var(--color-danger-text);" aria-live="polite" hidden></small>
                     </div>
                 </div>
 
@@ -120,15 +125,18 @@
                 <div id="pjFields" style="display: none;">
                     <div class="form-group">
                         <label for="companyName">Nome da Empresa (Razão Social)</label>
-                        <input type="text" id="companyName" name="companyName" required>
+                        <input type="text" id="companyName" name="companyName" maxlength="150" aria-describedby="companyNameLimit" required>
+                        <small id="companyNameLimit" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 150 caracteres atingido.</small>
                     </div>
                     <div class="form-group">
                         <label for="representativeName">Nome do Representante</label>
-                        <input type="text" id="representativeName" name="representativeName" required>
+                        <input type="text" id="representativeName" name="representativeName" maxlength="100" aria-describedby="representativeNameLimit" required>
+                        <small id="representativeNameLimit" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 100 caracteres atingido.</small>
                     </div>
                     <div class="form-group">
                         <label for="cnpj">CNPJ</label>
-                        <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required>
+                        <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" aria-describedby="cnpjFeedback" required>
+                        <small id="cnpjFeedback" class="form-text" style="color: var(--color-danger-text);" aria-live="polite" hidden></small>
                     </div>
                 </div>
 
@@ -136,16 +144,18 @@
                 <div id="alunoFields" style="display: none;">
                     <div class="form-group">
                         <label for="fullNameAluno">Nome Completo do Aluno</label>
-                        <input type="text" id="fullNameAluno" name="fullNameAluno" required>
+                        <input type="text" id="fullNameAluno" name="fullNameAluno" maxlength="100" aria-describedby="fullNameAlunoLimit" required>
+                        <small id="fullNameAlunoLimit" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 100 caracteres atingido.</small>
                     </div>
                     <div class="form-group">
                         <label for="ra">RA (Registro do Aluno)</label>
-                        <input type="text" id="ra" name="ra" minlength="13" maxlength="13" pattern="[0-9]{13}" inputmode="numeric" placeholder="0000000000000" required>
+                        <input type="text" id="ra" name="ra" minlength="13" maxlength="13" pattern="[0-9]{13}" inputmode="numeric" placeholder="0000000000000" aria-describedby="raFeedback" required>
+                        <small id="raFeedback" class="form-text" style="color: var(--color-danger-text);" aria-live="polite" hidden></small>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="telefone">Telefone</label>
+                    <label for="telefone">Telefone (Opcional)</label>
                     <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000">
                 </div>
             </div>
@@ -153,28 +163,29 @@
             <!-- ETAPA 3: Localizacao -->
             <div class="form-step" data-step="3" style="display: none;">
                 <div class="form-group">
-                    <label for="cep">CEP *</label>
+                    <label for="cep">CEP</label>
                     <input type="text" id="cep" name="cep" placeholder="00000-000" required>
                     <small class="form-text">Digite o CEP para preencher automaticamente</small>
                 </div>
                 <div class="form-group">
-                    <label for="logradouro">Logradouro *</label>
+                    <label for="logradouro">Logradouro</label>
                     <input type="text" id="logradouro" name="logradouro" readonly required>
                 </div>
                 <div class="form-group">
-                    <label for="numero">Número *</label>
-                    <input type="text" id="numero" name="numero" required>
+                    <label for="numero">Número</label>
+                    <input type="text" id="numero" name="numero" maxlength="10" aria-describedby="numeroLimit" required>
+                    <small id="numeroLimit" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 10 caracteres atingido.</small>
                 </div>
                 <div class="form-group">
-                    <label for="bairro">Bairro *</label>
+                    <label for="bairro">Bairro</label>
                     <input type="text" id="bairro" name="bairro" readonly required>
                 </div>
                 <div class="form-group">
-                    <label for="cidade">Cidade *</label>
+                    <label for="cidade">Cidade</label>
                     <input type="text" id="cidade" name="cidade" readonly required>
                 </div>
                 <div class="form-group">
-                    <label for="estado">Estado *</label>
+                    <label for="estado">Estado</label>
                     <input type="text" id="estado" name="estado" maxlength="2" readonly required>
                 </div>
             </div>
@@ -220,6 +231,148 @@
         const passwordInput = document.getElementById('regPassword');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const passwordFeedback = document.getElementById('passwordFeedback');
+        const cpfInput = document.getElementById('cpf');
+        const cpfFeedback = document.getElementById('cpfFeedback');
+        const cnpjInput = document.getElementById('cnpj');
+        const cnpjFeedback = document.getElementById('cnpjFeedback');
+
+        function cpfValido(cpf) {
+            if (!/^\d{11}$/.test(cpf) || /^(\d)\1{10}$/.test(cpf)) return false;
+            for (let posicao = 9; posicao <= 10; posicao++) {
+                let soma = 0;
+                for (let i = 0; i < posicao; i++) soma += Number(cpf[i]) * (posicao + 1 - i);
+                const resto = soma % 11;
+                const digito = resto < 2 ? 0 : 11 - resto;
+                if (digito !== Number(cpf[posicao])) return false;
+            }
+            return true;
+        }
+
+        function atualizarValidacaoCpf(aoAvancar = false) {
+            const cpf = cpfMask.unmaskedValue;
+            const invalido = (cpf.length === 11 || aoAvancar) && !cpfValido(cpf);
+            cpfFeedback.textContent = invalido
+                ? (cpf.length === 11 ? 'CPF inválido. Confira os números digitados.' : 'Preencha o CPF com 11 dígitos.')
+                : '';
+            cpfFeedback.hidden = !invalido;
+            cpfInput.classList.toggle('is-invalid', invalido);
+            if (invalido) cpfInput.setAttribute('aria-invalid', 'true');
+            else cpfInput.removeAttribute('aria-invalid');
+            return !invalido;
+        }
+
+        cpfMask.on('accept', () => atualizarValidacaoCpf());
+
+        function cnpjValido(cnpj) {
+            if (!/^\d{14}$/.test(cnpj) || /^(\d)\1{13}$/.test(cnpj)) return false;
+            const pesos = [
+                [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2],
+                [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+            ];
+            for (let etapa = 0; etapa < 2; etapa++) {
+                const soma = pesos[etapa].reduce((total, peso, i) => total + Number(cnpj[i]) * peso, 0);
+                const resto = soma % 11;
+                if ((resto < 2 ? 0 : 11 - resto) !== Number(cnpj[12 + etapa])) return false;
+            }
+            return true;
+        }
+
+        function atualizarValidacaoCnpj(aoAvancar = false) {
+            const cnpj = cnpjMask.unmaskedValue;
+            const invalido = (cnpj.length === 14 || aoAvancar) && !cnpjValido(cnpj);
+            cnpjFeedback.textContent = invalido
+                ? (cnpj.length === 14 ? 'CNPJ inválido. Confira os números digitados.' : 'Preencha o CNPJ com 14 dígitos.')
+                : '';
+            cnpjFeedback.hidden = !invalido;
+            cnpjInput.classList.toggle('is-invalid', invalido);
+            if (invalido) cnpjInput.setAttribute('aria-invalid', 'true');
+            else cnpjInput.removeAttribute('aria-invalid');
+            return !invalido;
+        }
+
+        cnpjMask.on('accept', () => atualizarValidacaoCnpj());
+
+        const documentos = {
+            CPF: { mask: cpfMask, input: cpfInput, feedback: cpfFeedback, valido: cpfValido },
+            CNPJ: { mask: cnpjMask, input: cnpjInput, feedback: cnpjFeedback, valido: cnpjValido },
+            RA: { mask: raMask, input: document.getElementById('ra'), feedback: document.getElementById('raFeedback'), valido: valor => /^\d{13}$/.test(valor) }
+        };
+
+        function mostrarAvisoDocumento(campo, mensagem, erro) {
+            campo.feedback.textContent = mensagem;
+            campo.feedback.hidden = !mensagem;
+            campo.input.classList.toggle('is-invalid', erro);
+            if (erro) campo.input.setAttribute('aria-invalid', 'true');
+            else campo.input.removeAttribute('aria-invalid');
+        }
+
+        function consultarDocumento(tipo) {
+            const campo = documentos[tipo];
+            const valor = campo.mask.unmaskedValue;
+            const sequencia = ++campo.sequencia;
+            clearTimeout(campo.temporizador);
+            campo.status = 'incompleto';
+            campo.valorVerificado = '';
+            if (tipo === 'RA') mostrarAvisoDocumento(campo, '', false);
+            atualizarEstadoBotaoProximo();
+            if (!campo.valido(valor)) return;
+
+            campo.status = 'verificando';
+            mostrarAvisoDocumento(campo, '', false);
+            atualizarEstadoBotaoProximo();
+            campo.temporizador = setTimeout(async () => {
+                try {
+                    const response = await apiFetch('/api/register/verificar-documento', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tipo, documento: valor })
+                    });
+                    const resultado = await response.json();
+                    if (sequencia !== campo.sequencia || valor !== campo.mask.unmaskedValue) return;
+                    campo.status = resultado.disponivel === true ? 'disponivel' : 'utilizado';
+                    campo.valorVerificado = valor;
+                    mostrarAvisoDocumento(campo, campo.status === 'utilizado' ? `Este ${tipo} já está cadastrado.` : '', campo.status === 'utilizado');
+                    atualizarEstadoBotaoProximo();
+                } catch (error) {
+                    if (sequencia !== campo.sequencia || valor !== campo.mask.unmaskedValue) return;
+                    campo.status = 'erro';
+                    mostrarAvisoDocumento(campo, `Não foi possível verificar o ${tipo}. Saia do campo para tentar novamente.`, true);
+                    atualizarEstadoBotaoProximo();
+                }
+            }, 500);
+        }
+
+        Object.entries(documentos).forEach(([tipo, campo]) => {
+            campo.sequencia = 0;
+            campo.status = 'incompleto';
+            campo.mask.on('accept', () => consultarDocumento(tipo));
+            campo.input.addEventListener('blur', () => {
+                if (campo.status === 'erro' && campo.valido(campo.mask.unmaskedValue)) consultarDocumento(tipo);
+            });
+        });
+
+        function documentoDisponivel(tipo) {
+            const campo = documentos[tipo];
+            if (campo.status === 'disponivel' && campo.valorVerificado === campo.mask.unmaskedValue) return true;
+            if (campo.status === 'verificando') {
+                return false;
+            } else if (campo.status === 'utilizado') {
+                mostrarAvisoDocumento(campo, `Este ${tipo} já está cadastrado.`, true);
+            } else if (campo.status === 'erro') {
+                mostrarAvisoDocumento(campo, `Não foi possível verificar o ${tipo}. Saia do campo para tentar novamente.`, true);
+            } else {
+                consultarDocumento(tipo);
+            }
+            campo.input.focus();
+            return false;
+        }
+
+        ['regEmail', 'fullNamePf', 'companyName', 'representativeName', 'fullNameAluno', 'numero'].forEach(id => {
+            const input = document.getElementById(id);
+            const feedback = document.getElementById(id + 'Limit');
+            const atualizarAviso = () => { feedback.hidden = input.value.length < input.maxLength; };
+            input.addEventListener('input', atualizarAviso);
+            atualizarAviso();
+        });
         document.querySelectorAll('.password-toggle').forEach(button => {
             button.addEventListener('click', () => {
                 const input = document.getElementById(button.dataset.passwordTarget);
@@ -238,6 +391,9 @@
 
         // Estado de validacao
         let emailValido = false;
+        let emailVerificado = '';
+        let verificacaoEmail = 0;
+        let temporizadorEmail;
 
         // ==================== VALIDACAO DE EMAIL EM TEMPO REAL ====================
         function validateEmail(email) {
@@ -260,11 +416,45 @@
                     confirmPasswordInput.removeAttribute('aria-invalid');
                 }
                 nextBtn.disabled = !emailValido || !senhasValidas;
+            } else if (currentStep === 2) {
+                const tipo = document.getElementById('typePf').checked ? 'CPF' : document.getElementById('typePj').checked ? 'CNPJ' : 'RA';
+                nextBtn.disabled = documentos[tipo].status === 'verificando';
             }
         }
 
-        emailInput.addEventListener('input', function() {
+        async function verificarDisponibilidadeEmail(email, sequencia) {
+            try {
+                const response = await apiFetch('/api/register/verificar-email', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const resultado = await response.json();
+                if (sequencia !== verificacaoEmail || emailInput.value.trim() !== email) return;
+                emailValido = resultado.disponivel === true;
+                emailVerificado = emailValido ? email : '';
+                emailInput.classList.toggle('is-valid', emailValido);
+                emailInput.classList.toggle('is-invalid', !emailValido);
+                emailInput.setAttribute('aria-invalid', String(!emailValido));
+                emailFeedback.textContent = emailValido ? '' : 'Este e-mail já está cadastrado.';
+                emailFeedback.classList.toggle('invalid', !emailValido);
+            } catch (error) {
+                if (sequencia !== verificacaoEmail || emailInput.value.trim() !== email) return;
+                emailValido = false;
+                emailVerificado = '';
+                emailInput.classList.remove('is-valid');
+                emailFeedback.textContent = 'Não foi possível verificar o e-mail. Saia do campo para tentar novamente.';
+                emailFeedback.classList.add('invalid');
+            }
+            atualizarEstadoBotaoProximo();
+        }
+
+        function agendarVerificacaoEmail() {
             const email = this.value.trim();
+            clearTimeout(temporizadorEmail);
+            const sequencia = ++verificacaoEmail;
+            emailVerificado = '';
+            emailValido = false;
+            this.removeAttribute('aria-invalid');
 
             if (email === '') {
                 // Campo vazio - remove estilos
@@ -273,12 +463,11 @@
                 emailFeedback.classList.remove('valid', 'invalid');
                 emailValido = false;
             } else if (validateEmail(email)) {
-                // Email valido
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
+                // Formato válido; aguarda a consulta ao servidor.
+                this.classList.remove('is-invalid', 'is-valid');
                 emailFeedback.textContent = '';
                 emailFeedback.classList.remove('invalid');
-                emailValido = true;
+                temporizadorEmail = setTimeout(() => verificarDisponibilidadeEmail(email, sequencia), 500);
             } else {
                 // Email invalido
                 this.classList.remove('is-valid');
@@ -290,6 +479,13 @@
             }
 
             atualizarEstadoBotaoProximo();
+        }
+
+        emailInput.addEventListener('input', agendarVerificacaoEmail);
+        emailInput.addEventListener('blur', function() {
+            if (validateEmail(this.value.trim()) && emailVerificado !== this.value.trim()) {
+                agendarVerificacaoEmail.call(this);
+            }
         });
 
         // Event listeners para campos de senha (atualizam botao)
@@ -362,10 +558,25 @@
                 }
             }
 
-            if (step === 2 && document.getElementById('typeAluno').checked && !/^\d{13}$/.test(raMask.unmaskedValue)) {
-                DoaTec.showToast('O RA deve conter exatamente 13 dígitos.', 'error');
-                document.getElementById('ra').focus();
+            if (step === 2 && document.getElementById('typePf').checked && !atualizarValidacaoCpf(true)) {
+                cpfInput.focus();
                 return false;
+            }
+
+            if (step === 2 && document.getElementById('typePj').checked && !atualizarValidacaoCnpj(true)) {
+                cnpjInput.focus();
+                return false;
+            }
+
+            if (step === 2 && document.getElementById('typeAluno').checked && !/^\d{13}$/.test(raMask.unmaskedValue)) {
+                mostrarAvisoDocumento(documentos.RA, 'O RA deve conter exatamente 13 dígitos.', true);
+                documentos.RA.input.focus();
+                return false;
+            }
+
+            if (step === 2) {
+                const tipo = document.getElementById('typePf').checked ? 'CPF' : document.getElementById('typePj').checked ? 'CNPJ' : 'RA';
+                if (!documentoDisponivel(tipo)) return false;
             }
 
             // Valida etapa 3 - Endereco
@@ -438,15 +649,6 @@
             pjFields.style.display = 'none';
             alunoFields.style.display = 'none';
 
-            // Limpa valores
-            cpfMask.value = '';
-            cnpjMask.value = '';
-            raMask.value = '';
-            document.getElementById('fullNamePf').value = '';
-            document.getElementById('companyName').value = '';
-            document.getElementById('representativeName').value = '';
-            document.getElementById('fullNameAluno').value = '';
-
             if (selectedType === 'DOADOR_PF') {
                 pfFields.style.display = 'block';
                 document.getElementById('fullNamePf').setAttribute('required', 'required');
@@ -464,7 +666,10 @@
         }
 
         userTypeRadios.forEach(radio => {
-            radio.addEventListener('change', updateUserForm);
+            radio.addEventListener('change', () => {
+                updateUserForm();
+                atualizarEstadoBotaoProximo();
+            });
         });
 
         // ==================== VIACEP - BUSCA DE ENDERECO ====================
@@ -663,7 +868,28 @@
                 }
             } catch (error) {
                 console.error('Erro na requisicao:', error);
-                DoaTec.showToast('Ocorreu um erro ao tentar registrar. Verifique a conexão com o servidor.', 'error');
+                if (/e-?mail.*(cadastrad|utilizad)/i.test(error.message || '')) {
+                    emailValido = false;
+                    emailVerificado = '';
+                    currentStep = 1;
+                    showStep(currentStep);
+                    emailInput.classList.add('is-invalid');
+                    emailInput.setAttribute('aria-invalid', 'true');
+                    emailFeedback.textContent = 'Este e-mail já está cadastrado.';
+                    emailFeedback.classList.add('invalid');
+                    emailInput.focus();
+                } else if (/\b(CPF|CNPJ|RA)\b.*cadastrad/i.test(error.message || '')) {
+                    const tipo = error.message.match(/\b(CPF|CNPJ|RA)\b/i)[1].toUpperCase();
+                    const campo = documentos[tipo];
+                    campo.status = 'utilizado';
+                    campo.valorVerificado = campo.mask.unmaskedValue;
+                    currentStep = 2;
+                    showStep(currentStep);
+                    mostrarAvisoDocumento(campo, `Este ${tipo} já está cadastrado.`, true);
+                    campo.input.focus();
+                } else {
+                    DoaTec.showToast(error.message || 'Ocorreu um erro ao tentar registrar. Verifique a conexão com o servidor.', 'error');
+                }
             } finally {
                 DoaTec.setButtonLoading(submitBtn, false);
             }

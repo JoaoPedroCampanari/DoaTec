@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=confirmacao1">
     <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
@@ -80,7 +80,7 @@
     </div>
 </footer>
 
-<script src="js/main.js?v=2"></script>
+<script src="js/main.js?v=confirmacao1"></script>
 <script src="js/auth.js?v=2"></script>
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
@@ -136,22 +136,37 @@
                 return;
             }
 
-            tickets.forEach(t => {
+            const nomesAssuntos = new Map([
+                ['duvida', 'Dúvida geral'],
+                ['doacao', 'Problema com doação'],
+                ['solicitacao', 'Problema com solicitação'],
+                ['conta', 'Problema com minha conta'],
+                ['sugestao', 'Sugestão'],
+                ['outro', 'Outro']
+            ]);
+
+            tickets.forEach((t, index) => {
+                const numeroTicket = tickets.length - index;
                 const ticketCard = document.createElement('div');
                 ticketCard.className = 'donation-card';
 
                 const statusClass = DoaTec.getStatusClass(t.status || 'ABERTO');
                 const statusLabel = DoaTec.translateStatus(t.status || 'ABERTO');
-                const dataCriacao = t.dataCriacao ? new Date(t.dataCriacao).toLocaleString('pt-BR') : '';
+                const dataCriacao = t.dataCriacao ? DoaTec.formatDate(t.dataCriacao) : '';
+                const assuntoOriginal = (t.assunto || '').trim();
+                const assunto = nomesAssuntos.get(assuntoOriginal.toLowerCase()) || (assuntoOriginal ? assuntoOriginal.charAt(0).toLocaleUpperCase('pt-BR') + assuntoOriginal.slice(1) : 'Sem assunto');
                 const temResposta = t.resposta && t.resposta.trim().length > 0;
 
                 ticketCard.innerHTML = `
                     <div class="donation-content" style="flex: 1;">
                         <div class="donation-header">
-                            <h3 class="donation-title">${DoaTec.escapeHtml(t.assunto || 'Sem assunto')}</h3>
+                            <div>
+                                <h3 class="donation-title">Ticket N° ${numeroTicket}</h3>
+                                <div class="donation-date">ID: ${t.id} · ${dataCriacao}</div>
+                            </div>
                             <span class="status-pill ${statusClass}">${statusLabel}</span>
                         </div>
-                        <span class="donation-date">${dataCriacao}</span>
+                        <div class="donation-meta"><span class="donation-meta-item" style="font-size: 1rem;"><strong>Assunto: ${DoaTec.escapeHtml(assunto)}</strong></span></div>
                         <div class="donation-items" style="margin-top: 12px;">
                             <div class="donation-item">
                                 <strong>Mensagem:</strong>
@@ -162,14 +177,14 @@
                         <div style="margin-top: 12px; padding: 12px; border-left: 3px solid #10b981; background: #f0fdf4; border-radius: 4px;">
                             <strong style="color: #059669;">Resposta do suporte:</strong>
                             <p style="margin: 8px 0 0 0; line-height: 1.6;">${DoaTec.escapeHtml(t.resposta)}</p>
-                            <small style="color: #6b7280;">${t.dataResposta ? new Date(t.dataResposta).toLocaleString('pt-BR') : ''}</small>
+                            <small style="color: #6b7280;">${t.dataResposta ? DoaTec.formatDate(t.dataResposta) : ''}</small>
                         </div>
                         ` : `
                         <div style="margin-top: 12px; color: #9ca3af; font-style: italic;">Aguardando resposta...</div>
                         `}
                         <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-                            <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
-                            ${t.status === 'ABERTO' ? `<button class="btn btn-outline btn-excluir" onclick="excluirTicket(${t.id}, event)" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
+                            <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('SUPORTE', ${t.id}, 'Ticket ${numeroTicket} (ID ${t.id})')">Conversar</button>
+                            ${t.status === 'ABERTO' ? `<button class="btn btn-outline btn-excluir" onclick="excluirTicket(${t.id}, event, ${numeroTicket})" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -193,9 +208,9 @@
         }
     });
 
-    async function excluirTicket(id, event) {
+    async function excluirTicket(id, event, numero) {
         event.stopPropagation();
-        if (!confirm('Tem certeza que deseja excluir este ticket?')) return;
+        if (!await DoaTec.confirmarExclusao({ titulo: 'Excluir ticket?', mensagem: `Deseja excluir o ticket ${numero} (ID ${id})?`, botao: 'Excluir ticket' })) return;
         try {
             const response = await apiFetch(`/api/suporte/${id}`, { method: 'DELETE' });
             if (response.ok) {

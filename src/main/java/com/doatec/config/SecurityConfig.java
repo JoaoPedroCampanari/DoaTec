@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/login.html", "/registro.html", "/sobre.html", "/suporte.html").permitAll()
 
                         // 3. APIs PÚBLICAS
-                        .requestMatchers("/api/csrf", "/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/dashboard/stats").permitAll()
+                        .requestMatchers("/api/csrf", "/api/login", "/api/register", "/api/register/aluno", "/api/register/doador-pf", "/api/register/doador-pj", "/api/register/verificar-email", "/api/register/verificar-documento", "/api/dashboard/stats").permitAll()
 
                         // 4. PROTEÇÃO DE PÁGINAS PRIVADAS (Exige Login)
                         .requestMatchers("/perfil.html", "/aluno.html", "/donate.html", "/minhas-doacoes.html", "/meus-pedidos.html", "/admin.html").authenticated()
