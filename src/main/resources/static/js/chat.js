@@ -40,7 +40,7 @@ const ChatWidget = {
                     <button class="chat-close">&times;</button>
                 </div>
                 <div class="chat-messages"></div>
-                <div class="chat-closed-notice" style="display:none;padding:14px;text-align:center;color:var(--neutral-600);border-top:1px solid var(--neutral-200);font-size:0.85rem;">Conversa encerrada. O histórico está disponível para consulta.</div>
+                <div class="chat-closed-notice" style="display:none;padding:14px;text-align:center;color:var(--neutral-600);border-top:1px solid var(--neutral-200);font-size:0.85rem;">Conversa encerrada.</div>
                 <div class="chat-input-area">
                     <input type="text" placeholder="Digite sua mensagem..." maxlength="500" disabled>
                     <button disabled>Enviar</button>
