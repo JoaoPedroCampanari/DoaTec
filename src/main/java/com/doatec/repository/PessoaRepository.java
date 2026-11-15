@@ -22,6 +22,9 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer> {
 
     Optional<Pessoa> findByEmail(String email);
 
+    @Query(value = "SELECT p.id FROM pessoa p LEFT JOIN aluno a ON a.id = p.id LEFT JOIN doador_pf pf ON pf.id = p.id LEFT JOIN doador_pj pj ON pj.id = p.id WHERE p.deleted_at IS NULL AND ((:tipo = 'RA' AND UPPER(a.ra) = :documento) OR (:tipo = 'CPF' AND REPLACE(REPLACE(pf.cpf, '.', ''), '-', '') = :documento) OR (:tipo = 'CNPJ' AND REPLACE(REPLACE(REPLACE(pj.cnpj, '.', ''), '-', ''), '/', '') = :documento))", nativeQuery = true)
+    List<Integer> buscarIdsPorDocumento(@Param("tipo") String tipo, @Param("documento") String documento);
+
     List<Pessoa> findByRole(Role role);
 
     List<Pessoa> findByAtivoTrue();

@@ -39,9 +39,27 @@ public class LoginController {
             HttpServletRequest request,
             HttpServletResponse response) {
         try {
+            String identificador = loginRequest.email().trim();
+            if (!identificador.contains("@")) {
+                // Prefixos antigos são aceitos para manter compatibilidade com clientes existentes.
+                identificador = identificador.replaceFirst("(?i)^(CPF|CNPJ|RA):", "").trim();
+                if (!identificador.matches("[0-9. /-]+"))
+                    throw new org.springframework.security.authentication.BadCredentialsException("Credenciais inválidas");
+                String documento = identificador.replaceAll("[^0-9]", "");
+                String tipo = switch (documento.length()) {
+                    case 11 -> "CPF";
+                    case 13 -> "RA";
+                    case 14 -> "CNPJ";
+                    default -> throw new org.springframework.security.authentication.BadCredentialsException("Credenciais inválidas");
+                };
+                java.util.List<Integer> ids = pessoaRepository.buscarIdsPorDocumento(tipo, documento);
+                if (ids.size() != 1) throw new org.springframework.security.authentication.BadCredentialsException("Credenciais inválidas");
+                identificador = pessoaRepository.findById(ids.get(0))
+                    .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Credenciais inválidas")).getEmail();
+            }
             // Autentica usando Spring Security
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.senha())
+                new UsernamePasswordAuthenticationToken(identificador, loginRequest.senha())
             );
 
             // Cria um novo contexto de segurança e define a autenticação
@@ -53,7 +71,7 @@ public class LoginController {
             securityContextRepository.saveContext(context, request, response);
 
             // Busca dados completos do usuário
-            Pessoa pessoa = pessoaRepository.findByEmail(loginRequest.email())
+            Pessoa pessoa = pessoaRepository.findByEmail(identificador)
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
             UserLoginResponse responseDto = PessoaMapper.toResponse(pessoa);

@@ -126,7 +126,7 @@ const Auth = {
                 success: false,
                 status: error.status,
                 error: error.status === 401
-                    ? 'E-mail ou senha incorretos'
+                    ? 'Credenciais inválidas.'
                     : error.status
                         ? 'Não foi possível entrar agora. Tente novamente mais tarde.'
                         : 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'

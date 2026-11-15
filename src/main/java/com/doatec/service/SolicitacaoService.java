@@ -39,6 +39,11 @@ public class SolicitacaoService {
         Pessoa pessoaEncontrada = pessoaRepository.findByEmail(authenticatedEmail)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
+        if (pessoaEncontrada.getRole() == com.doatec.model.account.Role.SUPER_ADMIN) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Superadministradores não podem realizar esta ação.");
+        }
+
         if (!(pessoaEncontrada instanceof Aluno)) {
             throw new BusinessException("Apenas alunos podem fazer solicitações de hardware.");
         }

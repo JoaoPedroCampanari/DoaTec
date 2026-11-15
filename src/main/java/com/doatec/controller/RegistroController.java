@@ -8,6 +8,7 @@ import com.doatec.dto.response.UserLoginResponse;
 import com.doatec.mapper.PessoaMapper;
 import com.doatec.model.account.Pessoa;
 import com.doatec.service.PessoaService;
+import com.doatec.service.VerificacaoCadastroService;
 import com.doatec.repository.PessoaRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -40,6 +41,23 @@ public class RegistroController {
 
     @Autowired
     private PessoaRepository pessoaRepository;
+
+    @Autowired
+    private VerificacaoCadastroService verificacaoCadastro;
+
+    public record CodigoCadastroRequest(@NotBlank @Size(max = 120) @jakarta.validation.constraints.Email String email, @NotBlank @Pattern(regexp = "[0-9]{8}") String codigo) {}
+
+    @PostMapping("/enviar-codigo")
+    public Map<String, String> enviarCodigo(@Valid @RequestBody ConsultaEmailRequest request) {
+        verificacaoCadastro.enviar(request.email());
+        return Map.of("message", "Código enviado.");
+    }
+
+    @PostMapping("/confirmar-codigo")
+    public Map<String, String> confirmarCodigo(@Valid @RequestBody CodigoCadastroRequest request) {
+        verificacaoCadastro.confirmar(request.email(), request.codigo());
+        return Map.of("message", "E-mail confirmado.");
+    }
 
     public record ConsultaEmailRequest(
             @NotBlank @Size(max = 120)
@@ -76,7 +94,9 @@ public class RegistroController {
      */
     @PostMapping("/aluno")
     public ResponseEntity<UserLoginResponse> registrarAluno(@Valid @RequestBody AlunoRegistroRequest request) {
+        verificacaoCadastro.exigirConfirmacao(request.email());
         Pessoa novaPessoa = pessoaService.registrarAluno(request);
+        verificacaoCadastro.consumir();
         UserLoginResponse response = PessoaMapper.toResponse(novaPessoa);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -87,7 +107,9 @@ public class RegistroController {
      */
     @PostMapping("/doador-pf")
     public ResponseEntity<UserLoginResponse> registrarDoadorPF(@Valid @RequestBody DoadorPFRegistroRequest request) {
+        verificacaoCadastro.exigirConfirmacao(request.email());
         Pessoa novaPessoa = pessoaService.registrarDoadorPF(request);
+        verificacaoCadastro.consumir();
         UserLoginResponse response = PessoaMapper.toResponse(novaPessoa);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -98,7 +120,9 @@ public class RegistroController {
      */
     @PostMapping("/doador-pj")
     public ResponseEntity<UserLoginResponse> registrarDoadorPJ(@Valid @RequestBody DoadorPJRegistroRequest request) {
+        verificacaoCadastro.exigirConfirmacao(request.email());
         Pessoa novaPessoa = pessoaService.registrarDoadorPJ(request);
+        verificacaoCadastro.consumir();
         UserLoginResponse response = PessoaMapper.toResponse(novaPessoa);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -111,7 +135,9 @@ public class RegistroController {
     @Deprecated(since = "1.1", forRemoval = true)
     @PostMapping
     public ResponseEntity<UserLoginResponse> registerUser(@Valid @RequestBody RegistroRequest registroRequest) {
+        verificacaoCadastro.exigirConfirmacao(registroRequest.email());
         Pessoa novaPessoa = pessoaService.registrarPessoa(registroRequest);
+        verificacaoCadastro.consumir();
         UserLoginResponse response = PessoaMapper.toResponse(novaPessoa);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

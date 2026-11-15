@@ -168,6 +168,18 @@
 
         // Verifica sessão com backend
         const loggedInUser = await Auth.checkSession();
+        if (loggedInUser?.role === 'SUPER_ADMIN') {
+            const botao = form.querySelector('button[type="submit"]');
+            botao.disabled = true;
+            const aviso = document.createElement('p');
+            aviso.textContent = 'A conta de superadministrador não pode realizar esta ação.';
+            aviso.setAttribute('role', 'status');
+            botao.insertAdjacentElement('beforebegin', aviso);
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }, true);
+        }
 
         if (loggedInUser && loggedInUser.id) {
             fetch(`/api/users/${loggedInUser.id}`, { credentials: 'include' })

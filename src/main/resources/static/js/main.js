@@ -264,7 +264,7 @@ function formatUserRole(tipo) {
     const roles = {
         'ALUNO': 'Aluno',
         'DOADOR_PF': 'Doador (Pessoa Física)',
-        'DOADOR_PJ': 'Doador (Pessoa Jurídica)',
+        'DOADOR_PJ': 'Doador (Empresa)',
         'ADMIN': 'Administrador'
     };
     return roles[tipo] || tipo;

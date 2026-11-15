@@ -420,12 +420,11 @@ class PessoaServiceTest {
                     .build();
 
             when(pessoaRepository.findById(5)).thenReturn(Optional.of(pessoa));
-            when(pessoaRepository.existsByEmailAndIdNot("outro@test.com", 5)).thenReturn(true);
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> pessoaService.updatePessoaProfile(5, dto));
 
-            assertTrue(ex.getMessage().contains("email"));
+            assertTrue(ex.getMessage().contains("e-mail"));
         }
 
         @Test
@@ -454,26 +453,18 @@ class PessoaServiceTest {
         }
 
         @Test
-        @DisplayName("Atualiza email com sucesso quando não duplicado")
-        void atualizaEmail() {
+        @DisplayName("Exige confirmação para alterar o e-mail")
+        void alterarEmailExigeConfirmacao() {
             DoadorPF pessoa = new DoadorPF("123.456.789-00");
             pessoa.setId(5);
             pessoa.setEmail("atual@test.com");
-
-            PessoaUpdateRequest dto = PessoaUpdateRequest.builder()
-                    .email("novo@test.com")
-                    .build();
-
+            PessoaUpdateRequest dto = PessoaUpdateRequest.builder().email("novo@test.com").build();
             when(pessoaRepository.findById(5)).thenReturn(Optional.of(pessoa));
-            when(pessoaRepository.existsByEmailAndIdNot("novo@test.com", 5)).thenReturn(false);
-            when(pessoaRepository.save(any(Pessoa.class))).thenReturn(pessoa);
-
-            Pessoa result = pessoaService.updatePessoaProfile(5, dto);
-
-            assertNotNull(result);
-            assertEquals("novo@test.com", result.getEmail());
-            verify(pessoaRepository).save(pessoa);
+            assertThrows(BusinessException.class, () -> pessoaService.updatePessoaProfile(5, dto));
+            assertEquals("atual@test.com", pessoa.getEmail());
+            verify(pessoaRepository, never()).save(any());
         }
+
     }
 
     // ==================== alterarRoleUsuario ====================

@@ -117,6 +117,17 @@
                     <div class="form-group full-width">
                         <label for="profileEmail">Email</label>
                         <input type="email" id="profileEmail">
+                        <div id="senhaAtualEmailGrupo" hidden style="margin-top: 12px;">
+                            <label for="senhaAtualEmail">Senha atual</label>
+                            <input type="password" id="senhaAtualEmail" autocomplete="current-password" aria-describedby="senhaAtualEmailFeedback">
+                            <div><small id="senhaAtualEmailFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
+                            <div id="confirmarEmailGrupo" hidden style="margin-top: 12px;">
+                                <label for="codigoEmail">Código de confirmação</label>
+                                <input type="text" id="codigoEmail" form="confirmarEmailForm" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" aria-describedby="codigoEmailFeedback" required>
+                                <div><small id="codigoEmailFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
+                                <button type="submit" id="confirmarEmailBotao" form="confirmarEmailForm" class="btn btn-primary" style="margin-top: 12px;">Confirmar novo e-mail</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group full-width">
                         <label for="profileTelefone">Telefone</label>
@@ -135,6 +146,7 @@
                     <button type="submit" class="btn btn-primary">Salvar Contato</button>
                 </div>
             </form>
+            <form id="confirmarEmailForm"></form>
         </section>
 
         <!-- Card 3: Endereço -->
@@ -144,7 +156,8 @@
                 <div class="profile-info-grid">
                     <div class="form-group">
                         <label for="profileCep">CEP</label>
-                        <input type="text" id="profileCep" placeholder="00000-000">
+                        <input type="text" id="profileCep" placeholder="00000-000" aria-describedby="profileCepFeedback">
+                        <div><small id="profileCepFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden></small></div>
                         <small class="form-text">Digite o CEP para preencher automaticamente</small>
                     </div>
                     <div class="form-group">
@@ -192,6 +205,14 @@
         // Form elements
         const contactForm = document.getElementById('contactForm');
         const addressForm = document.getElementById('addressForm');
+        const confirmarEmailForm = document.getElementById('confirmarEmailForm');
+        const senhaAtualEmail = document.getElementById('senhaAtualEmail');
+        const senhaAtualEmailFeedback = document.getElementById('senhaAtualEmailFeedback');
+        const confirmarEmailGrupo = document.getElementById('confirmarEmailGrupo');
+        const codigoEmail = document.getElementById('codigoEmail');
+        const codigoEmailFeedback = document.getElementById('codigoEmailFeedback');
+        let emailPendente = '';
+        let emailAtual = '';
 
         // Contact form fields
         const profileNomeSpan = document.getElementById('profileNome');
@@ -267,6 +288,7 @@
 
                     // Update card 2 (contact)
                     profileEmailInput.value = userData.email || '';
+                    emailAtual = profileEmailInput.value;
                     telefoneMask ? telefoneMask.value = userData.telefone || '' : profileTelefoneInput.value = userData.telefone || '';
 
                     // Update card 3 (address)
@@ -293,53 +315,110 @@
                     }, 2000);
                 });
 
-            // Busca CEP ViaCEP
-            profileCepInput.addEventListener('blur', async function() {
-                const cep = cepMask ? cepMask.unmaskedValue : profileCepInput.value.replace(/\D/g, '');
-
-                if (cep.length === 8) {
-                    this.classList.add('viacep-loading');
-
-                    try {
-                        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                        const data = await response.json();
-
-                        this.classList.remove('viacep-loading');
-
-                        if (data.erro) {
-                            DoaTec.showToast('CEP não encontrado', 'warning');
-                            // Libera campos para edicao manual
-                            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
-                                const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
-                                if (el) {
-                                    el.removeAttribute('readonly');
-                                    el.classList.remove('viacep-auto');
-                                }
-                            });
-                        } else {
-                            profileLogradouroInput.value = data.logradouro || '';
-                            profileBairroInput.value = data.bairro || '';
-                            profileCidadeInput.value = data.localidade || '';
-                            profileEstadoInput.value = data.uf || '';
-
-                            // Marca como preenchido automaticamente
-                            ['logradouro', 'bairro', 'cidade', 'estado'].forEach(id => {
-                                const el = document.getElementById('profile' + id.charAt(0).toUpperCase() + id.slice(1));
-                                if (el) {
-                                    el.setAttribute('readonly', 'readonly');
-                                    el.classList.add('viacep-auto');
-                                }
-                            });
-
-                            if (data.logradouro) {
-                                profileNumeroInput.focus();
-                            }
-                        }
-                    } catch (err) {
-                        this.classList.remove('viacep-loading');
-                        DoaTec.showToast('Erro ao buscar CEP. Verifique sua conexão.', 'error');
-                    }
+            // Confere o CEP antes de preencher ou salvar o endereço.
+            const cepFeedback = document.getElementById('profileCepFeedback');
+            let cepValidado = null;
+            const obterCep = () => cepMask ? cepMask.unmaskedValue : profileCepInput.value.replace(/\D/g, '');
+            function mostrarErroCep(mensagem) {
+                cepFeedback.textContent = mensagem;
+                cepFeedback.hidden = !mensagem;
+                profileCepInput.classList.toggle('is-invalid', !!mensagem);
+                if (mensagem) profileCepInput.setAttribute('aria-invalid', 'true');
+                else profileCepInput.removeAttribute('aria-invalid');
+            }
+            profileCepInput.addEventListener('input', () => {
+                cepValidado = null;
+                mostrarErroCep('');
+            });
+            async function validarCep() {
+                const cep = obterCep();
+                if (!/^\d{8}$/.test(cep) || cep === '00000000') {
+                    mostrarErroCep('CEP não encontrado.');
+                    return false;
                 }
+                if (cepValidado === cep) return true;
+                profileCepInput.classList.add('viacep-loading');
+                try {
+                    const response = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+                    if (!response.ok) throw new Error('Falha na consulta de CEP');
+                    const data = await response.json();
+                    if (obterCep() !== cep) return false;
+                    if (data.erro) {
+                        mostrarErroCep('CEP não encontrado.');
+                        return false;
+                    }
+                    profileLogradouroInput.value = data.logradouro || '';
+                    profileBairroInput.value = data.bairro || '';
+                    profileCidadeInput.value = data.localidade || '';
+                    profileEstadoInput.value = data.uf || '';
+                    [profileLogradouroInput, profileBairroInput, profileCidadeInput, profileEstadoInput].forEach(el => {
+                        el.readOnly = !!el.value;
+                        el.classList.toggle('viacep-auto', !!el.value);
+                    });
+                    cepValidado = cep;
+                    mostrarErroCep('');
+                    return true;
+                } catch (err) {
+                    if (obterCep() === cep) mostrarErroCep('Não foi possível consultar o CEP. Verifique sua conexão e tente novamente.');
+                    return false;
+                } finally {
+                    profileCepInput.classList.remove('viacep-loading');
+                }
+            }
+            profileCepInput.addEventListener('blur', () => { if (obterCep()) validarCep(); });
+
+            profileEmailInput.addEventListener('input', () => {
+                const alterado = profileEmailInput.value.trim().toLowerCase() !== emailAtual.toLowerCase();
+                document.getElementById('senhaAtualEmailGrupo').hidden = !alterado;
+                senhaAtualEmail.required = alterado;
+                confirmarEmailGrupo.hidden = true;
+            });
+            senhaAtualEmail.addEventListener('invalid', event => {
+                event.preventDefault();
+                senhaAtualEmailFeedback.textContent = 'Informe sua senha atual.';
+                senhaAtualEmailFeedback.hidden = false;
+                senhaAtualEmail.classList.add('is-invalid');
+                senhaAtualEmail.setAttribute('aria-invalid', 'true');
+                senhaAtualEmail.focus();
+            });
+            senhaAtualEmail.addEventListener('input', () => {
+                senhaAtualEmailFeedback.hidden = true;
+                senhaAtualEmail.classList.remove('is-invalid');
+                senhaAtualEmail.removeAttribute('aria-invalid');
+            });
+            function mostrarErroCodigo(mensagem) {
+                codigoEmailFeedback.textContent = mensagem;
+                codigoEmailFeedback.hidden = !mensagem;
+                codigoEmail.classList.toggle('is-invalid', !!mensagem);
+                if (mensagem) codigoEmail.setAttribute('aria-invalid', 'true');
+                else codigoEmail.removeAttribute('aria-invalid');
+            }
+            codigoEmail.addEventListener('input', () => mostrarErroCodigo(''));
+            codigoEmail.addEventListener('invalid', event => {
+                event.preventDefault();
+                mostrarErroCodigo(codigoEmail.value.trim() ? 'Informe um código com 8 dígitos.' : 'Informe o código de confirmação.');
+                codigoEmail.focus();
+            });
+            confirmarEmailForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const botao = document.getElementById('confirmarEmailBotao');
+                botao.disabled = true;
+                try {
+                    await apiFetch('/api/users/me/email/confirmar', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ codigo: document.getElementById('codigoEmail').value.trim() })
+                    });
+                    localStorage.removeItem('loggedInUser');
+                    sessionStorage.setItem('emailAlterado', emailPendente);
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    if (error.status === 400) {
+                        mostrarErroCodigo(error.message || 'Código inválido ou expirado.');
+                        codigoEmail.focus();
+                    } else {
+                        DoaTec.showToast(error.message || 'Não foi possível confirmar o e-mail.', 'error');
+                    }
+                } finally { botao.disabled = false; }
             });
 
             // Contact form submit
@@ -348,6 +427,10 @@
 
                 const novaSenha = profileSenhaInput.value;
                 const confirmarSenha = profileConfirmarSenhaInput.value;
+                if (novaSenha && profileEmailInput.value.trim().toLowerCase() !== emailAtual.toLowerCase()) {
+                    DoaTec.showToast('Altere o e-mail e a senha separadamente.', 'error');
+                    return;
+                }
 
                 if (novaSenha && novaSenha !== confirmarSenha) {
                     DoaTec.showToast('A nova senha e a confirmação não coincidem.', 'error');
@@ -360,7 +443,6 @@
                 }
 
                 const updateData = {
-                    email: profileEmailInput.value,
                     senha: novaSenha || null,
                     telefone: telefoneMask ? telefoneMask.unmaskedValue : profileTelefoneInput.value.replace(/\D/g, '')
                 };
@@ -374,7 +456,20 @@
                     });
 
                     if (response.ok) {
-                        DoaTec.showToast('Contato atualizado com sucesso!', 'success');
+                        const novoEmail = profileEmailInput.value.trim();
+                        if (novoEmail.toLowerCase() !== emailAtual.toLowerCase()) {
+                            await apiFetch('/api/users/me/email/solicitar', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ novoEmail, senhaAtual: senhaAtualEmail.value })
+                            });
+                            mostrarErroCodigo('');
+                            codigoEmail.value = '';
+                            emailPendente = novoEmail;
+                            confirmarEmailGrupo.hidden = false;
+                            document.getElementById('codigoEmail').focus();
+                        } else {
+                            DoaTec.showToast('Contato atualizado com sucesso!', 'success');
+                        }
                         profileSenhaInput.value = '';
                         profileConfirmarSenhaInput.value = '';
                     } else {
@@ -383,13 +478,30 @@
                     }
                 } catch (error) {
                     console.error('Erro:', error);
-                    DoaTec.showToast('Erro de conexão ao atualizar contato.', 'error');
+                    if (error.message === 'Senha atual incorreta.') {
+                        senhaAtualEmailFeedback.textContent = 'Senha atual incorreta.';
+                        senhaAtualEmailFeedback.hidden = false;
+                        senhaAtualEmail.classList.add('is-invalid');
+                        senhaAtualEmail.setAttribute('aria-invalid', 'true');
+                        senhaAtualEmail.focus();
+                    } else {
+                        DoaTec.showToast(error.message || 'Erro de conexão ao atualizar contato.', 'error');
+                    }
                 }
             });
 
             // Address form submit
             addressForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
+
+                const salvarEndereco = addressForm.querySelector('button[type="submit"]');
+                salvarEndereco.disabled = true;
+                const cepValido = await validarCep();
+                salvarEndereco.disabled = false;
+                if (!cepValido) {
+                    profileCepInput.focus();
+                    return;
+                }
 
                 const updateData = {
                     endereco: cepMask ? cepMask.unmaskedValue : profileCepInput.value.replace(/\D/g, ''),
@@ -431,7 +543,7 @@
         const roles = {
             'ALUNO': 'Aluno',
             'DOADOR_PF': 'Pessoa Física',
-            'DOADOR_PJ': 'Pessoa Jurídica',
+            'DOADOR_PJ': 'Empresa',
             'ADMIN': 'Administrador'
         };
         return roles[tipo] || tipo;

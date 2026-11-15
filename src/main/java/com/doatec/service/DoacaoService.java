@@ -63,6 +63,11 @@ public class DoacaoService {
 
         Pessoa doador = doadorOptional.get();
 
+        if (doador.getRole() == com.doatec.model.account.Role.SUPER_ADMIN) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Superadministradores não podem realizar esta ação.");
+        }
+
         // Validar tipo de documento contra tipo de pessoa usando instanceof
         if (dto.tipoDocumento().equalsIgnoreCase("cpf")) {
             if (!(doador instanceof DoadorPF)) {

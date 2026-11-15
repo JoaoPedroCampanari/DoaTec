@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=confirmacao1">
+    <link rel="stylesheet" href="style.css?v=chat-pedido2">
     <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
@@ -85,7 +85,7 @@
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js?v=3"></script>
-<script src="js/chat.js"></script>
+<script src="js/chat.js?v=chat-pedido2"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const pedidosContainer = document.getElementById('pedidosContainer');
@@ -169,7 +169,7 @@
                                 </div>
                             </div>
                             <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-                                <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido ${numeroPedido} (ID ${pedido.id})')">Conversar</button>
+                                <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('SOLICITACAO', ${pedido.id}, 'Pedido N° ${numeroPedido}', true)">Conversar</button>
                                 ${pedido.status === 'EM_ANALISE' ? `<button class="btn btn-outline btn-excluir" onclick="excluirPedido(${pedido.id}, event, ${numeroPedido})" style="color:var(--color-danger);border-color:var(--color-danger);">Excluir</button>` : ''}
                             </div>
                         </div>

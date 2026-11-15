@@ -35,6 +35,9 @@ class RegistroControllerTest {
     @Mock
     private PessoaRepository pessoaRepository;
 
+    @Mock
+    private com.doatec.service.VerificacaoCadastroService verificacaoCadastro;
+
     @InjectMocks
     private RegistroController registroController;
 

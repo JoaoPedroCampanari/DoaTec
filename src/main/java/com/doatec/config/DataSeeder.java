@@ -25,6 +25,7 @@ public class DataSeeder implements CommandLineRunner {
     private static final String ALUNO_EMAIL = "teste@gmail.com";
     private static final String ALUNO_SENHA = "123456";
     private static final String ALUNO_CEP = "17404542";
+    private static final String ALUNO_TELEFONE = "(14) 98888-4321";
     private static final String ALUNO_RA = "1190482321008";
 
     private final PessoaRepository pessoaRepository;
@@ -127,6 +128,12 @@ public class DataSeeder implements CommandLineRunner {
         var alunoExistente = alunoRepository.findByEmail(ALUNO_EMAIL);
         if (alunoExistente.isPresent()) {
             Aluno aluno = alunoExistente.get();
+            // Corrige somente o formato incompleto gerado por versões anteriores do seeder.
+            if (aluno.getTelefone() != null && aluno.getTelefone().matches("\\(14\\) 9[0-9]{5}")) {
+                aluno.setTelefone(ALUNO_TELEFONE);
+                alunoRepository.save(aluno);
+                log.info("Telefone incompleto do aluno de teste atualizado");
+            }
             if ("593364".equals(aluno.getRa())) {
                 if (alunoRepository.existsByRaAndIdNot(ALUNO_RA, aluno.getId())) {
                     log.warn("RA fixo do aluno de teste já está em uso; RA anterior preservado");
@@ -144,7 +151,7 @@ public class DataSeeder implements CommandLineRunner {
             log.warn("Aluno de teste não criado: RA {} já cadastrado", ra);
             return;
         }
-        String telefone = String.format("(14) 9%s", 10000 + (int)(Math.random() * 90000));
+        String telefone = ALUNO_TELEFONE;
         String numero = String.valueOf(10 + (int)(Math.random() * 990));
 
         Aluno aluno = Aluno.builder()

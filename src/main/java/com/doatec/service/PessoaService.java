@@ -209,11 +209,8 @@ public class PessoaService {
         Pessoa pessoaExistente = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
 
-        if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(pessoaExistente.getEmail())) {
-            if (pessoaRepository.existsByEmailAndIdNot(dto.email(), id)) {
-                throw new BusinessException("Novo email já está cadastrado para outro usuário.");
-            }
-            pessoaExistente.setEmail(dto.email());
+        if (dto.email() != null && !dto.email().isBlank() && !dto.email().equalsIgnoreCase(pessoaExistente.getEmail())) {
+            throw new BusinessException("Confirme o novo e-mail antes de alterá-lo.");
         }
 
         if (dto.senha() != null && !dto.senha().isBlank()) {

@@ -3879,6 +3879,18 @@ html.dark-mode .toggle-active input:checked + .toggle-slider { background: var(-
     gap: 6px;
 }
 
+.chat-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chat-reference {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--neutral-600);
+}
+
 .chat-close {
     background: none;
     border: none;

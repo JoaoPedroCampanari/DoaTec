@@ -29,6 +29,11 @@ public class SuporteFormularioService {
         Pessoa autor = pessoaRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new RuntimeException("Nenhuma conta encontrada com o email fornecido. Apenas usuários cadastrados podem abrir tickets de suporte."));
 
+        if (autor.getRole() == com.doatec.model.account.Role.SUPER_ADMIN) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Superadministradores não podem realizar esta ação.");
+        }
+
         if (!dto.nome().equals(autor.getNome())) {
             throw new RuntimeException("Nome inválido!");
         }

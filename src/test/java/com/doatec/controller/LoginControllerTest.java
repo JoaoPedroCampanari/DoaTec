@@ -66,6 +66,31 @@ class LoginControllerTest {
         SecurityContextHolder.clearContext();
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "123.456.789-00, CPF, 12345678900",
+        "1190482321008, RA, 1190482321008",
+        "79.914.219/0001-56, CNPJ, 79914219000156"
+    })
+    void identificaDocumentoPeloTamanho(String entrada, String tipo, String documento) {
+        when(pessoaRepository.buscarIdsPorDocumento(tipo, documento)).thenReturn(java.util.List.of(1));
+        when(pessoaRepository.findById(1)).thenReturn(Optional.of(usuario));
+        when(pessoaRepository.findByEmail("usuario@teste.com")).thenReturn(Optional.of(usuario));
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(new UsernamePasswordAuthenticationToken("usuario@teste.com", "senha123"));
+        ResponseEntity<?> resultado = loginController.loginUser(new LoginRequest(entrada, "senha123"), request, response);
+        assertEquals(HttpStatus.OK, resultado.getStatusCode());
+        verify(pessoaRepository).buscarIdsPorDocumento(tipo, documento);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"1234567890", "123456789012", "abc12345678900"})
+    void rejeitaDocumentoInvalido(String documento) {
+        ResponseEntity<?> resultado = loginController.loginUser(new LoginRequest(documento, "senha123"), request, response);
+        assertEquals(HttpStatus.UNAUTHORIZED, resultado.getStatusCode());
+        verifyNoInteractions(pessoaRepository, authenticationManager);
+    }
+
     @Nested
     @DisplayName("loginUser endpoint")
     class LoginUserTests {

@@ -88,7 +88,7 @@
                     </h3>
                     <div class="form-group">
                         <label class="faq-label">Quem pode doar?</label>
-                        <p class="form-text faq-text">Pessoas físicas, jurídicas e alunos podem doar componentes eletrônicos ou computadores completos.</p>
+                        <p class="form-text faq-text">Pessoas físicas, empresas e alunos podem doar componentes eletrônicos ou computadores completos.</p>
                     </div>
                     <div class="form-group">
                         <label class="faq-label">O que posso doar?</label>
@@ -234,6 +234,18 @@
 
         // Verifica sessão com backend
         loggedInUser = await Auth.checkSession();
+        if (loggedInUser?.role === 'SUPER_ADMIN') {
+            const botao = supportForm.querySelector('button[type="submit"]');
+            botao.disabled = true;
+            const aviso = document.createElement('p');
+            aviso.textContent = 'A conta de superadministrador não pode realizar esta ação.';
+            aviso.setAttribute('role', 'status');
+            botao.insertAdjacentElement('beforebegin', aviso);
+            supportForm.addEventListener('submit', event => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }, true);
+        }
 
         if (loggedInUser) {
             await preencherDadosSuporte(supportNameInput, supportEmailInput);

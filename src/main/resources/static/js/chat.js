@@ -10,7 +10,7 @@ const ChatWidget = {
     currentUserId: null,
     isOpen: false,
 
-    async open(contexto, referenciaId, titulo) {
+    async open(contexto, referenciaId, titulo, mostrarId = false) {
         if (this.isOpen) this.close();
 
         this.contexto = contexto;
@@ -31,7 +31,10 @@ const ChatWidget = {
         this.overlay.innerHTML = `
             <div class="chat-panel">
                 <div class="chat-header">
-                    <span class="chat-title">${DoaTec.escapeHtml(titulo || 'Chat')}</span>
+                    <div class="chat-heading">
+                        <span class="chat-title">${DoaTec.escapeHtml(titulo || 'Chat')}</span>
+                        ${mostrarId ? `<span class="chat-reference">ID: ${DoaTec.escapeHtml(String(referenciaId))}</span>` : ''}
+                    </div>
                     <button class="chat-close">&times;</button>
                 </div>
                 <div class="chat-messages"></div>
