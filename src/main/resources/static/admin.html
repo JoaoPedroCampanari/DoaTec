@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=suporte-acoes1">
+    <link rel="stylesheet" href="style.css?v=inventario-barra1">
     <link rel="icon" href="doatec_logo.png" type="image/png">
     <script src="js/vendor/imask.min.js"></script>
 </head>
@@ -184,11 +184,11 @@
 
     <!-- ==================== INVENTÁRIO ==================== -->
     <div id="tab-inventario" class="admin-tab-content">
-        <div class="admin-toolbar" style="display:flex;justify-content:flex-end;margin-bottom:var(--spacing-md);">
+        <div class="admin-toolbar inventario-toolbar">
+            <div class="admin-filter-bar" id="inventario-filters"></div>
             <button class="btn btn-primary" id="btnNovoEquipamento"
                     onclick="AdminPanel.openEquipamentoModal()">+ Adicionar equipamento</button>
         </div>
-        <div class="admin-filter-bar" id="inventario-filters"></div>
         <div class="admin-table-wrapper">
             <table class="admin-table">
                 <thead>
@@ -489,7 +489,7 @@
 <script src="js/notifications.js?v=2"></script>
 <script src="js/theme-switcher.js"></script>
 <script src="js/nav-visibility.js?v=3"></script>
-<script src="js/admin.js?v=suporte-transicoes1"></script>
+<script src="js/admin.js?v=doacao-entrega-fatec2"></script>
 <script src="js/chat.js?v=chat-encerrado2"></script>
 </body>
 </html>

@@ -572,7 +572,6 @@ class AdminServiceTest {
             pessoa.setRole(Role.USER);
 
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(pessoaRepository.findById(2)).thenReturn(Optional.of(pessoa));
 
             assertThrows(BusinessException.class,
                     () -> service.alterarRoleUsuario(2, Role.ADMIN, 1));

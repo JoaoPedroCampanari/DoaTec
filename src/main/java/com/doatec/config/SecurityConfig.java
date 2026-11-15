@@ -61,6 +61,7 @@ public class SecurityConfig {
 
                         // 6. PROTEÇÃO DE APIs (Exige Role Específica)
                         .requestMatchers("/api/super-admin/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/admin/usuarios/*/role").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/api/donations/**", "/api/solicitacoes/**", "/api/suporte", "/api/suporte/**", "/api/users/**", "/api/dashboard/**", "/api/notificacoes/**").hasAnyRole("USER", "ADMIN", "SUPER_ADMIN")
 

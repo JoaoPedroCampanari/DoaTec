@@ -3305,6 +3305,13 @@ html.dark-mode .admin-stat-card.stat-info .stat-number { color: var(--primary-40
     transition: all var(--transition-fast, 0.15s ease);
 }
 
+#usuarios-filters, #inventario-filters { column-gap: 16px; row-gap: 8px; }
+.inventario-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.inventario-toolbar #inventario-filters { flex: 1 1 auto; margin-bottom: 0; }
+.inventario-toolbar #btnNovoEquipamento { flex: 0 0 auto; padding: 8px 14px; font-size: .85rem; white-space: nowrap; }
+#usuarios-tbody .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+#usuarios-tbody .btn-action:disabled:hover { background: var(--primary-100); }
+
 .admin-filter-btn:hover { border-color: var(--primary-400); color: var(--primary-600); }
 .admin-filter-btn.active { background: var(--primary-600); color: #fff; border-color: var(--primary-600); }
 
@@ -3399,6 +3406,15 @@ html.dark-mode .admin-table tr:hover td {
     cursor: not-allowed;
 }
 
+#tab-doacoes .admin-table { table-layout: fixed; min-width: 820px; }
+#tab-doacoes .admin-table th:nth-child(1) { width: 60px; }
+#tab-doacoes .admin-table th:nth-child(2) { width: 19%; }
+#tab-doacoes .admin-table th:nth-child(3) { width: 120px; }
+#tab-doacoes .admin-table th:nth-child(4) { width: 150px; }
+#tab-doacoes .admin-table th:nth-child(6) { width: 200px; }
+#tab-doacoes .admin-table td { overflow-wrap: anywhere; }
+#tab-doacoes .admin-table .status-pill { white-space: nowrap; overflow-wrap: normal; }
+
 #tab-suporte .admin-table { table-layout: fixed; min-width: 1000px; }
 #tab-suporte .admin-table th:nth-child(1) { width: 70px; }
 #tab-suporte .admin-table th:nth-child(2) { width: 215px; }
@@ -3449,6 +3465,56 @@ html.dark-mode .admin-table tr:hover td {
 }
 .admin-solicitacao-acoes .admin-status-select { width: 150px; max-width: 100%; }
 .admin-solicitacao-acoes .admin-status-select:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.solicitacao-resumo-preferencia {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+.admin-detail-content.solicitacao-detalhes {
+    padding: 20px 24px 20px 12px;
+    background: var(--neutral-50);
+    border-left: none;
+}
+.solicitacao-detalhes-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+    column-gap: 32px;
+    row-gap: 20px;
+}
+.solicitacao-bloco { min-width: 0; }
+.solicitacao-bloco-equipamentos { grid-column: 1 / -1; border-top: 1px solid var(--neutral-200); padding-top: 16px; }
+.solicitacao-bloco-cabecalho { margin-bottom: 12px; }
+.solicitacao-bloco-cabecalho h4 { margin: 0; color: var(--neutral-900); font-size: .9rem; font-weight: 600; }
+.solicitacao-campo + .solicitacao-campo { margin-top: 12px; }
+.solicitacao-rotulo { display: block; color: var(--neutral-900); font-size: .9rem; font-weight: 700; margin-bottom: 3px; }
+.solicitacao-detalhes .solicitacao-campo p { margin: 0; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.solicitacao-anexo { margin-top: 12px; }
+.solicitacao-anexo-link { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; color: var(--primary-600); text-decoration: underline; }
+.solicitacao-anexo-link svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.solicitacao-anexo-link span { overflow-wrap: anywhere; }
+.solicitacao-equipamentos-cabecalho { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.solicitacao-equipamento { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--neutral-200); }
+.solicitacao-equipamento-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.solicitacao-equipamento-info span { color: var(--neutral-600); font-size: .84rem; white-space: pre-wrap; }
+.solicitacao-equipamento-acoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+.doacao-itens-lista { margin: 0; padding-left: 20px; overflow-wrap: anywhere; }
+.solicitacao-detalhes .solicitacao-vazio { margin: 0; color: var(--neutral-600); font-size: .85rem; }
+html.dark-mode .admin-detail-content.solicitacao-detalhes { background: var(--dark-800); }
+html.dark-mode .solicitacao-bloco-cabecalho h4 { color: var(--dark-50); }
+html.dark-mode .solicitacao-rotulo { color: var(--dark-50); }
+html.dark-mode .solicitacao-equipamento-info span,
+html.dark-mode .solicitacao-detalhes .solicitacao-vazio { color: var(--dark-200); }
+html.dark-mode .solicitacao-bloco-equipamentos, html.dark-mode .solicitacao-equipamento { border-color: var(--dark-600); }
+html.dark-mode .solicitacao-anexo-link { color: #9bc8ff; }
+@media (max-width: 900px) {
+    .solicitacao-detalhes-grid { grid-template-columns: minmax(0, 1fr); }
+    .solicitacao-bloco-equipamentos { grid-column: auto; }
+    .solicitacao-equipamento { align-items: flex-start; flex-wrap: wrap; }
+}
 
 /* Row expansion detail */
 .admin-row-clickable {

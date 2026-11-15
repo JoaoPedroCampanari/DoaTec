@@ -481,7 +481,6 @@ class PessoaServiceTest {
             pessoa.setRole(Role.USER);
 
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(pessoaRepository.findById(3)).thenReturn(Optional.of(pessoa));
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> pessoaService.alterarRoleUsuario(3, Role.ADMIN, 1));
@@ -490,8 +489,16 @@ class PessoaServiceTest {
         }
 
         @Test
+        void adminNaoPodeAlterarRoleDeUsuario() {
+            when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
+            assertThrows(BusinessException.class, () -> pessoaService.alterarRoleUsuario(3, Role.USER, 1));
+            verify(pessoaRepository, never()).save(any());
+        }
+
+        @Test
         @DisplayName("Altera role com sucesso")
         void sucesso() {
+            admin.setRole(Role.SUPER_ADMIN);
             DoadorPF pessoa = new DoadorPF("111.222.333-44");
             pessoa.setId(3);
             pessoa.setRole(Role.USER);
@@ -764,6 +771,7 @@ class PessoaServiceTest {
         @Test
         @DisplayName("Lança exceção quando pessoa não existe")
         void pessoaNaoExiste() {
+            admin.setRole(Role.SUPER_ADMIN);
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(pessoaRepository.findById(999)).thenReturn(Optional.empty());
 
@@ -779,7 +787,6 @@ class PessoaServiceTest {
             outroAdmin.setRole(Role.ADMIN);
 
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(pessoaRepository.findById(30)).thenReturn(Optional.of(outroAdmin));
 
             assertThrows(BusinessException.class,
                     () -> pessoaService.alterarRoleUsuario(30, Role.USER, 1));

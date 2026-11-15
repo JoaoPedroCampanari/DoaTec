@@ -648,19 +648,11 @@ public class AdminService {
     @Transactional
     public UsuarioAdminResponse alterarRoleUsuario(Integer id, Role novaRole, Integer adminId) {
         Pessoa admin = validarAdmin(adminId);
+        if (admin.getRole() != Role.SUPER_ADMIN)
+            throw new BusinessException("Apenas Super Admins podem alterar roles de usuários.");
 
         Pessoa pessoa = pessoaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Pessoa não encontrada com ID: " + id));
-
-        // Admins normais só podem alterar role de USERs
-        if (pessoa.isAdmin() && admin.getRole() != Role.SUPER_ADMIN) {
-            throw new BusinessException("Apenas Super Admins podem alterar roles de outros administradores.");
-        }
-
-        // Admins normais não podem promover a ADMIN ou SUPER_ADMIN
-        if ((novaRole == Role.ADMIN || novaRole == Role.SUPER_ADMIN) && admin.getRole() != Role.SUPER_ADMIN) {
-            throw new BusinessException("Apenas Super Admins podem promover usuários a administradores.");
-        }
 
         pessoa.setRole(novaRole);
         pessoa.markUpdated();

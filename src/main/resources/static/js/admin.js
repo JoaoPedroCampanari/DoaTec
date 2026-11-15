@@ -156,8 +156,8 @@ const AdminPanel = {
         [
             { value: '', label: 'Todos' },
             { value: 'ALUNO', label: 'Aluno' },
-            { value: 'DOADOR_PF', label: 'Doador PF' },
-            { value: 'DOADOR_PJ', label: 'Doador PJ' }
+            { value: 'DOADOR_PF', label: 'Pessoa física' },
+            { value: 'DOADOR_PJ', label: 'Empresa' }
         ].forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'admin-filter-btn' + (opt.value === '' ? ' active' : '');
@@ -180,7 +180,6 @@ const AdminPanel = {
         roleGroup.style.gap = '8px';
         roleGroup.style.alignItems = 'center';
         roleGroup.style.flexWrap = 'wrap';
-        roleGroup.style.marginTop = '8px';
 
         const roleLabel = document.createElement('span');
         roleLabel.textContent = 'Role:';
@@ -242,13 +241,12 @@ const AdminPanel = {
             }
         ];
 
-        groups.forEach((group, idx) => {
+        groups.forEach(group => {
             const groupEl = document.createElement('div');
             groupEl.style.display = 'flex';
             groupEl.style.gap = '8px';
             groupEl.style.alignItems = 'center';
             groupEl.style.flexWrap = 'wrap';
-            if (idx > 0) groupEl.style.marginTop = '8px';
 
             const label = document.createElement('span');
             label.textContent = group.label;
@@ -335,7 +333,7 @@ const AdminPanel = {
                 <td>${escapeHtml(d.doadorNome || '-')}<br><small>${escapeHtml(d.doadorEmail || '')}</small></td>
                 <td>${formatDate(d.dataDoacao)}</td>
                 <td>${this.createPillHtml(d.status === 'APROVADO' ? 'Situação anterior' : d.status)}</td>
-                <td>${escapeHtml(d.descricaoGeral || '-')}</td>
+                <td><span class="solicitacao-resumo-preferencia" title="${escapeHtml(d.descricaoGeral || 'Não informada')}">${escapeHtml(d.descricaoGeral || '-')}</span></td>
                 <td class="admin-actions admin-doacao-acoes-cell">
                   <div class="admin-doacao-acoes">
                     ${proximosStatus.length ?
@@ -349,29 +347,22 @@ const AdminPanel = {
             </tr>
             <tr class="admin-detail-row" id="detail-doacao-${d.id}" style="display:none">
                 <td colspan="6">
-                    <div class="admin-detail-content">
-                        <p><strong>Entrega:</strong> ${escapeHtml(d.preferenciaEntrega === 'SOLICITAR_RETIRADA' ? 'Retirada no endereço do doador' : translateEntrega(d.preferenciaEntrega))}</p>
-                        <p><strong>Endereço:</strong> ${d.preferenciaEntrega === 'PONTO_DE_COLETA'
-                            ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000'
-                            : (d.enderecoRetirada ? escapeHtml(d.enderecoRetirada) : 'Não informado')}</p>
-                        <p><strong>Descrição:</strong> ${escapeHtml(d.descricaoGeral || 'Não informada')}</p>
-                        ${d.urlFoto ? (() => {
-                            const urls = d.urlFoto.split(',').map(u => u.trim()).filter(Boolean);
-                            return `<p><strong>Foto${urls.length > 1 ? 's' : ''}:</strong></p>
-                                <div class="admin-doacao-fotos">
-                                    ${urls.map(u => `
-                                        <a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="admin-doacao-foto-link">
-                                            <img src="${escapeHtml(u)}" alt="Foto da doação" class="admin-doacao-foto" loading="lazy" onerror="this.style.display='none'">
-                                        </a>
-                                    `).join('')}
-                                </div>`;
-                        })() : ''}
-                        ${d.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(d.observacaoAdmin)}</p>` : ''}
-                        ${d.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(d.adminAvaliadorNome)}${d.dataAvaliacao ? ' — ' + formatDate(d.dataAvaliacao) : ''}</p>` : ''}
-                        ${d.itens && d.itens.length ? `
-                            <p><strong>Itens doados:</strong></p>
-                            <ul style="margin:4px 0 0 20px">${d.itens.map(i => `<li>${escapeHtml(i.tipo)}${i.descricao ? ' — ' + escapeHtml(i.descricao) : ''}</li>`).join('')}</ul>
-                        ` : ''}
+                    <div class="admin-detail-content solicitacao-detalhes">
+                        <div class="solicitacao-detalhes-grid">
+                            <section class="solicitacao-bloco" aria-label="Detalhes da doação">
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Descrição</span><p>${escapeHtml(d.descricaoGeral || 'Não informada')}</p></div>
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">${d.preferenciaEntrega === 'SOLICITAR_RETIRADA' ? 'Retirada' : d.preferenciaEntrega === 'PONTO_DE_COLETA' ? 'Entrega Fatec-Garça' : 'Endereço'}</span><p>${d.preferenciaEntrega === 'PONTO_DE_COLETA' ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000' : escapeHtml(d.enderecoRetirada || 'Não informado')}</p></div>
+                                ${d.urlFoto ? (() => {
+                                    const urls = d.urlFoto.split(',').map(u => u.trim()).filter(Boolean);
+                                    return urls.length ? `<div class="solicitacao-campo"><span class="solicitacao-rotulo">Foto${urls.length > 1 ? 's' : ''}</span><div class="admin-doacao-fotos">${urls.map(u => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" class="admin-doacao-foto-link"><img src="${escapeHtml(u)}" alt="Foto da doação" class="admin-doacao-foto" loading="lazy" onerror="this.style.display='none'"></a>`).join('')}</div></div>` : '';
+                                })() : ''}
+                            </section>
+                            <section class="solicitacao-bloco" aria-label="Avaliação da doação">
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Observação</span><p>${escapeHtml(d.observacaoAdmin && d.observacaoAdmin.trim() ? d.observacaoAdmin : 'Nenhuma observação registrada.')}</p></div>
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Avaliador</span><p>${escapeHtml(d.adminAvaliadorNome || 'Ainda não avaliada')}${d.adminAvaliadorNome && d.dataAvaliacao ? ' · ' + formatDate(d.dataAvaliacao) : ''}</p></div>
+                            </section>
+                            ${d.itens && d.itens.length ? `<section class="solicitacao-bloco solicitacao-bloco-equipamentos" aria-label="Itens doados"><div class="solicitacao-bloco-cabecalho"><h4>Itens doados</h4></div><ul class="doacao-itens-lista">${d.itens.map(i => `<li>${escapeHtml(i.tipo)}${i.descricao ? ' — ' + escapeHtml(i.descricao) : ''}</li>`).join('')}</ul></section>` : ''}
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -471,7 +462,7 @@ const AdminPanel = {
                 <td>#${s.id}</td>
                 <td>${escapeHtml(s.alunoNome || '-')}<br><small>RA: ${escapeHtml(s.alunoRa || '-')}</small></td>
                 <td>${formatDate(s.dataSolicitacao)}</td>
-                <td>${escapeHtml(s.preferenciaEquipamento || '-')}</td>
+                <td><span class="solicitacao-resumo-preferencia" title="${escapeHtml(s.preferenciaEquipamento || 'Não informada')}">${escapeHtml(s.preferenciaEquipamento || '-')}</span></td>
                 <td>${this.createPillHtml(s.status)}</td>
                 <td class="admin-actions admin-solicitacao-acoes-cell">
                     <div class="admin-solicitacao-acoes">
@@ -486,35 +477,22 @@ const AdminPanel = {
             </tr>
             <tr class="admin-detail-row" id="detail-solicitacao-${s.id}" style="display:none">
                 <td colspan="6">
-                    <div class="admin-detail-content">
-                        <p><strong>Preferência:</strong> ${escapeHtml(s.preferenciaEquipamento || 'Não informada')}</p>
-                        ${s.justificativa ? `<p><strong>Justificativa:</strong> ${escapeHtml(s.justificativa)}</p>` : ''}
-                        ${s.urlComprovante ? (() => {
-                            const url = s.urlComprovante.trim();
-                            const isPdf = /\.pdf(\?.*)?$/i.test(url);
-                            if (isPdf) {
-                                return `<p><strong>Comprovante de renda:</strong></p>
-                                    <div class="admin-doacao-fotos">
-                                        <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="admin-comprovante-pdf">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
-                                            <span>Abrir PDF</span>
-                                        </a>
-                                    </div>`;
-                            }
-                            return `<p><strong>Comprovante de renda:</strong></p>
-                                <div class="admin-doacao-fotos">
-                                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="admin-doacao-foto-link">
-                                        <img src="${escapeHtml(url)}" alt="Comprovante de renda" class="admin-doacao-foto" loading="lazy" onerror="this.style.display='none'">
-                                    </a>
-                                </div>`;
-                        })() : ''}
-                        ${s.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(s.observacaoAdmin)}</p>` : ''}
-                        ${s.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(s.adminAvaliadorNome)}${s.dataAvaliacao ? ' — ' + formatDate(s.dataAvaliacao) : ''}</p>` : ''}
-                        <div id="equipamentos-solicitacao-${s.id}" data-status="${escapeHtml(s.status)}" style="margin-top:12px"><strong>Equipamentos vinculados:</strong> Carregando...</div>
-                        ${s.status === 'APROVADA' ? `
-                            <div style="margin-top:12px">
-                                <button class="btn-approve" onclick="AdminPanel.openAtribuirModal(${s.id}, false)">Atribuir equipamentos</button>
-                            </div>` : ''}
+                    <div class="admin-detail-content solicitacao-detalhes">
+                        <div class="solicitacao-detalhes-grid">
+                            <section class="solicitacao-bloco solicitacao-bloco-principal" aria-label="Detalhes da solicitação">
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Equipamento solicitado</span><p>${escapeHtml(s.preferenciaEquipamento || 'Não informado')}</p></div>
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Justificativa</span><p>${escapeHtml(s.justificativa || 'Não informada')}</p></div>
+                                ${s.urlComprovante && /^\/uploads\/[a-fA-F0-9-]{36}\.[a-zA-Z0-9]{1,10}$/.test(s.urlComprovante.trim()) ? `<div class="solicitacao-anexo"><span class="solicitacao-rotulo">Comprovante de renda</span><a class="solicitacao-anexo-link" href="${escapeHtml(s.urlComprovante.trim())}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.83l8.49-8.48"/></svg><span>${escapeHtml(s.nomeComprovante || 'Abrir comprovante')}</span></a></div>` : ''}
+                            </section>
+                            <section class="solicitacao-bloco solicitacao-bloco-avaliacao" aria-label="Avaliação">
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Observação</span><p>${escapeHtml(s.observacaoAdmin && s.observacaoAdmin.trim() ? s.observacaoAdmin : 'Nenhuma observação registrada.')}</p></div>
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Avaliador</span><p>${escapeHtml(s.adminAvaliadorNome || 'Ainda não avaliada')}${s.adminAvaliadorNome && s.dataAvaliacao ? ' · ' + formatDate(s.dataAvaliacao) : ''}</p></div>
+                            </section>
+                            <section class="solicitacao-bloco solicitacao-bloco-equipamentos" aria-label="Equipamentos vinculados">
+                                <div class="solicitacao-equipamentos-cabecalho"><div class="solicitacao-bloco-cabecalho"><h4>Equipamentos vinculados</h4></div>${s.status === 'APROVADA' ? `<button class="btn-approve" onclick="AdminPanel.openAtribuirModal(${s.id}, false)">Atribuir equipamentos</button>` : ''}</div>
+                                <div id="equipamentos-solicitacao-${s.id}" class="solicitacao-equipamentos-lista" data-status="${escapeHtml(s.status)}" aria-live="polite"><p class="solicitacao-vazio">Carregando equipamentos...</p></div>
+                            </section>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -528,24 +506,41 @@ const AdminPanel = {
             const response = await apiFetch('/api/admin/solicitacoes/' + id + '/equipamentos');
             const equipamentos = await response.json();
             if (!container.isConnected) return;
-            container.innerHTML = '<strong>Equipamentos vinculados:</strong>';
-            if (!equipamentos.length) { container.append(' Nenhum.'); return; }
+            container.innerHTML = '';
+            if (!equipamentos.length) {
+                const vazio = document.createElement('p');
+                vazio.className = 'solicitacao-vazio';
+                vazio.textContent = 'Nenhum equipamento vinculado.';
+                container.append(vazio);
+                return;
+            }
             equipamentos.forEach(eq => {
                 const linha = document.createElement('div');
-                linha.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;overflow-wrap:anywhere';
-                const texto = document.createElement('span');
-                texto.textContent = '#' + eq.id + ' — ' + (eq.tipo || '-') + ' · ' + (eq.descricao || '-') + ' (' + translateStatus(eq.status) + ')';
-                linha.append(texto);
+                linha.className = 'solicitacao-equipamento';
+                const info = document.createElement('div');
+                info.className = 'solicitacao-equipamento-info';
+                const nome = document.createElement('strong');
+                nome.textContent = '#' + eq.id + ' · ' + (eq.tipo || 'Equipamento');
+                const descricao = document.createElement('span');
+                descricao.textContent = eq.descricao || 'Sem descrição';
+                info.append(nome, descricao);
+                const acoes = document.createElement('div');
+                acoes.className = 'solicitacao-equipamento-acoes';
+                const status = document.createElement('span');
+                status.className = 'status-pill ' + getStatusClass(eq.status);
+                status.textContent = translateStatus(eq.status);
+                acoes.append(status);
                 if (container.dataset.status === 'APROVADA' && eq.status === 'RESERVADO') {
                     const botao = document.createElement('button');
                     botao.type = 'button'; botao.className = 'btn-reject'; botao.textContent = 'Remover';
                     botao.onclick = () => this.removerEquipamentoSolicitacao(id, eq.id, equipamentos.length === 1);
-                    linha.append(botao);
+                    acoes.append(botao);
                 }
+                linha.append(info, acoes);
                 container.append(linha);
             });
         } catch (err) {
-            if (container.isConnected) container.innerHTML = '<strong>Equipamentos vinculados:</strong> Não foi possível carregar.';
+            if (container.isConnected) container.innerHTML = '<p class="solicitacao-vazio">Não foi possível carregar os equipamentos.</p>';
         }
     },
 
@@ -906,10 +901,16 @@ const AdminPanel = {
             </tr>
             <tr class="admin-detail-row" id="detail-suporte-${t.id}" style="display:none">
                 <td colspan="6">
-                    <div class="admin-detail-content">
-                        <p><strong>Mensagem:</strong> ${escapeHtml(t.mensagem || 'Não informada')}</p>
-                        ${t.resposta ? `<p><strong>Resposta:</strong> ${escapeHtml(t.resposta)}</p>` : ''}
-                        ${t.adminResponsavelNome ? `<p><strong>Admin responsável:</strong> ${escapeHtml(t.adminResponsavelNome)}${t.dataResolucao ? ' — ' + new Date(t.dataResolucao).toLocaleDateString('pt-BR') : ''}</p>` : ''}
+                    <div class="admin-detail-content solicitacao-detalhes">
+                        <div class="solicitacao-detalhes-grid">
+                            <section class="solicitacao-bloco" aria-label="Mensagem do ticket">
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Mensagem</span><p>${escapeHtml(t.mensagem || 'Não informada')}</p></div>
+                            </section>
+                            <section class="solicitacao-bloco" aria-label="Resposta do atendimento">
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Resposta</span><p>${escapeHtml(t.resposta && t.resposta.trim() ? t.resposta : 'Ainda não respondido.')}</p></div>
+                                <div class="solicitacao-campo"><span class="solicitacao-rotulo">Admin responsável</span><p>${escapeHtml(t.adminResponsavelNome || 'Não informado')}${t.adminResponsavelNome && t.dataResolucao ? ' · ' + new Date(t.dataResolucao).toLocaleDateString('pt-BR') : ''}</p></div>
+                            </section>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -1036,6 +1037,7 @@ const AdminPanel = {
 
         const currentUser = Auth.getUser();
         const currentUserId = currentUser ? currentUser.id : null;
+        const podeAlterarRole = Auth.getUserRole() === 'SUPER_ADMIN';
 
         tbody.innerHTML = usuarios.map(u => {
             const isSelf = u.id === currentUserId;
@@ -1057,7 +1059,8 @@ const AdminPanel = {
                 <td class="admin-actions">
                     ${isSelf
                         ? '<span style="color:#9ca3af;font-size:12px;font-style:italic;">—</span>'
-                        : `<button class="btn-action" data-user-id="${u.id}" data-user-role="${escapeHtml(u.role)}">Alterar Role</button>`}
+                        : podeAlterarRole ? `<button class="btn-action" data-user-id="${u.id}" data-user-role="${escapeHtml(u.role)}">Alterar Role</button>`
+                        : '<button class="btn-action" disabled title="Somente o superadmin pode alterar roles">Alterar Role</button>'}
                 </td>
             </tr>
         `}).join('');
@@ -1092,8 +1095,8 @@ const AdminPanel = {
     createTipoPessoaLabel(tipo) {
         const labels = {
             'ALUNO': 'Aluno',
-            'DOADOR_PF': 'Doador PF',
-            'DOADOR_PJ': 'Doador PJ'
+            'DOADOR_PF': 'Pessoa física',
+            'DOADOR_PJ': 'Empresa'
         };
         return escapeHtml(labels[tipo] || tipo || '-');
     },
