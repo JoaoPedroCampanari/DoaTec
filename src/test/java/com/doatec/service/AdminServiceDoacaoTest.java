@@ -50,13 +50,33 @@ class AdminServiceDoacaoTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = StatusDoacao.class, names = {"ENTREGUE", "RETIRADO", "RECUSADO"})
+    @EnumSource(value = StatusDoacao.class, names = {"ENTREGUE", "RETIRADO", "RECUSADO", "CANCELADA"})
     void decisaoFinalNaoPodeSerAlterada(StatusDoacao finalizado) {
         Doacao d = preparar(finalizado);
         for (StatusDoacao tentativa : StatusDoacao.values()) {
             assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, tentativa, 1, null));
         }
         assertEquals(finalizado, d.getStatus());
+        verify(doacoes, never()).save(any());
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"AGUARDANDO_ENTREGA,PONTO_DE_COLETA", "COLETA_AGENDADA,SOLICITAR_RETIRADA"})
+    void doacaoPendentePodeSerCancelada(StatusDoacao inicial, PreferenciaEntrega modalidade) {
+        Doacao doacao = preparar(inicial);
+        doacao.setPreferenciaEntrega(modalidade);
+        when(doacoes.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        var resposta = service.alterarStatusDoacao(1, StatusDoacao.CANCELADA, 1, new AvaliacaoRequest("Doador desistiu"));
+        assertEquals(StatusDoacao.CANCELADA, doacao.getStatus());
+        assertEquals("CANCELADA", resposta.status());
+        assertEquals("Doador desistiu", resposta.observacaoAdmin());
+        verify(notificacoes).criarNotificacao(eq(1), anyString(), argThat(m -> m.contains("Cancelada") && !m.contains("Combine")), any(), eq(1), eq("DOACAO"));
+    }
+
+    @Test
+    void naoCancelaAntesDeAprovar() {
+        preparar(StatusDoacao.EM_ANALISE);
+        assertThrows(BusinessException.class, () -> service.alterarStatusDoacao(1, StatusDoacao.CANCELADA, 1, null));
         verify(doacoes, never()).save(any());
     }
 

@@ -64,6 +64,7 @@ function getStatusClass(status) {
         'finalizado': 'status-concluido',
         'reprovado': 'status-reprovado',
         'recusado': 'status-reprovado',
+        'cancelada': 'status-reprovado',
         'rejeitada': 'status-reprovado',
         'rejeitado': 'status-reprovado',
         // Solicitações
@@ -117,6 +118,7 @@ function translateStatus(status) {
         'rejeitada': 'Rejeitada',
         'aprovado': 'Aprovado',
         'recusado': 'Recusado',
+        'cancelada': 'Cancelada',
         'aprovada': 'Aprovada',
         'approved': 'Aprovado',
         'rejected': 'Rejeitada',
@@ -305,7 +307,7 @@ function formatRelativeDate(dateStr) {
 }
 
 /** Pede confirmação antes de uma exclusão e devolve o foco ao controle anterior. */
-function confirmarExclusao({ titulo, mensagem, botao = 'Excluir' }) {
+function confirmarExclusao({ titulo, mensagem, botao = 'Excluir', tipo = 'exclusao' }) {
     return new Promise(resolve => {
         const focoAnterior = document.activeElement;
         const dialog = document.createElement('dialog');
@@ -323,6 +325,10 @@ function confirmarExclusao({ titulo, mensagem, botao = 'Excluir' }) {
                 <button type="button" class="btn btn-secondary" data-action="cancelar">Cancelar</button>
                 <button type="button" class="btn confirm-delete-button" data-action="excluir"></button>
             </div>`;
+        if (tipo !== 'exclusao') {
+            dialog.querySelector('.confirm-delete-hint').remove();
+            dialog.querySelector('.confirm-delete-icon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v5m0 4h.01"/></svg>';
+        }
         dialog.querySelector('#confirm-delete-title').textContent = titulo;
         dialog.querySelector('#confirm-delete-message').textContent = mensagem;
         const cancelar = dialog.querySelector('[data-action="cancelar"]');
@@ -342,6 +348,10 @@ function confirmarExclusao({ titulo, mensagem, botao = 'Excluir' }) {
     });
 }
 
+function confirmarAcao(opcoes) {
+    return confirmarExclusao({ ...opcoes, tipo: 'acao' });
+}
+
 // Export for global use
 window.DoaTec = {
     formatDate,
@@ -358,6 +368,7 @@ window.DoaTec = {
     formatDocument,
     getAvatarColor,
     formatRelativeDate,
-    confirmarExclusao
+    confirmarExclusao,
+    confirmarAcao
 };
 

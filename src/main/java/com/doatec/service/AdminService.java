@@ -21,6 +21,9 @@ import com.doatec.model.donation.Doacao;
 import com.doatec.model.donation.StatusDoacao;
 import com.doatec.model.donation.PreferenciaEntrega;
 import com.doatec.model.notification.TipoNotificacao;
+import com.doatec.model.inventory.Equipamento;
+import com.doatec.model.inventory.StatusEquipamento;
+import com.doatec.repository.EquipamentoRepository;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
 import com.doatec.model.solicitacao.StatusSolicitacao;
 import com.doatec.model.suporte.StatusSuporte;
@@ -52,6 +55,9 @@ public class AdminService {
 
     @Autowired
     private SolicitacaoHardwareRepository solicitacaoRepository;
+
+    @Autowired
+    private EquipamentoRepository equipamentoRepository;
 
     @Autowired
     private SuporteFormularioRepository suporteRepository;
@@ -211,7 +217,7 @@ public class AdminService {
         notificacaoService.criarNotificacao(
                 doacao.getDoador().getId(),
                 "Status da Doação Atualizado",
-                "Sua doação #" + doacao.getId() + " está com o status: " + rotuloStatusDoacao(novoStatus) + ". Combine os detalhes pelo chat.",
+                "Sua doação #" + doacao.getId() + " está com o status: " + rotuloStatusDoacao(novoStatus) + "." + (novoStatus == StatusDoacao.CANCELADA ? "" : " Combine os detalhes pelo chat."),
                 novoStatus == StatusDoacao.RECUSADO ? TipoNotificacao.DOACAO_REJEITADA
                         : statusAnterior == StatusDoacao.EM_ANALISE ? TipoNotificacao.DOACAO_APROVADA
                         : TipoNotificacao.DOACAO_STATUS_ATUALIZADO,
@@ -238,8 +244,8 @@ public class AdminService {
         boolean valida = switch (atual) {
             case EM_ANALISE -> novo == StatusDoacao.RECUSADO || entrega && novo == StatusDoacao.AGUARDANDO_ENTREGA || coleta && novo == StatusDoacao.COLETA_AGENDADA;
             case APROVADO -> entrega && (novo == StatusDoacao.AGUARDANDO_ENTREGA || novo == StatusDoacao.ENTREGUE) || coleta && (novo == StatusDoacao.COLETA_AGENDADA || novo == StatusDoacao.RETIRADO);
-            case AGUARDANDO_ENTREGA -> entrega && novo == StatusDoacao.ENTREGUE;
-            case COLETA_AGENDADA -> coleta && novo == StatusDoacao.RETIRADO;
+            case AGUARDANDO_ENTREGA -> entrega && (novo == StatusDoacao.ENTREGUE || novo == StatusDoacao.CANCELADA);
+            case COLETA_AGENDADA -> coleta && (novo == StatusDoacao.RETIRADO || novo == StatusDoacao.CANCELADA);
             default -> false;
         };
         if (!valida) throw new BusinessException("Transição de status inválida para esta modalidade de doação.");
@@ -251,6 +257,7 @@ public class AdminService {
             case RECUSADO -> "Recusado";
             case AGUARDANDO_ENTREGA -> "Aguardando entrega";
             case ENTREGUE -> "Entregue";
+            case CANCELADA -> "Cancelada";
             case COLETA_AGENDADA -> "Coleta agendada";
             case RETIRADO -> "Retirado";
             case APROVADO -> "Aprovado";
@@ -271,9 +278,9 @@ public class AdminService {
     private void validarTransicaoSolicitacao(StatusSolicitacao atual, StatusSolicitacao novo) {
         boolean transicaoValida = switch (atual) {
             case EM_ANALISE -> novo == StatusSolicitacao.APROVADA || novo == StatusSolicitacao.REJEITADA;
-            case APROVADA -> novo == StatusSolicitacao.CONCLUIDA;
+            case APROVADA -> novo == StatusSolicitacao.CONCLUIDA || novo == StatusSolicitacao.CANCELADA;
             case REJEITADA -> false;
-            case CONCLUIDA -> false;
+            case CONCLUIDA, CANCELADA -> false;
         };
 
         if (!transicaoValida) {
@@ -284,39 +291,107 @@ public class AdminService {
 
     @Transactional
     public SolicitacaoResponse aprovarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
-        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
+        throw new BusinessException("Selecione pelo menos um equipamento para aprovar a solicitação.");
+    }
+
+    @Transactional
+    public SolicitacaoResponse aprovarComEquipamentos(Integer id, Integer adminId, java.util.List<Integer> ids, String observacao) {
+        return vincularEquipamentos(id, adminId, ids, observacao, true);
+    }
+
+    @Transactional
+    public SolicitacaoResponse adicionarEquipamentos(Integer id, Integer adminId, java.util.List<Integer> ids, String observacao) {
+        return vincularEquipamentos(id, adminId, ids, observacao, false);
+    }
+
+    private SolicitacaoResponse vincularEquipamentos(Integer id, Integer adminId, java.util.List<Integer> ids, String observacao, boolean aprovar) {
+        if (ids == null || ids.isEmpty() || ids.size() > 100 || ids.stream().anyMatch(i -> i == null || i <= 0))
+            throw new BusinessException("Selecione pelo menos um equipamento válido.");
+        if (new java.util.HashSet<>(ids).size() != ids.size())
+            throw new BusinessException("Não é possível selecionar o mesmo equipamento mais de uma vez.");
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
-
         Pessoa admin = validarAdmin(adminId);
-        validarTransicaoSolicitacao(solicitacao.getStatus(), StatusSolicitacao.APROVADA);
+        if (aprovar) validarTransicaoSolicitacao(solicitacao.getStatus(), StatusSolicitacao.APROVADA);
+        else if (solicitacao.getStatus() != StatusSolicitacao.APROVADA)
+            throw new BusinessException("Somente solicitações aprovadas podem receber equipamentos adicionais.");
 
-        solicitacao.setStatus(StatusSolicitacao.APROVADA);
-        solicitacao.setAdminAvaliador(admin);
-        solicitacao.setDataAvaliacao(LocalDateTime.now());
-        if (request != null && request.observacao() != null) {
-            solicitacao.setObservacaoAdmin(request.observacao());
+        java.util.List<Equipamento> selecionados = new java.util.ArrayList<>();
+        for (Integer equipamentoId : ids.stream().sorted().toList()) {
+            Equipamento equipamento = equipamentoRepository.findByIdForUpdate(equipamentoId)
+                    .orElseThrow(() -> new BusinessException("Equipamento #" + equipamentoId + " não encontrado."));
+            if (equipamento.getStatus() != StatusEquipamento.DISPONIVEL)
+                throw new BusinessException("O equipamento #" + equipamentoId + " não está mais disponível. Atualize a lista.");
+            selecionados.add(equipamento);
         }
+        for (Equipamento equipamento : selecionados) {
+            equipamento.setStatus(StatusEquipamento.RESERVADO);
+            equipamento.setSolicitacaoDestino(solicitacao);
+            equipamento.setAlunoDestinatario(solicitacao.getAluno());
+            equipamento.setDataAtribuicao(LocalDateTime.now());
+            equipamentoRepository.save(equipamento);
+        }
+        if (aprovar) {
+            solicitacao.setStatus(StatusSolicitacao.APROVADA);
+            solicitacao.setAdminAvaliador(admin);
+            solicitacao.setDataAvaliacao(LocalDateTime.now());
+            if (observacao != null && !observacao.isBlank()) solicitacao.setObservacaoAdmin(observacao.trim());
+            solicitacaoRepository.save(solicitacao);
+            notificacaoService.criarNotificacao(solicitacao.getAluno().getId(), "Solicitação Aprovada",
+                    "Sua solicitação #" + id + " foi aprovada e possui equipamento reservado. Acompanhe os próximos passos pelo chat.",
+                    TipoNotificacao.SOLICITACAO_APROVADA, id, "SOLICITACAO");
+        }
+        registrarLog(admin, AcaoTipo.APROVAR_SOLICITACAO, "SolicitacaoHardware", id,
+                (aprovar ? "Solicitação aprovada" : "Equipamentos adicionais atribuídos") + "; equipamentos: "
+                        + ids.stream().sorted().map(String::valueOf).collect(java.util.stream.Collectors.joining(", ")));
+        return SolicitacaoMapper.toResponse(solicitacao);
+    }
 
-        SolicitacaoHardware solicitacaoAtualizada = solicitacaoRepository.save(solicitacao);
+    @Transactional(readOnly = true)
+    public List<com.doatec.dto.response.EquipamentoResponse> listarEquipamentosSolicitacao(Integer solicitacaoId) {
+        if (!solicitacaoRepository.existsById(solicitacaoId))
+            throw new BusinessException("Solicitação não encontrada.");
+        return equipamentoRepository.findBySolicitacaoDestinoId(solicitacaoId).stream()
+                .map(com.doatec.dto.response.EquipamentoResponse::from).toList();
+    }
 
-        // Notificar o aluno
-        notificacaoService.criarNotificacao(
-                solicitacao.getAluno().getId(),
-                "Solicitação Aprovada",
-                "Sua solicitação #" + solicitacao.getId() + " foi aprovada! Aguarde a disponibilidade de um equipamento compatível.",
-                TipoNotificacao.SOLICITACAO_APROVADA,
-                solicitacao.getId(),
-                "SOLICITACAO"
-        );
-
-        registrarLog(admin, AcaoTipo.APROVAR_SOLICITACAO, "SolicitacaoHardware", id, "Solicitação aprovada");
-
-        return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
+    @Transactional
+    public void removerEquipamentoSolicitacao(Integer solicitacaoId, Integer equipamentoId, Integer adminId, boolean ultimoEsperado) {
+        Pessoa admin = validarAdmin(adminId);
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(solicitacaoId)
+                .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+        if (solicitacao.getStatus() != StatusSolicitacao.APROVADA)
+            throw new BusinessException("Só é possível remover equipamentos de solicitações aprovadas.");
+        List<Equipamento> vinculados = equipamentoRepository.findBySolicitacaoDestinoIdForUpdate(solicitacaoId);
+        Equipamento equipamento = vinculados.stream().filter(e -> e.getId().equals(equipamentoId)).findFirst()
+                .orElseThrow(() -> new BusinessException("Equipamento não está vinculado a esta solicitação."));
+        if (equipamento.getStatus() != StatusEquipamento.RESERVADO)
+            throw new BusinessException("Somente equipamentos reservados podem ser removidos; equipamentos entregues não podem ser removidos.");
+        boolean voltouAnalise = vinculados.size() == 1;
+        if (voltouAnalise != ultimoEsperado)
+            throw new BusinessException("A lista de equipamentos mudou. Atualize e tente novamente.");
+        equipamento.setStatus(StatusEquipamento.DISPONIVEL);
+        equipamento.setSolicitacaoDestino(null);
+        equipamento.setAlunoDestinatario(null);
+        equipamento.setDataAtribuicao(null);
+        equipamentoRepository.save(equipamento);
+        if (voltouAnalise) {
+            solicitacao.setStatus(StatusSolicitacao.EM_ANALISE);
+            solicitacao.setAdminAvaliador(null);
+            solicitacao.setDataAvaliacao(null);
+            solicitacao.setObservacaoAdmin(null);
+            solicitacaoRepository.save(solicitacao);
+            notificacaoService.criarNotificacao(solicitacao.getAluno().getId(), "Solicitação em análise",
+                    "Sua solicitação #" + solicitacaoId + " voltou para análise após a retirada do equipamento reservado.",
+                    TipoNotificacao.SOLICITACAO_STATUS_ATUALIZADO, solicitacaoId, "SOLICITACAO");
+        }
+        registrarLog(admin, AcaoTipo.EDITAR_EQUIPAMENTO, "Equipamento", equipamentoId,
+                "Equipamento removido da solicitação #" + solicitacaoId + (voltouAnalise ? "; solicitação voltou para análise" : ""));
     }
 
     @Transactional
     public SolicitacaoResponse rejeitarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
-        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
@@ -350,13 +425,28 @@ public class AdminService {
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
     }
 
+    private void entregarEquipamentosDaSolicitacao(Integer solicitacaoId) {
+        List<Equipamento> equipamentos = equipamentoRepository.findBySolicitacaoDestinoIdForUpdate(solicitacaoId);
+        if (equipamentos.stream().anyMatch(e -> e.getStatus() != StatusEquipamento.RESERVADO && e.getStatus() != StatusEquipamento.ENTREGUE))
+            throw new BusinessException("Há equipamento vinculado com status inválido. Verifique o inventário antes de concluir.");
+        LocalDateTime dataEntrega = LocalDateTime.now();
+        for (Equipamento equipamento : equipamentos) {
+            if (equipamento.getStatus() == StatusEquipamento.RESERVADO) {
+                equipamento.setStatus(StatusEquipamento.ENTREGUE);
+                equipamento.setDataEntrega(dataEntrega);
+                equipamentoRepository.save(equipamento);
+            }
+        }
+    }
+
     @Transactional
     public SolicitacaoResponse concluirSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
-        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
         validarTransicaoSolicitacao(solicitacao.getStatus(), StatusSolicitacao.CONCLUIDA);
+        entregarEquipamentosDaSolicitacao(id);
 
         solicitacao.setStatus(StatusSolicitacao.CONCLUIDA);
         solicitacao.setAdminAvaliador(admin);
@@ -383,13 +473,32 @@ public class AdminService {
 
     @Transactional
     public SolicitacaoResponse alterarStatusSolicitacao(Integer id, StatusSolicitacao novoStatus, Integer adminId, AvaliacaoRequest request) {
-        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
         validarTransicaoSolicitacao(solicitacao.getStatus(), novoStatus);
+        if (novoStatus == StatusSolicitacao.APROVADA)
+            throw new BusinessException("Selecione pelo menos um equipamento para aprovar a solicitação.");
+
+        if (novoStatus == StatusSolicitacao.CONCLUIDA) entregarEquipamentosDaSolicitacao(id);
 
         StatusSolicitacao statusAnterior = solicitacao.getStatus();
+        List<Equipamento> equipamentosLiberados = java.util.List.of();
+        if (novoStatus == StatusSolicitacao.CANCELADA) {
+            List<Equipamento> vinculados = equipamentoRepository.findBySolicitacaoDestinoIdForUpdate(id);
+            if (vinculados.stream().anyMatch(e -> e.getStatus() == StatusEquipamento.ENTREGUE)) {
+                throw new BusinessException("Não é possível cancelar: há equipamento já entregue nesta solicitação.");
+            }
+            equipamentosLiberados = vinculados;
+            for (Equipamento equipamento : equipamentosLiberados) {
+                equipamento.setStatus(StatusEquipamento.DISPONIVEL);
+                equipamento.setSolicitacaoDestino(null);
+                equipamento.setAlunoDestinatario(null);
+                equipamento.setDataAtribuicao(null);
+                equipamentoRepository.save(equipamento);
+            }
+        }
         solicitacao.setStatus(novoStatus);
         solicitacao.setAdminAvaliador(admin);
         solicitacao.setDataAvaliacao(LocalDateTime.now());
@@ -411,7 +520,8 @@ public class AdminService {
         );
 
         registrarLog(admin, AcaoTipo.ALTERAR_STATUS_SOLICITACAO, "SolicitacaoHardware", id,
-                "Status da solicitação alterado de " + statusAnterior.name() + " para " + novoStatus.name());
+                "Status da solicitação alterado de " + statusAnterior.name() + " para " + novoStatus.name()
+                        + (equipamentosLiberados.isEmpty() ? "" : "; equipamentos liberados: " + equipamentosLiberados.stream().map(e -> String.valueOf(e.getId())).collect(java.util.stream.Collectors.joining(", "))));
 
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
     }
@@ -429,16 +539,18 @@ public class AdminService {
 
     @Transactional
     public SuporteResponse responderTicket(Integer id, Integer adminId, RespostaSuporteRequest request) {
-        SuporteFormulario ticket = suporteRepository.findById(id)
+        SuporteFormulario ticket = suporteRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Ticket não encontrado com ID: " + id));
 
         Pessoa admin = validarAdmin(adminId);
 
         validarTicketAberto(ticket);
+        if (ticket.getResposta() != null && !ticket.getResposta().isBlank())
+            throw new BusinessException("Este ticket já foi respondido. Continue o atendimento pelo chat.");
         ticket.setResposta(request.resposta());
         ticket.setAdminResponsavel(admin);
-        ticket.setStatus(StatusSuporte.RESOLVIDO);
-        ticket.setDataResolucao(LocalDateTime.now());
+        ticket.setStatus(StatusSuporte.EM_ANDAMENTO);
+        ticket.setDataResolucao(null);
 
         SuporteFormulario ticketAtualizado = suporteRepository.save(ticket);
 
@@ -462,17 +574,17 @@ public class AdminService {
 
     @Transactional
     public SuporteResponse atualizarStatusTicket(Integer id, StatusSuporte novoStatus) {
-        SuporteFormulario ticket = suporteRepository.findById(id)
+        SuporteFormulario ticket = suporteRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Ticket não encontrado com ID: " + id));
 
         validarTicketAberto(ticket);
-        if (ticket.getStatus() == novoStatus) {
-            throw new BusinessException("O ticket já está com este status.");
-        }
+        if (ticket.getStatus() == StatusSuporte.ABERTO)
+            throw new BusinessException("O ticket só passa para em andamento após a primeira resposta.");
+        if (ticket.getStatus() != StatusSuporte.EM_ANDAMENTO ||
+                (novoStatus != StatusSuporte.RESOLVIDO && novoStatus != StatusSuporte.FECHADO))
+            throw new BusinessException("Um ticket em andamento só pode ser marcado como resolvido ou fechado.");
         ticket.setStatus(novoStatus);
-        if (novoStatus == StatusSuporte.RESOLVIDO || novoStatus == StatusSuporte.FECHADO) {
-            ticket.setDataResolucao(LocalDateTime.now());
-        }
+        ticket.setDataResolucao(LocalDateTime.now());
 
         SuporteFormulario ticketAtualizado = suporteRepository.save(ticket);
 

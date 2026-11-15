@@ -46,7 +46,10 @@ public class ChatService {
 
     @Transactional
     public ChatResponse enviarMensagem(ChatRequest request, Pessoa remetente) {
-        validarAcesso(request.contexto(), request.referenciaId(), remetente);
+        var conversa = carregarContexto(request.contexto(), request.referenciaId(), true);
+        validarProprietario(conversa.dono(), remetente);
+        if (conversa.encerrada())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta conversa foi encerrada e está disponível apenas para consulta.");
 
         MensagemChat mensagem = MensagemChat.builder()
                 .conteudo(request.conteudo())
@@ -56,11 +59,7 @@ public class ChatService {
                 .build();
 
         MensagemChat saved = mensagemChatRepository.save(mensagem);
-        Pessoa dono = switch (request.contexto()) {
-            case SUPORTE -> suporteFormularioRepository.findById(request.referenciaId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversa nao encontrada")).getAutor();
-            case DOACAO -> doacaoRepository.findById(request.referenciaId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversa nao encontrada")).getDoador();
-            case SOLICITACAO -> solicitacaoHardwareRepository.findById(request.referenciaId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversa nao encontrada")).getAluno();
-        };
+        Pessoa dono = conversa.dono();
         if (remetente.isAdmin()) {
             if (!dono.getId().equals(remetente.getId())) {
                 notificarMensagem(dono, request);
@@ -86,6 +85,43 @@ public class ChatService {
         List<MensagemChat> mensagens = mensagemChatRepository
                 .findByContextoAndReferenciaIdOrderByDataEnvioAsc(contexto, referenciaId);
         return mensagens.stream().map(this::toResponse).toList();
+    }
+
+    public record ConversaResponse(boolean podeEnviar, List<ChatResponse> mensagens) {}
+    private record ContextoConversa(Pessoa dono, boolean encerrada) {}
+
+    @Transactional(readOnly = true)
+    public ConversaResponse buscarConversa(ContextoChat contexto, Integer id, Pessoa usuario) {
+        ContextoConversa conversa = carregarContexto(contexto, id, false);
+        validarProprietario(conversa.dono(), usuario);
+        List<ChatResponse> mensagens = mensagemChatRepository.findByContextoAndReferenciaIdOrderByDataEnvioAsc(contexto, id)
+                .stream().map(this::toResponse).toList();
+        return new ConversaResponse(!conversa.encerrada(), mensagens);
+    }
+
+    private void validarProprietario(Pessoa dono, Pessoa usuario) {
+        if (!usuario.isAdmin() && !dono.getId().equals(usuario.getId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a este chat");
+    }
+
+    private ContextoConversa carregarContexto(ContextoChat contexto, Integer id, boolean bloquear) {
+        return switch (contexto) {
+            case SUPORTE -> {
+                SuporteFormulario ticket = (bloquear ? suporteFormularioRepository.findByIdForUpdate(id) : suporteFormularioRepository.findById(id))
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket não encontrado"));
+                yield new ContextoConversa(ticket.getAutor(), java.util.Set.of(com.doatec.model.suporte.StatusSuporte.RESOLVIDO, com.doatec.model.suporte.StatusSuporte.FECHADO).contains(ticket.getStatus()));
+            }
+            case DOACAO -> {
+                Doacao doacao = (bloquear ? doacaoRepository.findByIdForUpdate(id) : doacaoRepository.findById(id))
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Doação não encontrada"));
+                yield new ContextoConversa(doacao.getDoador(), java.util.Set.of(com.doatec.model.donation.StatusDoacao.RECUSADO, com.doatec.model.donation.StatusDoacao.CANCELADA, com.doatec.model.donation.StatusDoacao.ENTREGUE, com.doatec.model.donation.StatusDoacao.RETIRADO, com.doatec.model.donation.StatusDoacao.APROVADO).contains(doacao.getStatus()));
+            }
+            case SOLICITACAO -> {
+                SolicitacaoHardware solicitacao = (bloquear ? solicitacaoHardwareRepository.findByIdForUpdate(id) : solicitacaoHardwareRepository.findById(id))
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
+                yield new ContextoConversa(solicitacao.getAluno(), java.util.Set.of(com.doatec.model.solicitacao.StatusSolicitacao.REJEITADA, com.doatec.model.solicitacao.StatusSolicitacao.CANCELADA, com.doatec.model.solicitacao.StatusSolicitacao.CONCLUIDA).contains(solicitacao.getStatus()));
+            }
+        };
     }
 
     private void validarAcesso(ContextoChat contexto, Integer referenciaId, Pessoa usuario) {

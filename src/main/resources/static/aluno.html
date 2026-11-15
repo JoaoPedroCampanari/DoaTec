@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=solicitacao-ordem1">
     <link rel="icon" href="doatec_logo.png" type="image/png">
     <script src="js/vendor/imask.min.js"></script>
 </head>
@@ -92,15 +92,16 @@
                 <fieldset>
                     <legend>Detalhes da Necessidade</legend>
                     <div class="form-group">
+                        <label for="preferenciaEquipamento">Qual equipamento você precisa?</label>
+                        <input type="text" id="preferenciaEquipamento" maxlength="100" placeholder="Ex.: notebook, teclado, mouse..." aria-describedby="equipamentoFeedback equipamentoLimite" required>
+                        <div><small id="equipamentoFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Informe qual equipamento você precisa para enviar sua solicitação.</small></div>
+                        <small id="equipamentoLimite" class="form-text limit-feedback" aria-live="polite" hidden>Limite de 100 caracteres atingido.</small>
+                    </div>
+                    <div class="form-group">
                         <label for="justificativa">Justificativa da Necessidade</label>
                         <textarea id="justificativa" rows="6" aria-describedby="justificativaOrientacao justificativaFeedback" required></textarea>
                         <small id="justificativaOrientacao">Explique por que você precisa do equipamento e como ele ajudará nos seus estudos.</small>
                         <div><small id="justificativaFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Conte por que você precisa do equipamento para enviar sua solicitação.</small></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="preferenciaEquipamento">Qual equipamento você precisa?</label>
-                        <input type="text" id="preferenciaEquipamento" placeholder="Ex.: notebook, teclado, mouse..." aria-describedby="equipamentoFeedback" required>
-                        <div><small id="equipamentoFeedback" style="color: var(--color-danger-text);" aria-live="polite" hidden>Informe qual equipamento você precisa para enviar sua solicitação.</small></div>
                     </div>
                     <div class="form-group">
                         <label for="comprovante">Comprovante de renda (opcional)</label>
@@ -164,6 +165,12 @@
                 if (form.querySelector(':invalid') === input) input.focus();
             });
             atualizarValidade();
+        });
+
+        const campoEquipamento = document.getElementById('preferenciaEquipamento');
+        const limiteEquipamento = document.getElementById('equipamentoLimite');
+        campoEquipamento.addEventListener('input', () => {
+            limiteEquipamento.hidden = campoEquipamento.value.length < 100;
         });
 
         // Verifica sessão com backend

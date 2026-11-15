@@ -32,6 +32,8 @@ class SolicitacaoServiceTest {
     @Mock
     private SolicitacaoHardwareRepository solicitacaoHardwareRepository;
 
+    @Mock private ArquivoService arquivoService;
+
     @InjectMocks
     private SolicitacaoService service;
 
@@ -109,6 +111,22 @@ class SolicitacaoServiceTest {
 
             assertTrue(ex.getMessage().contains("RA99999"));
             assertTrue(ex.getMessage().contains("não é válido"));
+        }
+
+        @Test
+        void salvaNomeOriginalDoComprovante() {
+            String url = "/uploads/12345678-1234-1234-1234-123456789abc.pdf";
+            SolicitacaoRequest dto = SolicitacaoRequest.builder().nome("Aluno Teste").email("aluno@teste.com")
+                    .ra("RA12345").justificativa("Preciso").preferenciaEquipamento("Notebook")
+                    .urlComprovante(url).build();
+            when(pessoaRepository.findByEmail("aluno@teste.com")).thenReturn(Optional.of(aluno));
+            when(arquivoService.nomeOriginal(url)).thenReturn("renda.pdf");
+            when(solicitacaoHardwareRepository.save(any(SolicitacaoHardware.class))).thenAnswer(inv -> inv.getArgument(0));
+            SolicitacaoHardware resultado = service.criarSolicitacao("aluno@teste.com", dto);
+            assertEquals("renda.pdf", resultado.getNomeComprovante());
+            assertEquals("renda.pdf", com.doatec.dto.response.SolicitacaoResponse.from(resultado).nomeComprovante());
+            assertEquals(aluno.getDocumento(), com.doatec.dto.response.SolicitacaoResponse.from(resultado).alunoRa());
+            verify(arquivoService).validarVinculo(url, aluno);
         }
 
         @Test

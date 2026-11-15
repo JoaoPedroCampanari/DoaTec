@@ -18,8 +18,7 @@ const AdminPanel = {
         solicitacoes: '',
         inventario: {
             status: '',
-            conservacao: '',
-            origem: ''
+            conservacao: ''
         },
         suporte: '',
         usuariosTipo: '',
@@ -39,11 +38,6 @@ const AdminPanel = {
             setTimeout(() => window.location.href = '/index.html', 1500);
             return;
         }
-
-        // Mostrar botão "Criar Admin" apenas para SUPER_ADMIN
-        const isSuperAdmin = Auth.getUserRole() === 'SUPER_ADMIN';
-        const btnCriarAdmin = document.getElementById('btn-criar-admin');
-        if (btnCriarAdmin) btnCriarAdmin.style.display = isSuperAdmin ? '' : 'none';
 
         this.setupTabs();
         this.setupFilters();
@@ -82,6 +76,7 @@ const AdminPanel = {
             { value: 'EM_ANALISE', label: 'Em análise' },
             { value: 'AGUARDANDO_ENTREGA', label: 'Aguardando entrega' },
             { value: 'ENTREGUE', label: 'Entregue' },
+            { value: 'CANCELADA', label: 'Cancelada' },
             { value: 'COLETA_AGENDADA', label: 'Coleta agendada' },
             { value: 'RETIRADO', label: 'Retirado' },
             { value: 'RECUSADO', label: 'Recusado' }
@@ -93,10 +88,11 @@ const AdminPanel = {
             { value: 'EM_ANALISE', label: 'Em Análise' },
             { value: 'APROVADA', label: 'Aprovada' },
             { value: 'REJEITADA', label: 'Rejeitada' },
+            { value: 'CANCELADA', label: 'Cancelada' },
             { value: 'CONCLUIDA', label: 'Concluída' }
         ], 'solicitacoes');
 
-        // Inventário — filtros múltiplos (status + conservação + origem)
+        // Inventário — filtros múltiplos (status + conservação)
         this.createInventarioFilters();
 
         // Suporte
@@ -214,7 +210,7 @@ const AdminPanel = {
     },
 
     /**
-     * Renderiza 3 grupos de filtros no inventário (status + conservação + origem).
+     * Renderiza os filtros de status e conservação no inventário.
      * Cada grupo é independente; combinados via AND no backend.
      */
     createInventarioFilters() {
@@ -242,15 +238,6 @@ const AdminPanel = {
                     { value: 'EXCELENTE', label: 'Excelente' },
                     { value: 'BOM', label: 'Bom' },
                     { value: 'REGULAR', label: 'Regular' }
-                ]
-            },
-            {
-                key: 'origem',
-                label: 'Origem:',
-                options: [
-                    { value: '', label: 'Todos' },
-                    { value: 'COM_VINCULO', label: 'Com vínculo' },
-                    { value: 'SEM_VINCULO', label: 'Sem vínculo (avulso)' }
                 ]
             }
         ];
@@ -349,13 +336,15 @@ const AdminPanel = {
                 <td>${formatDate(d.dataDoacao)}</td>
                 <td>${this.createPillHtml(d.status === 'APROVADO' ? 'Situação anterior' : d.status)}</td>
                 <td>${escapeHtml(d.descricaoGeral || '-')}</td>
-                <td class="admin-actions">
+                <td class="admin-actions admin-doacao-acoes-cell">
+                  <div class="admin-doacao-acoes">
                     ${proximosStatus.length ?
                         `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusDoacao(${d.id}, this.value); this.value = ''">
                             <option value="">Alterar status</option>
-                            ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
-                        </select>` : '<span style="color:var(--neutral-400)">-</span>'}
+                            ${proximosStatus.map(st => `<option value="${st}">${st === 'CANCELADA' ? 'Cancelar doação' : this.formatStatusLabel(st)}</option>`).join('')}
+                        </select>` : '<select class="admin-status-select" disabled aria-label="Alterar status indisponível" title="Não há alterações de status disponíveis"><option>Alterar status</option></select>'}
                     <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('DOACAO', ${d.id}, 'Doação #${d.id}')">Conversar</button>
+                  </div>
                 </td>
             </tr>
             <tr class="admin-detail-row" id="detail-doacao-${d.id}" style="display:none">
@@ -393,8 +382,8 @@ const AdminPanel = {
         const inicial = modalidade === 'PONTO_DE_COLETA' ? 'AGUARDANDO_ENTREGA' : modalidade === 'SOLICITAR_RETIRADA' ? 'COLETA_AGENDADA' : null;
         if (status === 'EM_ANALISE') return inicial ? [inicial, 'RECUSADO'] : ['RECUSADO'];
         if (status === 'APROVADO') return modalidade === 'PONTO_DE_COLETA' ? ['AGUARDANDO_ENTREGA', 'ENTREGUE'] : modalidade === 'SOLICITAR_RETIRADA' ? ['COLETA_AGENDADA', 'RETIRADO'] : [];
-        if (status === 'AGUARDANDO_ENTREGA' && modalidade === 'PONTO_DE_COLETA') return ['ENTREGUE'];
-        if (status === 'COLETA_AGENDADA' && modalidade === 'SOLICITAR_RETIRADA') return ['RETIRADO'];
+        if (status === 'AGUARDANDO_ENTREGA' && modalidade === 'PONTO_DE_COLETA') return ['ENTREGUE', 'CANCELADA'];
+        if (status === 'COLETA_AGENDADA' && modalidade === 'SOLICITAR_RETIRADA') return ['RETIRADO', 'CANCELADA'];
         return [];
     },
 
@@ -404,6 +393,7 @@ const AdminPanel = {
             'APROVADO': 'Aprovar',
             'AGUARDANDO_ENTREGA': 'Aguardando entrega',
             'ENTREGUE': 'Entregue',
+            'CANCELADA': 'Cancelada',
             'COLETA_AGENDADA': 'Coleta agendada',
             'RETIRADO': 'Retirado',
             'RECUSADO': 'Recusar',
@@ -424,7 +414,7 @@ const AdminPanel = {
         const isRejeicao = novoStatus === 'RECUSADO';
         this.openAvaliacaoModal(
             'Alterar Status — Doação #' + id,
-            isRejeicao ? 'Informe o motivo da recusa. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração para ' + this.formatStatusLabel(novoStatus) + '.',
+            isRejeicao ? 'Informe o motivo da recusa. Esta ação é permanente e não poderá ser desfeita.' : novoStatus === 'CANCELADA' ? 'Confirme o cancelamento da doação. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a alteração para ' + this.formatStatusLabel(novoStatus) + '.',
             isRejeicao,
             async (observacao) => {
                 try {
@@ -442,7 +432,8 @@ const AdminPanel = {
                 } catch (e) {
                     showToast(e.message || 'Erro ao alterar status', 'error');
                 }
-            }
+            },
+            isRejeicao || novoStatus === 'CANCELADA'
         );
     },
 
@@ -478,17 +469,19 @@ const AdminPanel = {
             return `
             <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'solicitacao', ${s.id}, event)">
                 <td>#${s.id}</td>
-                <td>${escapeHtml(s.alunoNome || '-')}<br><small>${escapeHtml(s.alunoEmail || '')}</small></td>
+                <td>${escapeHtml(s.alunoNome || '-')}<br><small>RA: ${escapeHtml(s.alunoRa || '-')}</small></td>
                 <td>${formatDate(s.dataSolicitacao)}</td>
                 <td>${escapeHtml(s.preferenciaEquipamento || '-')}</td>
                 <td>${this.createPillHtml(s.status)}</td>
-                <td class="admin-actions">
+                <td class="admin-actions admin-solicitacao-acoes-cell">
+                    <div class="admin-solicitacao-acoes">
                     ${proximosStatus.length ?
                         `<select class="admin-status-select" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onchange="event.stopPropagation(); AdminPanel.alterarStatusSolicitacao(${s.id}, this.value); this.value = ''">
                             <option value="">Alterar status</option>
-                            ${proximosStatus.map(st => `<option value="${st}">${this.formatStatusLabel(st)}</option>`).join('')}
-                        </select>` : ''}
+                            ${proximosStatus.map(st => `<option value="${st}">${st === 'CANCELADA' ? 'Cancelar solicitação' : this.formatStatusLabel(st)}</option>`).join('')}
+                        </select>` : '<select class="admin-status-select" disabled aria-label="Alterar status indisponível" title="Não há alterações de status disponíveis"><option>Alterar status</option></select>'}
                     <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SOLICITACAO', ${s.id}, 'Pedido #${s.id}')">Conversar</button>
+                    </div>
                 </td>
             </tr>
             <tr class="admin-detail-row" id="detail-solicitacao-${s.id}" style="display:none">
@@ -517,9 +510,10 @@ const AdminPanel = {
                         })() : ''}
                         ${s.observacaoAdmin ? `<p><strong>Obs. Admin:</strong> ${escapeHtml(s.observacaoAdmin)}</p>` : ''}
                         ${s.adminAvaliadorNome ? `<p><strong>Avaliador:</strong> ${escapeHtml(s.adminAvaliadorNome)}${s.dataAvaliacao ? ' — ' + formatDate(s.dataAvaliacao) : ''}</p>` : ''}
+                        <div id="equipamentos-solicitacao-${s.id}" data-status="${escapeHtml(s.status)}" style="margin-top:12px"><strong>Equipamentos vinculados:</strong> Carregando...</div>
                         ${s.status === 'APROVADA' ? `
                             <div style="margin-top:12px">
-                                <button class="btn-approve" onclick="AdminPanel.openAtribuirModal(${s.id}, '${escapeHtml(s.preferenciaEquipamento || '')}')">Atribuir equipamento</button>
+                                <button class="btn-approve" onclick="AdminPanel.openAtribuirModal(${s.id}, false)">Atribuir equipamentos</button>
                             </div>` : ''}
                     </div>
                 </td>
@@ -527,10 +521,52 @@ const AdminPanel = {
         `;}).join('');
     },
 
+    async carregarEquipamentosSolicitacao(id) {
+        const container = document.getElementById('equipamentos-solicitacao-' + id);
+        if (!container) return;
+        try {
+            const response = await apiFetch('/api/admin/solicitacoes/' + id + '/equipamentos');
+            const equipamentos = await response.json();
+            if (!container.isConnected) return;
+            container.innerHTML = '<strong>Equipamentos vinculados:</strong>';
+            if (!equipamentos.length) { container.append(' Nenhum.'); return; }
+            equipamentos.forEach(eq => {
+                const linha = document.createElement('div');
+                linha.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;overflow-wrap:anywhere';
+                const texto = document.createElement('span');
+                texto.textContent = '#' + eq.id + ' — ' + (eq.tipo || '-') + ' · ' + (eq.descricao || '-') + ' (' + translateStatus(eq.status) + ')';
+                linha.append(texto);
+                if (container.dataset.status === 'APROVADA' && eq.status === 'RESERVADO') {
+                    const botao = document.createElement('button');
+                    botao.type = 'button'; botao.className = 'btn-reject'; botao.textContent = 'Remover';
+                    botao.onclick = () => this.removerEquipamentoSolicitacao(id, eq.id, equipamentos.length === 1);
+                    linha.append(botao);
+                }
+                container.append(linha);
+            });
+        } catch (err) {
+            if (container.isConnected) container.innerHTML = '<strong>Equipamentos vinculados:</strong> Não foi possível carregar.';
+        }
+    },
+
+    async removerEquipamentoSolicitacao(id, equipamentoId, ultimo) {
+        const mensagem = ultimo
+            ? 'Ao remover o último equipamento, ele voltará ao inventário e a solicitação voltará para análise. Deseja continuar?'
+            : 'Remover este equipamento da solicitação e devolvê-lo ao inventário?';
+        if (!await DoaTec.confirmarAcao({ titulo: 'Remover equipamento?', mensagem, botao: 'Remover equipamento' })) return;
+        try {
+            await apiFetch('/api/admin/solicitacoes/' + id + '/equipamentos/' + equipamentoId + '?ultimoEsperado=' + ultimo, { method: 'DELETE' });
+            showToast('Equipamento removido da solicitação.', 'success');
+            if (ultimo) this.loadSolicitacoes();
+            else this.carregarEquipamentosSolicitacao(id);
+            this.loadInventario();
+        } catch (err) { showToast(err.message || 'Não foi possível remover o equipamento.', 'error'); this.carregarEquipamentosSolicitacao(id); }
+    },
+
     getProximosStatusSolicitacao(status) {
         const transicoes = {
             'EM_ANALISE': ['APROVADA', 'REJEITADA'],
-            'APROVADA': ['CONCLUIDA'],
+            'APROVADA': ['CONCLUIDA', 'CANCELADA'],
             'REJEITADA': []
         };
         return transicoes[status] || [];
@@ -538,9 +574,13 @@ const AdminPanel = {
 
     alterarStatusSolicitacao(id, novoStatus) {
         if (!novoStatus) return;
+        if (novoStatus === 'APROVADA') {
+            this.openAtribuirModal(id, true);
+            return;
+        }
         this.openAvaliacaoModal(
             'Alterar Status — Solicitação #' + id,
-            novoStatus === 'REJEITADA' ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : 'Confirme a aprovação. Esta ação é permanente e não poderá ser desfeita.',
+            novoStatus === 'REJEITADA' ? 'Informe o motivo da rejeição. Esta ação é permanente e não poderá ser desfeita.' : novoStatus === 'CANCELADA' ? 'Confirme o cancelamento. Equipamentos reservados serão liberados; se já houver entrega, o cancelamento não será permitido.' : novoStatus === 'CONCLUIDA' ? 'Ao concluir, todos os equipamentos reservados desta solicitação serão marcados como entregues no inventário.' : 'Confirme a alteração para ' + this.formatStatusLabel(novoStatus) + '.',
             novoStatus === 'REJEITADA',
             async (observacao) => {
                 try {
@@ -555,47 +595,58 @@ const AdminPanel = {
                     }
                     showToast('Status atualizado para ' + this.formatStatusLabel(novoStatus), 'success');
                     this.loadSolicitacoes();
+                    if (novoStatus === 'CONCLUIDA' || novoStatus === 'CANCELADA') this.loadInventario();
                 } catch (e) {
                     showToast(e.message || 'Erro ao alterar status', 'error');
                 }
-            }
+            },
+            novoStatus === 'REJEITADA' || novoStatus === 'CANCELADA'
         );
     },
 
-    /**
-     * Abre o modal de atribuição. O admin pesquisa por tipo/descrição
-     * e clica no botão "Atribuir" do equipamento desejado.
-     * @param solicitacaoId id da solicitação aprovada
-     * @param preferencia preferência do aluno (preenche o campo de busca)
-     */
-    openAtribuirModal(solicitacaoId, preferencia) {
+    // A aprovação e a atribuição de múltiplos equipamentos usam o mesmo seletor.
+    openAtribuirModal(solicitacaoId, aprovar = false) {
         this._atribuirSolicitacaoId = solicitacaoId;
+        this._aprovarAoVincular = aprovar;
+        this._equipamentosSelecionados = new Set();
+        this._atribuicaoEmAndamento = false;
+        this._buscaAtribuicaoSeq = (this._buscaAtribuicaoSeq || 0) + 1;
         document.getElementById('modal-atribuir-solicitacao').textContent = '#' + solicitacaoId;
-        const buscaEl = document.getElementById('modal-atribuir-busca');
-        buscaEl.value = preferencia || '';
+        document.getElementById('modal-atribuir-titulo').textContent = aprovar ? 'Aprovar solicitação' : 'Atribuir equipamentos à solicitação';
+        const busca = document.getElementById('modal-atribuir-busca');
+        busca.value = '';
+        document.getElementById('modal-atribuir-observacao').value = '';
+        document.getElementById('modal-atribuir-observacao-grupo').hidden = !aprovar;
+        const confirmar = document.getElementById('modal-atribuir-confirmar');
+        confirmar.textContent = aprovar ? 'Aprovar e vincular' : 'Atribuir selecionados';
+        confirmar.onclick = () => this.confirmarAtribuicao();
+        this.atualizarSelecaoEquipamentos();
         this.openModal('modal-atribuir');
-        // dispara busca inicial usando a preferência como ponto de partida
         this.buscarEquipamentosParaAtribuir();
-        // wire da busca on-input (com debounce simples)
         clearTimeout(this._atribuirDebounce);
-        buscaEl.oninput = () => {
+        busca.oninput = () => {
             clearTimeout(this._atribuirDebounce);
             this._atribuirDebounce = setTimeout(() => this.buscarEquipamentosParaAtribuir(), 250);
         };
     },
 
-    async buscarEquipamentosParaAtribuir() {
-        const q = document.getElementById('modal-atribuir-busca').value.trim();
-        const params = new URLSearchParams({ status: 'DISPONIVEL' });
-        if (q) params.set('q', q);
+    atualizarSelecaoEquipamentos() {
+        const quantidade = this._equipamentosSelecionados.size;
+        document.getElementById('modal-atribuir-contagem').textContent = quantidade === 0 ? 'Nenhum equipamento selecionado.' : quantidade + (quantidade === 1 ? ' equipamento selecionado.' : ' equipamentos selecionados.');
+        document.getElementById('modal-atribuir-confirmar').disabled = quantidade === 0 || this._atribuicaoEmAndamento;
+    },
 
+    async buscarEquipamentosParaAtribuir() {
+        const sequencia = ++this._buscaAtribuicaoSeq;
+        const q = document.getElementById('modal-atribuir-busca').value.trim();
+        const params = new URLSearchParams();
+        if (q) params.set('preferencia', q);
         const tbody = document.getElementById('modal-atribuir-tbody');
         tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Buscando...</td></tr>';
-
         try {
-            const res = await apiFetch('/api/admin/inventario?' + params);
-            if (!res.ok) throw new Error();
+            const res = await apiFetch('/api/admin/inventario/disponiveis?' + params);
             const equipamentos = await res.json();
+            if (sequencia !== this._buscaAtribuicaoSeq) return;
             if (!equipamentos.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Nenhum equipamento disponível encontrado.</td></tr>';
                 return;
@@ -606,31 +657,44 @@ const AdminPanel = {
                     <td>${escapeHtml(eq.tipo)}</td>
                     <td>${escapeHtml(eq.descricao)}</td>
                     <td>${escapeHtml(eq.estadoConservacao || '-')}</td>
-                    <td><button class="btn-approve" onclick="AdminPanel.confirmarAtribuicao(${eq.id})">Atribuir</button></td>
+                    <td><input type="checkbox" value="${Number(eq.id)}" aria-label="Selecionar equipamento ${Number(eq.id)}" ${this._equipamentosSelecionados.has(Number(eq.id)) ? 'checked' : ''}></td>
                 </tr>`).join('');
-        } catch {
-            tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Erro ao carregar equipamentos.</td></tr>';
+            tbody.querySelectorAll('input[type="checkbox"]').forEach(campo => {
+                campo.addEventListener('change', () => {
+                    const id = Number(campo.value);
+                    if (campo.checked) this._equipamentosSelecionados.add(id);
+                    else this._equipamentosSelecionados.delete(id);
+                    this.atualizarSelecaoEquipamentos();
+                });
+            });
+        } catch (e) {
+            if (sequencia === this._buscaAtribuicaoSeq) tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Erro ao carregar equipamentos.</td></tr>';
         }
     },
 
-    async confirmarAtribuicao(equipamentoId) {
-        const solicitacaoId = this._atribuirSolicitacaoId;
-        if (!solicitacaoId) return;
+    async confirmarAtribuicao() {
+        const id = this._atribuirSolicitacaoId;
+        const equipamentos = Array.from(this._equipamentosSelecionados);
+        if (!id || !equipamentos.length || this._atribuicaoEmAndamento) return;
+        this._atribuicaoEmAndamento = true;
+        const aprovar = this._aprovarAoVincular;
+        const botao = document.getElementById('modal-atribuir-confirmar');
+        botao.disabled = true;
         try {
-            const res = await apiFetch('/api/admin/inventario/' + equipamentoId + '/atribuir/' + solicitacaoId, {
-                method: 'POST'
+            const acao = aprovar ? 'aprovar-com-equipamentos' : 'atribuir-equipamentos';
+            await apiFetch('/api/admin/solicitacoes/' + id + '/' + acao, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ equipamentos, observacao: document.getElementById('modal-atribuir-observacao').value.trim() })
             });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.message || 'Erro ao atribuir equipamento');
-            }
-            showToast('Equipamento atribuído com sucesso', 'success');
+            showToast(aprovar ? 'Solicitação aprovada e equipamentos vinculados.' : 'Equipamentos vinculados.', 'success');
             this.closeModal('modal-atribuir');
             this.loadSolicitacoes();
             this.loadInventario();
         } catch (e) {
-            showToast(e.message || 'Erro ao atribuir equipamento', 'error');
-        }
+            showToast(e.message || 'Não foi possível vincular os equipamentos.', 'error');
+            this._equipamentosSelecionados.clear();
+            this.buscarEquipamentosParaAtribuir();
+        } finally { this._atribuicaoEmAndamento = false; this.atualizarSelecaoEquipamentos(); }
     },
 
     // ==================== INVENTÁRIO ====================
@@ -639,7 +703,6 @@ const AdminPanel = {
         const params = new URLSearchParams();
         if (f.status) params.set('status', f.status);
         if (f.conservacao) params.set('conservacao', f.conservacao);
-        if (f.origem) params.set('origem', f.origem);
 
         try {
             const res = await apiFetch('/api/admin/inventario?' + params);
@@ -655,7 +718,7 @@ const AdminPanel = {
     renderInventario(equipamentos) {
         const tbody = document.getElementById('inventario-tbody');
         if (!equipamentos.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">Nenhum equipamento encontrado</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">Nenhum equipamento encontrado</td></tr>';
             return;
         }
 
@@ -668,18 +731,17 @@ const AdminPanel = {
             const reservado = eq.status === 'RESERVADO';
             const acoes = [];
             if (reservado) acoes.push(`<button class="btn-approve" onclick="AdminPanel.marcarEntregue(${eq.id})">Marcar Entregue</button>`);
-            acoes.push(`<button class="btn-action" onclick="AdminPanel.openEquipamentoModal(${eq.id})">Editar</button>`);
+            acoes.push(eq.status === 'ENTREGUE' ? `<button class="btn-action" disabled title="Equipamentos entregues não podem ser editados">Editar</button>` : `<button class="btn-action" onclick="AdminPanel.openEquipamentoModal(${eq.id})">Editar</button>`);
             if (disponivel) acoes.push(`<button class="btn-reject" onclick="AdminPanel.deleteEquipamento(${eq.id})">Excluir</button>`);
             return `
             <tr>
                 <td>#${eq.id}</td>
+                <td>${this.createConservacaoPillHtml(eq.estadoConservacao)}</td>
                 <td>${escapeHtml(eq.tipo || '-')}</td>
                 <td>${escapeHtml(eq.descricao || '-')}</td>
-                <td>${this.createPillHtml(eq.estadoConservacao)}</td>
                 <td>${this.createPillHtml(eq.status)}</td>
-                <td>${escapeHtml(eq.doadorOrigem || '-')}${eq.doacaoId ? ' <small style="opacity:.7">(doação #' + eq.doacaoId + ')</small>' : ''}</td>
-                <td>${eq.alunoDestinatarioId ? 'Aluno #' + eq.alunoDestinatarioId : '-'}</td>
-                <td class="admin-actions">${acoes.join(' ')}</td>
+                <td>${eq.alunoDestinatarioId ? `Solicitação #${escapeHtml(String(eq.solicitacaoDestinoId || '-'))}<br>${escapeHtml(eq.alunoDestinatarioNome || '-')}<br><small>RA: ${escapeHtml(eq.alunoDestinatarioDocumento || '-')}</small>` : '-'}</td>
+                <td class="admin-inventario-acoes-cell"><div class="admin-inventario-acoes">${acoes.join(' ')}</div></td>
             </tr>`;
         }).join('');
     },
@@ -709,15 +771,10 @@ const AdminPanel = {
             isEdit ? `Editar equipamento #${id}` : 'Adicionar equipamento';
         document.getElementById('modal-equipamento-id').value = isEdit ? id : '';
 
-        // Carrega doações para o combobox (sempre refresca)
-        await this.loadDoacoesParaSelect();
-
         // Pré-preenche se editando
         const tipoEl = document.getElementById('modal-equipamento-tipo');
         const descEl = document.getElementById('modal-equipamento-descricao');
         const consEl = document.getElementById('modal-equipamento-conservacao');
-        const doacaoEl = document.getElementById('modal-equipamento-doacao');
-        const lockHint = document.getElementById('modal-equipamento-doacao-lock');
 
         if (isEdit && eq) {
             tipoEl.value = eq.tipo || '';
@@ -725,18 +782,10 @@ const AdminPanel = {
             // estadoConservacao no response vem como descrição ("Bom estado..."), não como enum.
             // Re-deriva do select pelo valor que o servidor exibirá.
             consEl.value = this._inferConservacaoEnum(eq.estadoConservacao) || 'BOM';
-            doacaoEl.value = eq.doacaoId != null ? String(eq.doacaoId) : '';
-
-            const disponivel = eq.status === 'DISPONIVEL';
-            doacaoEl.disabled = !disponivel;
-            lockHint.style.display = disponivel ? 'none' : 'block';
         } else {
             tipoEl.value = '';
             descEl.value = '';
             consEl.value = 'BOM';
-            doacaoEl.value = '';
-            doacaoEl.disabled = false;
-            lockHint.style.display = 'none';
         }
 
         this.openModal('modal-equipamento');
@@ -762,29 +811,6 @@ const AdminPanel = {
         return null;
     },
 
-    /**
-     * Busca doações (limitadas) para popular o combobox do modal.
-     * Reusa o endpoint paginado de admin/doacoes; pega primeira página com size=50.
-     */
-    async loadDoacoesParaSelect() {
-        const select = document.getElementById('modal-equipamento-doacao');
-        try {
-            const res = await apiFetch('/api/admin/doacoes?page=0&size=50');
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const doacoes = data.content || data;
-            // Preserva opção "Nenhuma" e adiciona as doações
-            select.innerHTML = '<option value="">— Nenhuma (peça avulsa) —</option>'
-                + doacoes.map(d => {
-                    const nome = d.doadorNome || 'Doador #' + (d.doadorId || '?');
-                    return `<option value="${d.id}">#${d.id} — ${escapeHtml(nome)} — ${escapeHtml(d.dataDoacao || '')}</option>`;
-                }).join('');
-        } catch {
-            select.innerHTML = '<option value="">— Nenhuma (peça avulsa) —</option>';
-            showToast('Não foi possível carregar doações para vínculo', 'warning');
-        }
-    },
-
     async submitEquipamento() {
         const id = document.getElementById('modal-equipamento-id').value;
         const isEdit = !!id;
@@ -793,14 +819,13 @@ const AdminPanel = {
             tipo: document.getElementById('modal-equipamento-tipo').value.trim(),
             descricao: document.getElementById('modal-equipamento-descricao').value.trim(),
             estadoConservacao: document.getElementById('modal-equipamento-conservacao').value,
-            doacaoId: document.getElementById('modal-equipamento-doacao').value || null
+            preservarDoacao: isEdit
         };
 
         if (!body.tipo || !body.descricao) {
             showToast('Tipo e descrição são obrigatórios', 'warning');
             return;
         }
-        if (body.doacaoId !== null) body.doacaoId = parseInt(body.doacaoId, 10);
 
         const url = isEdit ? '/api/admin/inventario/' + id : '/api/admin/inventario';
         const method = isEdit ? 'PUT' : 'POST';
@@ -870,14 +895,14 @@ const AdminPanel = {
             <tr class="admin-row-clickable" onclick="AdminPanel.toggleDetail(this, 'suporte', ${t.id}, event)">
                 <td>#${t.id}</td>
                 <td>${escapeHtml(t.autorNome || '-')}<br><small>${escapeHtml(t.autorEmail || '')}</small></td>
-                <td>${escapeHtml(t.assunto || '-')}</td>
+                <td>${escapeHtml(this.formatarAssuntoSuporte(t.assunto))}</td>
                 <td>${this.createPillHtml(t.status)}</td>
                 <td>${t.dataCriacao ? new Date(t.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
-                <td class="admin-actions">
-                    ${!['RESOLVIDO', 'FECHADO'].includes(t.status) ? `<button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>
-                    <button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id}, '${t.status}')">Status</button>` : '<span>Finalizado</span>'}
+                <td class="admin-suporte-acoes-cell"><div class="admin-suporte-acoes">
+                    ${!['RESOLVIDO', 'FECHADO'].includes(t.status) && !(t.resposta && t.resposta.trim()) ? `<button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>` : '<button class="btn-action" disabled title="Ticket já respondido ou finalizado. Utilize o chat para continuar o atendimento.">Responder</button>'}
+                    ${t.status === 'EM_ANDAMENTO' ? `<button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id})">Status</button>` : `<button class="btn-action" disabled title="${t.status === 'ABERTO' ? 'Responda ao ticket para iniciá-lo.' : 'Ticket finalizado.'}">Status</button>`}
                     <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
-                </td>
+                </div></td>
             </tr>
             <tr class="admin-detail-row" id="detail-suporte-${t.id}" style="display:none">
                 <td colspan="6">
@@ -889,6 +914,12 @@ const AdminPanel = {
                 </td>
             </tr>
         `).join('');
+    },
+
+    formatarAssuntoSuporte(assunto) {
+        const original = (assunto || '').trim();
+        const nomes = { duvida: 'Dúvida geral', doacao: 'Problema com doação', solicitacao: 'Problema com solicitação', conta: 'Problema com minha conta', sugestao: 'Sugestão', outro: 'Outro' };
+        return nomes[original.toLowerCase()] || (original ? original.charAt(0).toLocaleUpperCase('pt-BR') + original.slice(1) : 'Sem assunto');
     },
 
     responderSuporte(id) {
@@ -907,7 +938,7 @@ const AdminPanel = {
                 warning.style.display = 'block';
                 return;
             }
-            if (!window.confirm('Enviar a resposta marcará o ticket como resolvido permanentemente. Deseja continuar?')) return;
+            if (!await DoaTec.confirmarAcao({ titulo: 'Enviar resposta?', mensagem: 'Ao enviar a resposta, o ticket ficará em andamento.', botao: 'Enviar resposta' })) return;
             try {
                 const res = await apiFetch('/api/admin/suporte/' + id + '/responder', {
                     method: 'PUT',
@@ -926,10 +957,9 @@ const AdminPanel = {
         this.openModal('modal-resposta');
     },
 
-    alterarStatusSuporte(id, statusAtual) {
+    alterarStatusSuporte(id) {
         const select = document.getElementById('modal-status-suporte-select');
-        select.value = statusAtual === 'ABERTO' ? 'EM_ANDAMENTO' : 'FECHADO';
-        for (const option of select.options) option.disabled = option.value === statusAtual;
+        select.value = 'RESOLVIDO';
         const confirmBtn = document.getElementById('modal-status-suporte-confirm');
         const newBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
@@ -937,7 +967,7 @@ const AdminPanel = {
         newBtn.addEventListener('click', async () => {
             try {
                 const status = select.value;
-                if (['RESOLVIDO', 'FECHADO'].includes(status) && !window.confirm('Este status é permanente e não poderá ser alterado. Deseja continuar?')) return;
+                if (['RESOLVIDO', 'FECHADO'].includes(status) && !await DoaTec.confirmarAcao({ titulo: 'Alterar status do ticket?', mensagem: 'Este status é permanente e não poderá ser alterado.', botao: 'Confirmar' })) return;
                 const res = await apiFetch('/api/admin/suporte/' + id + '/status?status=' + status, {
                     method: 'PUT'
                 });
@@ -945,8 +975,8 @@ const AdminPanel = {
                 showToast('Status alterado', 'success');
                 this.closeModal('modal-status-suporte');
                 this.loadSuporte();
-            } catch {
-                showToast('Erro ao alterar status', 'error');
+            } catch (err) {
+                showToast(err.message || 'Erro ao alterar status', 'error');
             }
         });
 
@@ -1116,7 +1146,7 @@ const AdminPanel = {
     },
 
     // ==================== MODALS ====================
-    openAvaliacaoModal(title, description, isReject, callback) {
+    openAvaliacaoModal(title, description, isReject, callback, acaoCritica = isReject) {
         document.getElementById('modal-avaliacao-title').textContent = title;
         document.getElementById('modal-avaliacao-description').textContent = description;
         const obs = document.getElementById('modal-avaliacao-observacao');
@@ -1128,7 +1158,7 @@ const AdminPanel = {
         const confirmBtn = document.getElementById('modal-avaliacao-confirm');
         // Remove botão antigo e cria novo para limpar listeners
         const newBtn = document.createElement('button');
-        newBtn.className = isReject ? 'btn-reject' : 'btn-approve';
+        newBtn.className = acaoCritica ? 'btn-reject' : 'btn-approve';
         newBtn.id = 'modal-avaliacao-confirm';
         newBtn.textContent = isReject ? 'Rejeitar' : 'Confirmar';
         confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
@@ -1216,12 +1246,6 @@ const AdminPanel = {
 
     // ==================== SUPER ADMIN — CRIAR/GERENCIAR ADMINS ====================
     setupSuperAdminEvents() {
-        // Botão criar admin
-        const btnCriar = document.getElementById('btn-criar-admin');
-        if (btnCriar) {
-            btnCriar.addEventListener('click', () => this.openModal('modal-criar-admin'));
-        }
-
         // Máscara dinâmica no campo documento do modal criar admin
         const tipoSelect = document.getElementById('criar-admin-tipo');
         const docInput = document.getElementById('criar-admin-documento');
@@ -1365,6 +1389,7 @@ const AdminPanel = {
         } else {
             detailRow.style.display = 'table-row';
             row.classList.add('admin-row-active');
+            if (type === 'solicitacao') this.carregarEquipamentosSolicitacao(id);
         }
     },
 
@@ -1378,6 +1403,12 @@ const AdminPanel = {
             html += '</tr>';
         }
         return html;
+    },
+
+    createConservacaoPillHtml(conservacao) {
+        const classes = { NOVO: 'conservacao-novo', EXCELENTE: 'conservacao-excelente', BOM: 'conservacao-bom', REGULAR: 'conservacao-regular' };
+        const classe = classes[conservacao] || 'status-pendente';
+        return `<span class="status-pill ${classe}">${escapeHtml(translateStatus(conservacao))}</span>`;
     },
 
     createPillHtml(status) {

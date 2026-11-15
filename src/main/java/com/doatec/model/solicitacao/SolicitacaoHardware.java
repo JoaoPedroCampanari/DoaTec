@@ -45,6 +45,9 @@ public class SolicitacaoHardware {
     @Column(length = 500)
     private String urlComprovante;
 
+    @Column(length = 200)
+    private String nomeComprovante;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_avaliador_id")
     private Pessoa adminAvaliador;

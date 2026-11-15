@@ -26,16 +26,33 @@ public record NotificacaoResponse(
         return from(notificacao, null);
     }
 
-    public static NotificacaoResponse from(Notificacao notificacao, Integer numeroDoacao) {
+    public static NotificacaoResponse from(Notificacao notificacao, Integer numero) {
         String mensagem = notificacao.getMensagem();
         if (mensagem != null && "DOACAO".equalsIgnoreCase(notificacao.getEntidadeRelacionadaTipo())
                 && notificacao.getEntidadeRelacionadaId() != null) {
             Integer id = notificacao.getEntidadeRelacionadaId();
-            String referencia = numeroDoacao == null
+            String referencia = numero == null
                     ? "doação (ID " + id + ")"
-                    : "doação N° " + numeroDoacao + " (ID " + id + ")";
+                    : "doação N° " + numero + " (ID " + id + ")";
             mensagem = mensagem.replaceFirst("(?i)doa(?:ç|c)(?:ã|a)o\\s*#\\s*" + id + "(?!\\d)",
                     java.util.regex.Matcher.quoteReplacement(referencia));
+        }
+        if (mensagem != null && notificacao.getEntidadeRelacionadaId() != null) {
+            Integer id = notificacao.getEntidadeRelacionadaId();
+            String tipo = notificacao.getEntidadeRelacionadaTipo();
+            String rotulo = null;
+            String padrao = null;
+            if ("SOLICITACAO".equalsIgnoreCase(tipo)) {
+                rotulo = "solicitação";
+                padrao = "(?i)(?:solicita(?:ç|c)(?:ã|a)o|pedido)\\s*#\\s*";
+            } else if ("SUPORTE".equalsIgnoreCase(tipo)) {
+                rotulo = "ticket";
+                padrao = "(?i)(?:suporte|ticket|chamado)\\s*#\\s*";
+            }
+            if (rotulo != null) {
+                String referencia = numero == null ? rotulo + " (ID " + id + ")" : rotulo + " N° " + numero + " (ID " + id + ")";
+                mensagem = mensagem.replaceFirst(padrao + id + "(?!\\d)", java.util.regex.Matcher.quoteReplacement(referencia));
+            }
         }
         return NotificacaoResponse.builder()
                 .id(notificacao.getId())

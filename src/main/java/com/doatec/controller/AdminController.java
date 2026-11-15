@@ -118,6 +118,32 @@ public class AdminController {
         return ResponseEntity.ok(solicitacao);
     }
 
+    @PostMapping("/solicitacoes/{id}/aprovar-com-equipamentos")
+    public ResponseEntity<SolicitacaoResponse> aprovarComEquipamentos(@PathVariable Integer id,
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody com.doatec.dto.request.VinculoEquipamentosRequest request) {
+        return ResponseEntity.ok(adminService.aprovarComEquipamentos(id, getAuthenticatedAdminId(userDetails), request.equipamentos(), request.observacao()));
+    }
+
+    @PostMapping("/solicitacoes/{id}/atribuir-equipamentos")
+    public ResponseEntity<SolicitacaoResponse> atribuirEquipamentos(@PathVariable Integer id,
+            @AuthenticationPrincipal User userDetails,
+            @Valid @RequestBody com.doatec.dto.request.VinculoEquipamentosRequest request) {
+        return ResponseEntity.ok(adminService.adicionarEquipamentos(id, getAuthenticatedAdminId(userDetails), request.equipamentos(), request.observacao()));
+    }
+
+    @GetMapping("/solicitacoes/{id}/equipamentos")
+    public ResponseEntity<List<com.doatec.dto.response.EquipamentoResponse>> listarEquipamentosSolicitacao(@PathVariable Integer id) {
+        return ResponseEntity.ok(adminService.listarEquipamentosSolicitacao(id));
+    }
+
+    @DeleteMapping("/solicitacoes/{id}/equipamentos/{equipamentoId}")
+    public ResponseEntity<Void> removerEquipamentoSolicitacao(@PathVariable Integer id, @PathVariable Integer equipamentoId,
+            @AuthenticationPrincipal User userDetails, @RequestParam boolean ultimoEsperado) {
+        adminService.removerEquipamentoSolicitacao(id, equipamentoId, getAuthenticatedAdminId(userDetails), ultimoEsperado);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/solicitacoes/{id}/rejeitar")
     public ResponseEntity<SolicitacaoResponse> rejeitarSolicitacao(
             @PathVariable Integer id,

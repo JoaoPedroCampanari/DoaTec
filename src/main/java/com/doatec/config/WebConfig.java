@@ -29,8 +29,6 @@ public class WebConfig implements WebMvcConfigurer {
             }
         }
 
-        // Mapeia URL /uploads/** para a pasta física
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + uploadDir + "/");
+
     }
 }

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class SolicitacaoService {
+    @Autowired private ArquivoService arquivoService;
 
     @Autowired
     private PessoaRepository pessoaRepository;
@@ -44,6 +45,8 @@ public class SolicitacaoService {
                     org.springframework.http.HttpStatus.FORBIDDEN, "Superadministradores não podem realizar esta ação.");
         }
 
+        arquivoService.validarVinculo(dto.urlComprovante(), pessoaEncontrada);
+
         if (!(pessoaEncontrada instanceof Aluno)) {
             throw new BusinessException("Apenas alunos podem fazer solicitações de hardware.");
         }
@@ -53,6 +56,7 @@ public class SolicitacaoService {
         }
 
         SolicitacaoHardware novaSolicitacao = SolicitacaoMapper.toSolicitacao(dto, pessoaEncontrada);
+        novaSolicitacao.setNomeComprovante(arquivoService.nomeOriginal(dto.urlComprovante()));
 
         return solicitacaoHardwareRepository.save(novaSolicitacao);
     }

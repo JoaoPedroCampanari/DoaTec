@@ -157,7 +157,9 @@ class InventarioServiceTest {
                     .status(StatusEquipamento.RESERVADO)
                     .build();
 
-            when(equipamentoRepository.findById(2)).thenReturn(Optional.of(reservado));
+            solicitacao.setStatus(StatusSolicitacao.APROVADA);
+            when(solicitacaoRepository.findByIdForUpdate(100)).thenReturn(Optional.of(solicitacao));
+            when(equipamentoRepository.findByIdForUpdate(2)).thenReturn(Optional.of(reservado));
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> service.atribuirEquipamento(2, 100, 1));
@@ -178,8 +180,8 @@ class InventarioServiceTest {
                     .status(StatusSolicitacao.APROVADA)
                     .build();
 
-            when(equipamentoRepository.findById(1)).thenReturn(Optional.of(equipamentoDisponivel));
-            when(solicitacaoRepository.findById(101)).thenReturn(Optional.of(solicitacaoInvalida));
+            when(equipamentoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(equipamentoDisponivel));
+            when(solicitacaoRepository.findByIdForUpdate(101)).thenReturn(Optional.of(solicitacaoInvalida));
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> service.atribuirEquipamento(1, 101, 1));
@@ -188,10 +190,19 @@ class InventarioServiceTest {
         }
 
         @Test
+        void naoAtribuiEquipamentoASolicitacaoCancelada() {
+            solicitacao.setStatus(StatusSolicitacao.CANCELADA);
+            when(solicitacaoRepository.findByIdForUpdate(100)).thenReturn(Optional.of(solicitacao));
+            assertThrows(BusinessException.class, () -> service.atribuirEquipamento(1, 100, 1));
+            verify(equipamentoRepository, never()).save(any());
+        }
+
+        @Test
         @DisplayName("Sucesso: equipamento vira RESERVADO com dados da solicitacao")
         void sucesso_equipamentoReservado() {
-            when(equipamentoRepository.findById(1)).thenReturn(Optional.of(equipamentoDisponivel));
-            when(solicitacaoRepository.findById(100)).thenReturn(Optional.of(solicitacao));
+            solicitacao.setStatus(StatusSolicitacao.APROVADA);
+            when(equipamentoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(equipamentoDisponivel));
+            when(solicitacaoRepository.findByIdForUpdate(100)).thenReturn(Optional.of(solicitacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(equipamentoRepository.save(any(Equipamento.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
@@ -201,6 +212,8 @@ class InventarioServiceTest {
             assertEquals(StatusEquipamento.RESERVADO.name(), response.status());
             assertEquals(100, response.solicitacaoDestinoId());
             assertEquals(aluno.getId(), response.alunoDestinatarioId());
+            assertEquals("Aluno Teste", response.alunoDestinatarioNome());
+            assertEquals("2024001", response.alunoDestinatarioDocumento());
             verify(equipamentoRepository).save(any(Equipamento.class));
         }
     }
@@ -216,12 +229,21 @@ class InventarioServiceTest {
         @Test
         @DisplayName("Equipamento nao RESERVADO lanca excecao")
         void equipamentoNaoReservado_lancaExcecao() {
-            when(equipamentoRepository.findById(1)).thenReturn(Optional.of(equipamentoDisponivel));
+            when(equipamentoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(equipamentoDisponivel));
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> service.marcarComoEntregue(1, 1));
 
             assertTrue(ex.getMessage().contains("reservados"));
+        }
+
+        @Test
+        void naoEntregaEquipamentoDeSolicitacaoCancelada() {
+            solicitacao.setStatus(StatusSolicitacao.CANCELADA);
+            when(equipamentoRepository.findSolicitacaoIdByEquipamentoId(2)).thenReturn(Optional.of(100));
+            when(solicitacaoRepository.findByIdForUpdate(100)).thenReturn(Optional.of(solicitacao));
+            assertThrows(BusinessException.class, () -> service.marcarComoEntregue(2, 1));
+            verify(equipamentoRepository, never()).save(any());
         }
 
         @Test
@@ -235,7 +257,7 @@ class InventarioServiceTest {
                     .status(StatusEquipamento.RESERVADO)
                     .build();
 
-            when(equipamentoRepository.findById(2)).thenReturn(Optional.of(reservado));
+            when(equipamentoRepository.findByIdForUpdate(2)).thenReturn(Optional.of(reservado));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(equipamentoRepository.save(any(Equipamento.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
@@ -355,6 +377,35 @@ class InventarioServiceTest {
     class AtualizarEquipamentoTests {
 
         @Test
+        void preservaVinculoExistenteQuandoEditaSemCampoDeDoacao() {
+            var doacao = Doacao.builder().id(5).build();
+            equipamentoDisponivel.setDoacao(doacao);
+            var req = EquipamentoRequest.builder().tipo("HD").descricao("Atualizado")
+                    .estadoConservacao(EstadoConservacao.BOM).preservarDoacao(true).build();
+            when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
+            when(equipamentoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(equipamentoDisponivel));
+            when(equipamentoRepository.save(any(Equipamento.class))).thenAnswer(inv -> inv.getArgument(0));
+            var resposta = service.atualizarEquipamento(1, req, 1);
+            assertEquals(5, resposta.doacaoId());
+            assertSame(doacao, equipamentoDisponivel.getDoacao());
+            verify(doacaoRepository, never()).findById(any());
+        }
+
+        @Test
+        void equipamentoEntregueNaoPodeSerEditado() {
+            Equipamento entregue = Equipamento.builder().id(2).tipo("SSD").descricao("Original")
+                    .status(StatusEquipamento.ENTREGUE).estadoConservacao(EstadoConservacao.BOM).build();
+            EquipamentoRequest req = EquipamentoRequest.builder().tipo("SSD").descricao("Alterada")
+                    .estadoConservacao(EstadoConservacao.BOM).build();
+            when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
+            when(equipamentoRepository.findByIdForUpdate(2)).thenReturn(Optional.of(entregue));
+            BusinessException erro = assertThrows(BusinessException.class, () -> service.atualizarEquipamento(2, req, 1));
+            assertTrue(erro.getMessage().contains("entregues"));
+            assertEquals("Original", entregue.getDescricao());
+            verify(equipamentoRepository, never()).save(any());
+        }
+
+        @Test
         @DisplayName("PUT em equipamento DISPONIVEL altera campos e troca vinculo")
         void disponivel_alteraTudo() {
             Doacao doacao = Doacao.builder().id(5).build();
@@ -365,7 +416,7 @@ class InventarioServiceTest {
                     .build();
 
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(equipamentoRepository.findById(1)).thenReturn(Optional.of(equipamentoDisponivel));
+            when(equipamentoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(equipamentoDisponivel));
             when(doacaoRepository.findById(5)).thenReturn(Optional.of(doacao));
             when(equipamentoRepository.save(any(Equipamento.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
@@ -393,7 +444,7 @@ class InventarioServiceTest {
                     .build();
 
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(equipamentoRepository.findById(2)).thenReturn(Optional.of(reservado));
+            when(equipamentoRepository.findByIdForUpdate(2)).thenReturn(Optional.of(reservado));
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> service.atualizarEquipamento(2, req, 1));
@@ -419,7 +470,7 @@ class InventarioServiceTest {
                     .build();
 
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(equipamentoRepository.findById(3)).thenReturn(Optional.of(reservado));
+            when(equipamentoRepository.findByIdForUpdate(3)).thenReturn(Optional.of(reservado));
             when(equipamentoRepository.save(any(Equipamento.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
 

@@ -21,6 +21,8 @@ public record EquipamentoResponse(
     Integer doacaoId,
     Integer solicitacaoDestinoId,
     Integer alunoDestinatarioId,
+    String alunoDestinatarioNome,
+    String alunoDestinatarioDocumento,
     LocalDateTime dataEntradaInventario,
     LocalDateTime dataAtribuicao
 ) {
@@ -51,6 +53,10 @@ public record EquipamentoResponse(
                         ? equipamento.getSolicitacaoDestino().getId() : null)
                 .alunoDestinatarioId(equipamento.getAlunoDestinatario() != null
                         ? equipamento.getAlunoDestinatario().getId() : null)
+                .alunoDestinatarioNome(equipamento.getAlunoDestinatario() != null
+                        ? equipamento.getAlunoDestinatario().getNome() : null)
+                .alunoDestinatarioDocumento(equipamento.getAlunoDestinatario() != null
+                        ? equipamento.getAlunoDestinatario().getDocumento() : null)
                 .dataEntradaInventario(equipamento.getDataEntradaInventario())
                 .dataAtribuicao(equipamento.getDataAtribuicao())
                 .build();

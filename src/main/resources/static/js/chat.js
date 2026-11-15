@@ -9,6 +9,7 @@ const ChatWidget = {
     referenciaId: null,
     currentUserId: null,
     isOpen: false,
+    podeEnviar: false,
 
     async open(contexto, referenciaId, titulo, mostrarId = false) {
         if (this.isOpen) this.close();
@@ -16,6 +17,7 @@ const ChatWidget = {
         this.contexto = contexto;
         this.referenciaId = referenciaId;
         this.isOpen = true;
+        this.podeEnviar = false;
 
         // Pega ID do usuário logado
         const user = await Auth.checkSession();
@@ -38,9 +40,10 @@ const ChatWidget = {
                     <button class="chat-close">&times;</button>
                 </div>
                 <div class="chat-messages"></div>
+                <div class="chat-closed-notice" style="display:none;padding:14px;text-align:center;color:var(--neutral-600);border-top:1px solid var(--neutral-200);font-size:0.85rem;">Conversa encerrada. O histórico está disponível para consulta.</div>
                 <div class="chat-input-area">
-                    <input type="text" placeholder="Digite sua mensagem..." maxlength="500">
-                    <button>Enviar</button>
+                    <input type="text" placeholder="Digite sua mensagem..." maxlength="500" disabled>
+                    <button disabled>Enviar</button>
                 </div>
             </div>
         `;
@@ -69,7 +72,7 @@ const ChatWidget = {
         this.pollingId = setInterval(() => this.loadMessages(), 5000);
 
         // Foca no input
-        input.focus();
+        if (this.podeEnviar && this.isOpen) input.focus();
     },
 
     close() {
@@ -82,6 +85,7 @@ const ChatWidget = {
             this.overlay = null;
         }
         this.isOpen = false;
+        this.podeEnviar = false;
         this.contexto = null;
         this.referenciaId = null;
     },
@@ -90,17 +94,18 @@ const ChatWidget = {
         if (!this.isOpen || !this.overlay) return;
 
         try {
-            const response = await apiFetch(`/api/chat/historico/${this.contexto}/${this.referenciaId}`);
-            if (!response.ok) {
-                container.innerHTML = `
-                    <div style="text-align:center; color:var(--color-danger, #dc3545); font-size:0.85rem; padding:40px 0;">
-                        Não foi possível carregar as mensagens.
-                    </div>
-                `;
-                return;
-            }
-
-            const mensagens = await response.json();
+            const overlay = this.overlay;
+            const response = await apiFetch(`/api/chat/conversa/${this.contexto}/${this.referenciaId}`);
+            const conversa = await response.json();
+            if (!this.isOpen || this.overlay !== overlay) return;
+            const mensagens = conversa.mensagens;
+            this.podeEnviar = conversa.podeEnviar === true;
+            const area = overlay.querySelector('.chat-input-area');
+            const aviso = overlay.querySelector('.chat-closed-notice');
+            area.style.display = this.podeEnviar ? '' : 'none';
+            aviso.style.display = this.podeEnviar ? 'none' : 'block';
+            area.querySelector('input').disabled = !this.podeEnviar;
+            area.querySelector('button').disabled = !this.podeEnviar;
             const container = this.overlay.querySelector('.chat-messages');
             if (!container) return;
 
@@ -111,7 +116,7 @@ const ChatWidget = {
             if (!mensagens || mensagens.length === 0) {
                 container.innerHTML = `
                     <div style="text-align:center; color:var(--neutral-400); font-size:0.85rem; padding:40px 0;">
-                        Nenhuma mensagem ainda.<br>Envie a primeira!
+                        Nenhuma mensagem ainda.${this.podeEnviar ? '<br>Envie a primeira!' : ''}
                     </div>
                 `;
                 return;
@@ -136,12 +141,21 @@ const ChatWidget = {
             container.scrollTop = container.scrollHeight;
         } catch (e) {
             console.error('Chat: erro ao carregar mensagens', e);
+            if (this.isOpen && this.overlay) {
+                this.podeEnviar = false;
+                const input = this.overlay.querySelector('.chat-input-area input');
+                const botao = this.overlay.querySelector('.chat-input-area button');
+                if (input) input.disabled = true;
+                if (botao) botao.disabled = true;
+                const container = this.overlay.querySelector('.chat-messages');
+                if (container && !container.children.length) container.textContent = 'Não foi possível carregar a conversa. Tentaremos novamente.';
+            }
         }
     },
 
     async sendMessage() {
         const input = this.overlay?.querySelector('.chat-input-area input');
-        if (!input) return;
+        if (!input || !this.podeEnviar) return;
 
         const conteudo = input.value.trim();
         if (!conteudo) return;
@@ -184,7 +198,8 @@ const ChatWidget = {
         } catch (e) {
             console.error('Chat: erro ao enviar', e);
             optimisticBubble.innerHTML = `<div>${DoaTec.escapeHtml(conteudo)}</div><div class="chat-bubble-time" style="color:#ef4444;">Falha ao enviar</div>`;
-            DoaTec.showToast('Erro ao enviar mensagem', 'error');
+            DoaTec.showToast(e.message || 'Erro ao enviar mensagem', 'error');
+            await this.loadMessages();
         }
     }
 };

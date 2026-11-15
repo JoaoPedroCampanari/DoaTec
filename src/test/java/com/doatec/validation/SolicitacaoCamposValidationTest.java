@@ -18,4 +18,12 @@ class SolicitacaoCamposValidationTest {
             }
         }
     }
+    @Test
+    void limitaPreferenciaA100Caracteres() {
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            var validator = factory.getValidator();
+            assertTrue(validator.validateValue(SolicitacaoRequest.class, "preferenciaEquipamento", "a".repeat(100)).isEmpty());
+            assertFalse(validator.validateValue(SolicitacaoRequest.class, "preferenciaEquipamento", "a".repeat(101)).isEmpty());
+        }
+    }
 }

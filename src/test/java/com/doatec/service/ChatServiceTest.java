@@ -100,7 +100,7 @@ class ChatServiceTest {
             ticket.setId(1);
             ticket.setAutor(autor);
 
-            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
             when(pessoaRepository.findByRole(Role.ADMIN)).thenReturn(List.of(admin));
             admin.setAtivo(true);
 
@@ -135,7 +135,7 @@ class ChatServiceTest {
             ticket.setId(1);
             ticket.setAutor(autor);
 
-            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
 
             ChatRequest request = new ChatRequest("Mensagem indevida", 1, ContextoChat.SUPORTE);
 
@@ -152,7 +152,7 @@ class ChatServiceTest {
         void enviarMensagem_admin_qualquerContexto_sucesso() {
             SuporteFormulario ticket = new SuporteFormulario();
             ticket.setAutor(autor);
-            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
             MensagemChat salva = MensagemChat.builder()
                     .id(200)
                     .conteudo("Resposta do admin")
@@ -174,9 +174,45 @@ class ChatServiceTest {
             assertEquals("Admin Teste", response.remetenteNome());
             assertEquals("ADMIN", response.remetenteRole());
             // Admin bypasses validation — no repository lookup needed
-            verify(suporteFormularioRepository, never()).findById(any());
+            verify(suporteFormularioRepository).findByIdForUpdate(1);
             verify(mensagemChatRepository).save(any(MensagemChat.class));
         }
+    }
+
+    @Test
+    void conversasEncerradasPermitemHistoricoMasBloqueiamEnvioParaUsuarioEAdmin() {
+        var doacao = Doacao.builder().id(5).doador(doador).status(com.doatec.model.donation.StatusDoacao.ENTREGUE).build();
+        var solicitacao = com.doatec.model.solicitacao.SolicitacaoHardware.builder().id(6).aluno(autor).status(com.doatec.model.solicitacao.StatusSolicitacao.CONCLUIDA).build();
+        var ticket = SuporteFormulario.builder().id(7).autor(autor).status(com.doatec.model.suporte.StatusSuporte.RESOLVIDO).build();
+        when(doacaoRepository.findByIdForUpdate(5)).thenReturn(Optional.of(doacao));
+        when(solicitacaoRepository.findByIdForUpdate(6)).thenReturn(Optional.of(solicitacao));
+        when(suporteFormularioRepository.findByIdForUpdate(7)).thenReturn(Optional.of(ticket));
+        when(doacaoRepository.findById(5)).thenReturn(Optional.of(doacao));
+        when(solicitacaoRepository.findById(6)).thenReturn(Optional.of(solicitacao));
+        when(suporteFormularioRepository.findById(7)).thenReturn(Optional.of(ticket));
+        for (var contexto : ContextoChat.values()) {
+            int id = contexto == ContextoChat.DOACAO ? 5 : contexto == ContextoChat.SOLICITACAO ? 6 : 7;
+            Pessoa dono = contexto == ContextoChat.DOACAO ? doador : autor;
+            for (Pessoa usuario : List.of(dono, admin)) {
+                var conversa = service.buscarConversa(contexto, id, usuario);
+                assertFalse(conversa.podeEnviar());
+                assertNotNull(conversa.mensagens());
+                var erro = assertThrows(ResponseStatusException.class, () -> service.enviarMensagem(new ChatRequest("Teste", id, contexto), usuario));
+                assertEquals(409, erro.getStatusCode().value());
+            }
+        }
+        verify(mensagemChatRepository, never()).save(any());
+        verifyNoInteractions(notificacaoService);
+    }
+
+    @Test
+    void estadoRefleteMudancaDoTicketESoPermiteDonoOuAdmin() {
+        var ticket = SuporteFormulario.builder().id(7).autor(autor).status(com.doatec.model.suporte.StatusSuporte.EM_ANDAMENTO).build();
+        when(suporteFormularioRepository.findById(7)).thenReturn(Optional.of(ticket));
+        assertTrue(service.buscarConversa(ContextoChat.SUPORTE, 7, autor).podeEnviar());
+        assertThrows(ResponseStatusException.class, () -> service.buscarConversa(ContextoChat.SUPORTE, 7, outroUsuario));
+        ticket.setStatus(com.doatec.model.suporte.StatusSuporte.FECHADO);
+        assertFalse(service.buscarConversa(ContextoChat.SUPORTE, 7, admin).podeEnviar());
     }
 
     // =====================================================================

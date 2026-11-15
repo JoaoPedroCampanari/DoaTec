@@ -12,6 +12,10 @@ import com.doatec.model.donation.Doacao;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.NotificacaoRepository;
 import com.doatec.repository.PessoaRepository;
+import com.doatec.repository.SolicitacaoHardwareRepository;
+import com.doatec.repository.SuporteFormularioRepository;
+import com.doatec.model.solicitacao.SolicitacaoHardware;
+import com.doatec.model.suporte.SuporteFormulario;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,6 +39,12 @@ class NotificacaoServiceTest {
 
     @Mock
     private DoacaoRepository doacaoRepository;
+
+    @Mock
+    private SolicitacaoHardwareRepository solicitacaoRepository;
+
+    @Mock
+    private SuporteFormularioRepository suporteRepository;
 
     @InjectMocks
     private NotificacaoService service;
@@ -63,6 +73,26 @@ class NotificacaoServiceTest {
         var aposExclusao = service.listarPorDestinatario(1);
         assertEquals("Sua doação N° 1 (ID 18) foi aprovada.", aposExclusao.get(0).mensagem());
         assertEquals("Nova mensagem em doação (ID 5)", aposExclusao.get(1).mensagem());
+    }
+
+    @Test
+    void notificacoesDePedidosETicketsUsamNumeracaoDoProprietario() {
+        var pedidoRecente = SolicitacaoHardware.builder().id(4).build();
+        var pedidoAntigo = SolicitacaoHardware.builder().id(1).build();
+        var ticket = SuporteFormulario.builder().id(4).build();
+        var status = Notificacao.builder().mensagem("Sua solicitação #4 foi aprovada.").entidadeRelacionadaTipo("SOLICITACAO").entidadeRelacionadaId(4).build();
+        var chatPedido = Notificacao.builder().mensagem("Nova mensagem em solicitacao #1").entidadeRelacionadaTipo("SOLICITACAO").entidadeRelacionadaId(1).build();
+        var chatTicket = Notificacao.builder().mensagem("Nova mensagem em suporte #4").entidadeRelacionadaTipo("SUPORTE").entidadeRelacionadaId(4).build();
+        var excluido = Notificacao.builder().mensagem("Nova mensagem em suporte #9").entidadeRelacionadaTipo("SUPORTE").entidadeRelacionadaId(9).build();
+        when(notificacaoRepository.findByDestinatarioIdOrderByDataCriacaoDesc(1)).thenReturn(List.of(status, chatPedido, chatTicket, excluido));
+        when(solicitacaoRepository.findByAlunoIdOrderByDataSolicitacaoDescIdDesc(1)).thenReturn(List.of(pedidoRecente, pedidoAntigo));
+        when(suporteRepository.findByAutorIdOrderByDataCriacaoDescIdDesc(1)).thenReturn(List.of(ticket));
+        var result = service.listarPorDestinatario(1);
+        assertEquals("Sua solicitação N° 2 (ID 4) foi aprovada.", result.get(0).mensagem());
+        assertEquals("Nova mensagem em solicitação N° 1 (ID 1)", result.get(1).mensagem());
+        assertEquals("Nova mensagem em ticket N° 1 (ID 4)", result.get(2).mensagem());
+        assertEquals("Nova mensagem em ticket (ID 9)", result.get(3).mensagem());
+        assertEquals("Sua solicitação #4 foi aprovada.", status.getMensagem());
     }
 
     // =====================================================================

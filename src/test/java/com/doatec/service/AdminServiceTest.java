@@ -50,6 +50,9 @@ class AdminServiceTest {
     private SolicitacaoHardwareRepository solicitacaoRepository;
 
     @Mock
+    private EquipamentoRepository equipamentoRepository;
+
+    @Mock
     private SuporteFormularioRepository suporteFormularioRepository;
 
     @Mock
@@ -221,7 +224,7 @@ class AdminServiceTest {
                     .resposta("Resposta do admin")
                     .build();
 
-            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
             when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
             when(suporteFormularioRepository.save(any(SuporteFormulario.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
@@ -229,14 +232,27 @@ class AdminServiceTest {
 
             SuporteResponse result = service.responderTicket(1, admin.getId(), request);
 
-            assertEquals(StatusSuporte.RESOLVIDO.name(), result.status());
+            assertEquals(StatusSuporte.EM_ANDAMENTO.name(), result.status());
             assertEquals("Resposta do admin", ticket.getResposta());
             assertEquals(admin, ticket.getAdminResponsavel());
-            assertNotNull(ticket.getDataResolucao());
+            assertNull(ticket.getDataResolucao());
             verify(emailService).enviarSuporteResposta(
                     eq("autor@teste.com"), eq("Autor Teste"),
                     eq("Problema no sistema"), eq("Resposta do admin"));
             verify(logAcaoRepository).save(any());
+        }
+
+        @Test
+        void naoPermiteSegundaRespostaFormal() {
+            SuporteFormulario ticket = SuporteFormulario.builder().id(1).status(StatusSuporte.EM_ANDAMENTO).resposta("Resposta original").build();
+            when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
+            when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
+            BusinessException erro = assertThrows(BusinessException.class, () -> service.responderTicket(1, admin.getId(),
+                    RespostaSuporteRequest.builder().resposta("Segunda resposta").build()));
+            assertTrue(erro.getMessage().contains("chat"));
+            assertEquals("Resposta original", ticket.getResposta());
+            verify(suporteFormularioRepository, never()).save(any());
+            verifyNoInteractions(emailService);
         }
 
         @Test
@@ -246,7 +262,7 @@ class AdminServiceTest {
                     .resposta("Resposta")
                     .build();
 
-            when(suporteFormularioRepository.findById(999)).thenReturn(Optional.empty());
+            when(suporteFormularioRepository.findByIdForUpdate(999)).thenReturn(Optional.empty());
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> service.responderTicket(999, admin.getId(), request));
@@ -257,37 +273,37 @@ class AdminServiceTest {
     }
 
     @Test
-    @DisplayName("atualizarStatusTicket atualiza o status corretamente")
-    void atualizarStatusTicket() {
-        Pessoa autor = new DoadorPF("111.222.333-44");
-        autor.setId(10);
-        autor.setNome("Autor Teste");
-        autor.setEmail("autor@teste.com");
+    void ticketAbertoNaoPodeMudarStatusManualmente() {
+        SuporteFormulario ticket = SuporteFormulario.builder().id(1).status(StatusSuporte.ABERTO).build();
+        when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
+        for (StatusSuporte destino : StatusSuporte.values()) {
+            assertThrows(BusinessException.class, () -> service.atualizarStatusTicket(1, destino));
+        }
+        assertEquals(StatusSuporte.ABERTO, ticket.getStatus());
+        verify(suporteFormularioRepository, never()).save(any());
+    }
 
-        SuporteFormulario ticket = SuporteFormulario.builder()
-                .id(1)
-                .autor(autor)
-                .assunto("Problema no sistema")
-                .mensagem("Descrição do problema")
-                .status(StatusSuporte.ABERTO)
-                .build();
-
-        when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
-        when(suporteFormularioRepository.save(any(SuporteFormulario.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
-
-        SuporteResponse result = service.atualizarStatusTicket(1, StatusSuporte.EM_ANDAMENTO);
-
-        assertEquals(StatusSuporte.EM_ANDAMENTO.name(), result.status());
-        assertEquals(StatusSuporte.EM_ANDAMENTO, ticket.getStatus());
-        verify(suporteFormularioRepository).save(ticket);
+    @Test
+    void ticketEmAndamentoApenasPodeSerResolvidoOuFechado() {
+        SuporteFormulario ticket = SuporteFormulario.builder().id(1).status(StatusSuporte.EM_ANDAMENTO).build();
+        when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
+        assertThrows(BusinessException.class, () -> service.atualizarStatusTicket(1, StatusSuporte.ABERTO));
+        assertThrows(BusinessException.class, () -> service.atualizarStatusTicket(1, StatusSuporte.EM_ANDAMENTO));
+        when(suporteFormularioRepository.save(any(SuporteFormulario.class))).thenAnswer(inv -> inv.getArgument(0));
+        for (StatusSuporte destino : List.of(StatusSuporte.RESOLVIDO, StatusSuporte.FECHADO)) {
+            ticket.setStatus(StatusSuporte.EM_ANDAMENTO);
+            ticket.setDataResolucao(null);
+            SuporteResponse resultado = service.atualizarStatusTicket(1, destino);
+            assertEquals(destino.name(), resultado.status());
+            assertNotNull(ticket.getDataResolucao());
+        }
     }
 
     @Test
     void ticketFinalizadoNaoPodeMudarStatusOuReceberOutraResposta() {
         for (StatusSuporte status : List.of(StatusSuporte.RESOLVIDO, StatusSuporte.FECHADO)) {
             SuporteFormulario ticket = SuporteFormulario.builder().id(1).status(status).build();
-            when(suporteFormularioRepository.findById(1)).thenReturn(Optional.of(ticket));
+            when(suporteFormularioRepository.findByIdForUpdate(1)).thenReturn(Optional.of(ticket));
             when(pessoaRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
             assertThrows(BusinessException.class, () -> service.atualizarStatusTicket(1, StatusSuporte.ABERTO));
             assertThrows(BusinessException.class, () -> service.responderTicket(1, admin.getId(),
@@ -415,28 +431,12 @@ class AdminServiceTest {
     class AprovarSolicitacaoTests {
 
         @Test
-        @DisplayName("aprova solicitação e notifica aluno")
-        void aprovaSolicitacaoENotifica() {
-            Aluno aluno = new Aluno();
-            aluno.setId(10);
-            aluno.setNome("Aluno Teste");
-
-            SolicitacaoHardware solicitacao = new SolicitacaoHardware();
-            solicitacao.setId(1);
-            solicitacao.setStatus(StatusSolicitacao.EM_ANALISE);
-            solicitacao.setAluno(aluno);
-
-            when(solicitacaoRepository.findById(1)).thenReturn(Optional.of(solicitacao));
-            when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
-            when(solicitacaoRepository.save(any(SolicitacaoHardware.class))).thenReturn(solicitacao);
-
-            SolicitacaoResponse result = service.aprovarSolicitacao(1, 1, null);
-
-            assertNotNull(result);
-            assertEquals(StatusSolicitacao.APROVADA, solicitacao.getStatus());
-            verify(notificacaoService).criarNotificacao(eq(10), any(), any(), any(), eq(1), eq("SOLICITACAO"));
-            verify(logAcaoRepository).save(any());
+        @DisplayName("não aprova solicitação sem selecionar equipamentos")
+        void exigeEquipamentos() {
+            assertThrows(com.doatec.exception.BusinessException.class, () -> service.aprovarSolicitacao(1, 1, null));
+            verify(solicitacaoRepository, never()).save(any());
         }
+
     }
 
     // ==================== REJEITAR SOLICITAÇÃO ====================
@@ -457,7 +457,7 @@ class AdminServiceTest {
             solicitacao.setStatus(StatusSolicitacao.EM_ANALISE);
             solicitacao.setAluno(aluno);
 
-            when(solicitacaoRepository.findById(1)).thenReturn(Optional.of(solicitacao));
+            when(solicitacaoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(solicitacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(solicitacaoRepository.save(any(SolicitacaoHardware.class))).thenReturn(solicitacao);
 
@@ -488,7 +488,7 @@ class AdminServiceTest {
             solicitacao.setStatus(StatusSolicitacao.APROVADA);
             solicitacao.setAluno(aluno);
 
-            when(solicitacaoRepository.findById(1)).thenReturn(Optional.of(solicitacao));
+            when(solicitacaoRepository.findByIdForUpdate(1)).thenReturn(Optional.of(solicitacao));
             when(pessoaRepository.findById(1)).thenReturn(Optional.of(admin));
             when(solicitacaoRepository.save(any(SolicitacaoHardware.class))).thenReturn(solicitacao);
 

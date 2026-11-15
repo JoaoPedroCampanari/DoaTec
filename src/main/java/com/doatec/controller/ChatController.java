@@ -45,6 +45,12 @@ public class ChatController {
         return ResponseEntity.ok(historico);
     }
 
+    @GetMapping("/conversa/{contexto}/{referenciaId}")
+    public ResponseEntity<ChatService.ConversaResponse> buscarConversa(@PathVariable ContextoChat contexto,
+            @PathVariable Integer referenciaId, @AuthenticationPrincipal User userDetails) {
+        return ResponseEntity.ok(chatService.buscarConversa(contexto, referenciaId, getAuthenticatedUser(userDetails)));
+    }
+
     private Pessoa getAuthenticatedUser(User userDetails) {
         return pessoaRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));

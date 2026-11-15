@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class DoacaoService {
+    @Autowired private ArquivoService arquivoService;
 
     @Autowired
     private DoacaoRepository doacaoRepository;
@@ -67,6 +68,8 @@ public class DoacaoService {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.FORBIDDEN, "Superadministradores não podem realizar esta ação.");
         }
+
+        arquivoService.validarVinculo(dto.urlFoto(), doador);
 
         // Validar tipo de documento contra tipo de pessoa usando instanceof
         if (dto.tipoDocumento().equalsIgnoreCase("cpf")) {

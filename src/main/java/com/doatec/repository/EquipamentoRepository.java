@@ -16,6 +16,17 @@ import java.util.List;
 @Repository
 public interface EquipamentoRepository extends JpaRepository<Equipamento, Integer> {
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM Equipamento e WHERE e.id = :id")
+    java.util.Optional<Equipamento> findByIdForUpdate(@Param("id") Integer id);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM Equipamento e WHERE e.solicitacaoDestino.id = :id ORDER BY e.id")
+    List<Equipamento> findBySolicitacaoDestinoIdForUpdate(@Param("id") Integer id);
+
+    @Query("SELECT e.solicitacaoDestino.id FROM Equipamento e WHERE e.id = :id")
+    java.util.Optional<Integer> findSolicitacaoIdByEquipamentoId(@Param("id") Integer id);
+
     List<Equipamento> findByStatus(StatusEquipamento status);
 
     List<Equipamento> findByStatusAndTipoContainingIgnoreCase(StatusEquipamento status, String tipo);
@@ -29,7 +40,7 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Intege
      * Busca equipamentos disponíveis que correspondam à preferência do aluno.
      * A busca é case-insensitive e parcial.
      */
-    @Query("SELECT e FROM Equipamento e WHERE e.status = 'DISPONIVEL' AND LOWER(e.tipo) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    @Query("SELECT e FROM Equipamento e WHERE e.status = 'DISPONIVEL' AND (LOWER(e.tipo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Equipamento> findDisponiveisByKeyword(@Param("keyword") String keyword);
 
     /**

@@ -8,6 +8,8 @@ import com.doatec.model.notification.TipoNotificacao;
 import com.doatec.repository.NotificacaoRepository;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.PessoaRepository;
+import com.doatec.repository.SolicitacaoHardwareRepository;
+import com.doatec.repository.SuporteFormularioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,15 +35,37 @@ public class NotificacaoService {
     @Autowired
     private DoacaoRepository doacaoRepository;
 
-    private List<NotificacaoResponse> respostasComNumeroDeDoacao(List<Notificacao> notificacoes, Integer destinatarioId) {
-        Map<Integer, Integer> numeros = new HashMap<>();
+    @Autowired
+    private SolicitacaoHardwareRepository solicitacaoRepository;
+
+    @Autowired
+    private SuporteFormularioRepository suporteRepository;
+
+    private List<NotificacaoResponse> respostasComNumero(List<Notificacao> notificacoes, Integer destinatarioId) {
+        Map<String, Map<Integer, Integer>> numerosPorTipo = new HashMap<>();
         if (notificacoes.stream().anyMatch(n -> "DOACAO".equalsIgnoreCase(n.getEntidadeRelacionadaTipo()))) {
-            var doacoes = doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(destinatarioId);
-            for (int i = 0; i < doacoes.size(); i++) numeros.put(doacoes.get(i).getId(), doacoes.size() - i);
+            var itens = doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(destinatarioId);
+            Map<Integer, Integer> numeros = new HashMap<>();
+            for (int i = 0; i < itens.size(); i++) numeros.put(itens.get(i).getId(), itens.size() - i);
+            numerosPorTipo.put("DOACAO", numeros);
         }
-        return notificacoes.stream()
-                .map(n -> NotificacaoResponse.from(n, numeros.get(n.getEntidadeRelacionadaId())))
-                .toList();
+        if (notificacoes.stream().anyMatch(n -> "SOLICITACAO".equalsIgnoreCase(n.getEntidadeRelacionadaTipo()))) {
+            var itens = solicitacaoRepository.findByAlunoIdOrderByDataSolicitacaoDescIdDesc(destinatarioId);
+            Map<Integer, Integer> numeros = new HashMap<>();
+            for (int i = 0; i < itens.size(); i++) numeros.put(itens.get(i).getId(), itens.size() - i);
+            numerosPorTipo.put("SOLICITACAO", numeros);
+        }
+        if (notificacoes.stream().anyMatch(n -> "SUPORTE".equalsIgnoreCase(n.getEntidadeRelacionadaTipo()))) {
+            var itens = suporteRepository.findByAutorIdOrderByDataCriacaoDescIdDesc(destinatarioId);
+            Map<Integer, Integer> numeros = new HashMap<>();
+            for (int i = 0; i < itens.size(); i++) numeros.put(itens.get(i).getId(), itens.size() - i);
+            numerosPorTipo.put("SUPORTE", numeros);
+        }
+        return notificacoes.stream().map(n -> {
+            String tipo = n.getEntidadeRelacionadaTipo();
+            Map<Integer, Integer> numeros = tipo == null ? Map.of() : numerosPorTipo.getOrDefault(tipo.toUpperCase(java.util.Locale.ROOT), Map.of());
+            return NotificacaoResponse.from(n, n.getEntidadeRelacionadaId() == null ? null : numeros.get(n.getEntidadeRelacionadaId()));
+        }).toList();
     }
 
     /**
@@ -94,7 +118,7 @@ public class NotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<NotificacaoResponse> listarPorDestinatario(Integer destinatarioId) {
-        return respostasComNumeroDeDoacao(notificacaoRepository.findByDestinatarioIdOrderByDataCriacaoDesc(destinatarioId), destinatarioId);
+        return respostasComNumero(notificacaoRepository.findByDestinatarioIdOrderByDataCriacaoDesc(destinatarioId), destinatarioId);
     }
 
     /**
@@ -102,7 +126,7 @@ public class NotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<NotificacaoResponse> listarNaoLidas(Integer destinatarioId) {
-        return respostasComNumeroDeDoacao(notificacaoRepository.findByDestinatarioIdAndLidaFalseOrderByDataCriacaoDesc(destinatarioId), destinatarioId);
+        return respostasComNumero(notificacaoRepository.findByDestinatarioIdAndLidaFalseOrderByDataCriacaoDesc(destinatarioId), destinatarioId);
     }
 
     /**
@@ -139,7 +163,7 @@ public class NotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<NotificacaoResponse> listarUltimas(Integer destinatarioId, int limit) {
-        return respostasComNumeroDeDoacao(notificacaoRepository.findTopByDestinatarioId(destinatarioId, limit), destinatarioId);
+        return respostasComNumero(notificacaoRepository.findTopByDestinatarioId(destinatarioId, limit), destinatarioId);
     }
 
     /**

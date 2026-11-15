@@ -38,6 +38,8 @@ class DoacaoServiceTest {
     @Mock
     private PessoaRepository pessoaRepository;
 
+    @Mock private ArquivoService arquivoService;
+
     @InjectMocks
     private DoacaoService service;
 
@@ -220,7 +222,7 @@ class DoacaoServiceTest {
             BusinessException ex = assertThrows(BusinessException.class, () ->
                     service.excluirDoacao(10, "joao@teste.com"));
 
-            assertEquals("Só é possível excluir doações em triagem.", ex.getMessage());
+            assertEquals("Só é possível excluir doações em análise.", ex.getMessage());
 
             verify(doacaoRepository, never()).delete(any());
         }

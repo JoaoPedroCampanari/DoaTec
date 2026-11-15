@@ -11,6 +11,10 @@ import java.util.List;
 
 @Repository
 public interface SuporteFormularioRepository extends JpaRepository<SuporteFormulario, Integer> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("SELECT t FROM SuporteFormulario t WHERE t.id = :id")
+    java.util.Optional<SuporteFormulario> findByIdForUpdate(@org.springframework.data.repository.query.Param("id") Integer id);
+
     List<SuporteFormulario> findByAutorId(Integer autorId);
     List<SuporteFormulario> findByAutorIdOrderByDataCriacaoDescIdDesc(Integer autorId);
     List<SuporteFormulario> findByStatus(StatusSuporte status);

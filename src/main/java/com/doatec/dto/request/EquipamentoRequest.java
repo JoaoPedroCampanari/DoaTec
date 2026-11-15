@@ -36,6 +36,9 @@ public record EquipamentoRequest(
     /** Vínculo opcional com uma doação existente. */
     Integer doacaoId,
 
+    /** Mantém o vínculo existente ao editar os demais dados. */
+    Boolean preservarDoacao,
+
     /** Default DISPONIVEL quando null. */
     StatusEquipamento status
 

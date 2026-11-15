@@ -14,6 +14,7 @@ import com.doatec.model.inventory.Equipamento;
 import com.doatec.model.inventory.EstadoConservacao;
 import com.doatec.model.inventory.StatusEquipamento;
 import com.doatec.model.solicitacao.SolicitacaoHardware;
+import com.doatec.model.solicitacao.StatusSolicitacao;
 import com.doatec.repository.DoacaoRepository;
 import com.doatec.repository.EquipamentoRepository;
 import com.doatec.repository.LogAcaoRepository;
@@ -91,7 +92,7 @@ public class InventarioService {
      *
      * <p>Regras de transição:</p>
      * <ul>
-     *   <li>{@code tipo}, {@code descricao}, {@code estadoConservacao} sempre editáveis.</li>
+     *   <li>{@code tipo}, {@code descricao}, {@code estadoConservacao} podem ser editados antes da entrega.</li>
      *   <li>{@code doacaoId} (vínculo) só pode ser alterado enquanto status = DISPONIVEL.
      *       Após reserva/entrega o vínculo trava para preservar histórico de origem.</li>
      *   <li>{@code status} pode ser corrigido pelo admin, mas mudanças válidas dependem
@@ -105,14 +106,18 @@ public class InventarioService {
     public EquipamentoResponse atualizarEquipamento(Integer id, EquipamentoRequest request, Integer adminId) {
         Pessoa admin = validarAdmin(adminId);
 
-        Equipamento equipamento = equipamentoRepository.findById(id)
+        Equipamento equipamento = equipamentoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Equipamento não encontrado com ID: " + id));
+
+        if (equipamento.isEntregue()) {
+            throw new BusinessException("Equipamentos entregues não podem ser editados.");
+        }
 
         boolean disponivel = equipamento.isDisponivel();
 
         // Vínculo com doação só pode mudar enquanto disponível
         Integer doacaoAtualId = equipamento.getDoacao() != null ? equipamento.getDoacao().getId() : null;
-        Integer doacaoNovaId = request.doacaoId();
+        Integer doacaoNovaId = Boolean.TRUE.equals(request.preservarDoacao()) ? doacaoAtualId : request.doacaoId();
         boolean trocouDoacao = !java.util.Objects.equals(doacaoAtualId, doacaoNovaId);
 
         if (trocouDoacao && !disponivel) {
@@ -262,15 +267,14 @@ public class InventarioService {
      */
     @Transactional
     public EquipamentoResponse atribuirEquipamento(Integer equipamentoId, Integer solicitacaoId, Integer adminId) {
-        Equipamento equipamento = equipamentoRepository.findById(equipamentoId)
-                .orElseThrow(() -> new BusinessException("Equipamento não encontrado com ID: " + equipamentoId));
-
-        if (!equipamento.isDisponivel()) {
-            throw new BusinessException("Equipamento não está disponível para atribuição. Status atual: " + equipamento.getStatus());
-        }
-
-        SolicitacaoHardware solicitacao = solicitacaoRepository.findById(solicitacaoId)
+        SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(solicitacaoId)
                 .orElseThrow(() -> new BusinessException("Solicitação não encontrada com ID: " + solicitacaoId));
+        if (solicitacao.getStatus() != StatusSolicitacao.APROVADA)
+            throw new BusinessException("Somente solicitações aprovadas podem receber equipamentos.");
+        Equipamento equipamento = equipamentoRepository.findByIdForUpdate(equipamentoId)
+                .orElseThrow(() -> new BusinessException("Equipamento não encontrado com ID: " + equipamentoId));
+        if (!equipamento.isDisponivel())
+            throw new BusinessException("Equipamento não está disponível para atribuição. Status atual: " + equipamento.getStatus());
 
         // Hibernate carrega solicitacao.getAluno() como proxy de Pessoa (LAZY),
         // então `instanceof Aluno` falha mesmo quando a entidade real é Aluno.
@@ -298,8 +302,18 @@ public class InventarioService {
      */
     @Transactional
     public EquipamentoResponse marcarComoEntregue(Integer equipamentoId, Integer adminId) {
-        Equipamento equipamento = equipamentoRepository.findById(equipamentoId)
+        Integer solicitacaoId = equipamentoRepository.findSolicitacaoIdByEquipamentoId(equipamentoId).orElse(null);
+        if (solicitacaoId != null) {
+            SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(solicitacaoId)
+                    .orElseThrow(() -> new BusinessException("Solicitação não encontrada."));
+            if (solicitacao.getStatus() == StatusSolicitacao.CANCELADA)
+                throw new BusinessException("Não é possível entregar equipamento de uma solicitação cancelada.");
+        }
+        Equipamento equipamento = equipamentoRepository.findByIdForUpdate(equipamentoId)
                 .orElseThrow(() -> new BusinessException("Equipamento não encontrado com ID: " + equipamentoId));
+        Integer vinculada = equipamento.getSolicitacaoDestino() == null ? null : equipamento.getSolicitacaoDestino().getId();
+        if (!java.util.Objects.equals(solicitacaoId, vinculada))
+            throw new BusinessException("A atribuição foi alterada. Atualize a página e tente novamente.");
 
         if (!equipamento.isReservado()) {
             throw new BusinessException("Apenas equipamentos reservados podem ser marcados como entregues.");

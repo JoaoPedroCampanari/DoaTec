@@ -1,6 +1,11 @@
 package com.doatec.controller;
 
 import jakarta.annotation.PostConstruct;
+import com.doatec.service.ArquivoService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +26,7 @@ public class FileUploadController {
     private String uploadPath;
 
     private Path uploadDir;
+    @Autowired private ArquivoService arquivoService;
 
     /** Magic bytes para validação de imagem real (previne content-type spoofing) */
     private static final Map<String, byte[]> IMAGE_SIGNATURES = Map.of(
@@ -44,7 +50,7 @@ public class FileUploadController {
     }
 
     @PostMapping("/foto")
-    public ResponseEntity<String> uploadFoto(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadFoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal User usuario) {
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             return ResponseEntity.badRequest().body("Arquivo deve ser uma imagem.");
@@ -59,14 +65,14 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body("Arquivo excede o tamanho máximo de 5MB.");
         }
 
-        return saveFile(file, ".jpg");
+        return saveFile(file, usuario);
     }
 
     /**
      * Upload de comprovante (renda, matrícula, etc.). Aceita imagens e PDFs.
      */
     @PostMapping("/comprovante")
-    public ResponseEntity<String> uploadComprovante(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadComprovante(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal User usuario) {
         String contentType = file.getContentType();
         boolean isImage = contentType != null && contentType.startsWith("image/");
         boolean isPdf = "application/pdf".equals(contentType);
@@ -86,24 +92,27 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body("Arquivo não é um PDF válido.");
         }
 
-        return saveFile(file, isPdf ? ".pdf" : ".jpg");
+        return saveFile(file, usuario);
     }
 
-    private ResponseEntity<String> saveFile(MultipartFile file, String defaultExtension) {
+    private ResponseEntity<String> saveFile(MultipartFile file, User usuario) {
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        String tipo = file.getContentType();
+        String extensao = switch (tipo) {
+            case "image/jpeg" -> ".jpg"; case "image/png" -> ".png";
+            case "image/gif" -> ".gif"; case "image/webp" -> ".webp";
+            case "application/pdf" -> ".pdf"; default -> null;
+        };
+        if (extensao == null) return ResponseEntity.badRequest().body("Tipo de arquivo não suportado.");
+        String nome = UUID.randomUUID() + extensao;
+        Path caminho = uploadDir.resolve(nome);
         try {
-            String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename != null && originalFilename.contains(".")
-                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
-                    : defaultExtension;
-            String uniqueFilename = UUID.randomUUID().toString() + extension;
-
-            Path filePath = uploadDir.resolve(uniqueFilename);
-            file.transferTo(filePath.toFile());
-
-            return ResponseEntity.ok("/uploads/" + uniqueFilename);
-
+            file.transferTo(caminho.toFile());
+            try { arquivoService.registrar(nome, usuario.getUsername(), tipo, file.getOriginalFilename()); }
+            catch (RuntimeException e) { Files.deleteIfExists(caminho); throw e; }
+            return ResponseEntity.ok("/uploads/" + nome);
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Erro ao salvar arquivo: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao salvar arquivo.");
         }
     }
 

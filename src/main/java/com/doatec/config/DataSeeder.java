@@ -45,12 +45,22 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         fixDoacaoStatusCheckConstraint();
+        fixSolicitacaoStatusCheckConstraint();
         jdbcTemplate.update("UPDATE doacao SET status = ? WHERE status = ?", "EM_TRIAGEM", "AGENDANDO_COLETA");
         fixRoleCheckConstraint();
         fixLogAcaoCheckConstraint();
         seedSuperAdmin();
         seedAlunoTeste();
         seedDoadoresTeste();
+    }
+
+    private void fixSolicitacaoStatusCheckConstraint() {
+        Integer existentes = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = 'solicitacao_hardware' AND constraint_name = 'solicitacao_hardware_status_check'", Integer.class);
+        if (existentes != null && existentes > 0) {
+            jdbcTemplate.execute("ALTER TABLE solicitacao_hardware DROP CONSTRAINT solicitacao_hardware_status_check");
+            jdbcTemplate.execute("ALTER TABLE solicitacao_hardware ADD CONSTRAINT solicitacao_hardware_status_check CHECK (status IN ('EM_ANALISE','APROVADA','REJEITADA','CONCLUIDA','CANCELADA'))");
+        }
     }
 
     private void fixDoacaoStatusCheckConstraint() {
@@ -60,7 +70,7 @@ public class DataSeeder implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE doacao DROP CONSTRAINT doacao_status_check");
             jdbcTemplate.execute("ALTER TABLE doacao ADD CONSTRAINT doacao_status_check CHECK (status IN (" +
                     "'EM_TRIAGEM','EM_ANALISE','REJEITADA','RECUSADO','APROVADO','FINALIZADO','RECEBIDO','AGUARDANDO_COLETA'," +
-                    "'AGUARDANDO_ENTREGA','ENTREGUE','AGENDANDO_COLETA','COLETA_AGENDADA','RETIRADO'))");
+                    "'AGUARDANDO_ENTREGA','ENTREGUE','CANCELADA','AGENDANDO_COLETA','COLETA_AGENDADA','RETIRADO'))");
         }
     }
 
