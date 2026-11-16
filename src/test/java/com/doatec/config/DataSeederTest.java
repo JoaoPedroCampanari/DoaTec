@@ -5,7 +5,6 @@ import com.doatec.model.account.Role;
 import com.doatec.repository.PessoaRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,12 +14,11 @@ import static org.mockito.Mockito.*;
 class DataSeederTest {
     private final PessoaRepository pessoas = mock(PessoaRepository.class);
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
-    private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
 
     @Test
     void criaSuperAdminComDadosConfigurados() {
         when(encoder.encode("senha-de-teste")).thenReturn("senha-criptografada");
-        new DataSeeder(pessoas, encoder, jdbc, "admin@exemplo.com", "senha-de-teste").run();
+        new DataSeeder(pessoas, encoder, "admin@exemplo.com", "senha-de-teste").run();
 
         ArgumentCaptor<Pessoa> captor = ArgumentCaptor.forClass(Pessoa.class);
         verify(pessoas).save(captor.capture());
@@ -32,14 +30,14 @@ class DataSeederTest {
     @Test
     void preservaSuperAdminExistente() {
         when(pessoas.existsByRole(Role.SUPER_ADMIN)).thenReturn(true);
-        new DataSeeder(pessoas, encoder, jdbc, "novo@exemplo.com", "outra-senha").run();
+        new DataSeeder(pessoas, encoder, "novo@exemplo.com", "outra-senha").run();
         verify(pessoas, never()).save(any());
         verifyNoInteractions(encoder);
     }
 
     @Test
     void naoCriaContaSemCredenciaisCompletas() {
-        new DataSeeder(pessoas, encoder, jdbc, "admin@exemplo.com", "").run();
+        new DataSeeder(pessoas, encoder, "admin@exemplo.com", "").run();
         verify(pessoas, never()).save(any());
         verifyNoInteractions(encoder);
     }
