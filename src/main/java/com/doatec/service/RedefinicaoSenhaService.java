@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Serviço para redefinição de senha.
+ */
 @Service
 public class RedefinicaoSenhaService {
     private static final String CHAVE = RedefinicaoSenhaService.class.getName() + ".pendente";
@@ -32,6 +35,9 @@ public class RedefinicaoSenhaService {
         this.pessoas = pessoas; this.emailService = emailService; this.encoder = encoder; this.request = request;
     }
 
+    /**
+     * Limita a quantidade de tentativas em um período.
+     */
     private synchronized void limitar(String chave, int maximo) {
         Instant agora = Instant.now();
         limites.entrySet().removeIf(e -> !e.getValue().inicio().plusSeconds(JANELA_SEGUNDOS).isAfter(agora));
@@ -41,6 +47,9 @@ public class RedefinicaoSenhaService {
         limites.put(chave, anterior == null ? new Limite(agora, 1) : new Limite(anterior.inicio(), anterior.quantidade() + 1));
     }
 
+    /**
+     * Solicita o envio do código de redefinição de senha.
+     */
     public void solicitar(String email) {
         String normalizado = email.trim().toLowerCase(Locale.ROOT);
         limitar("solicitar-ip:" + request.getRemoteAddr(), 20);
@@ -64,6 +73,9 @@ public class RedefinicaoSenhaService {
         }
     }
 
+    /**
+     * Valida o código e atualiza a senha.
+     */
     @Transactional
     public void confirmar(String codigo, String novaSenha) {
         limitar("confirmar-ip:" + request.getRemoteAddr(), 30);
@@ -91,6 +103,9 @@ public class RedefinicaoSenhaService {
             sessao.removeAttribute(CHAVE);
         }
     }
+    /**
+     * Cria o erro para código inválido ou expirado.
+     */
     private static ResponseStatusException codigoInvalido() {
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código inválido ou expirado.");
     }

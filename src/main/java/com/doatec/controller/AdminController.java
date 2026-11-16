@@ -30,6 +30,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller para gerenciamento administrativo do sistema.
+ */
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
@@ -43,6 +46,9 @@ public class AdminController {
     @Autowired
     private PessoaRepository pessoaRepository;
 
+    /**
+     * Busca o ID do administrador autenticado.
+     */
     private Integer getAuthenticatedAdminId(User userDetails) {
         return pessoaRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))
@@ -51,6 +57,9 @@ public class AdminController {
 
     // ==================== DASHBOARD ====================
 
+    /**
+     * Retorna os indicadores do painel administrativo.
+     */
     @GetMapping("/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboard() {
         AdminDashboardResponse stats = adminService.getDashboardStats();
@@ -59,6 +68,9 @@ public class AdminController {
 
     // ==================== DOAÇÕES ====================
 
+    /**
+     * Lista doações com filtro opcional por status.
+     */
     @GetMapping("/doacoes")
     public ResponseEntity<Page<DoacaoResponse>> listarDoacoes(
             @RequestParam(required = false) StatusDoacao status,
@@ -67,6 +79,9 @@ public class AdminController {
         return ResponseEntity.ok(doacoes);
     }
 
+    /**
+     * Aprova uma doação.
+     */
     @PutMapping("/doacoes/{id}/aprovar")
     public ResponseEntity<DoacaoResponse> aprovarDoacao(
             @PathVariable Integer id,
@@ -77,6 +92,9 @@ public class AdminController {
         return ResponseEntity.ok(doacao);
     }
 
+    /**
+     * Recusa uma doação.
+     */
     @PutMapping("/doacoes/{id}/rejeitar")
     public ResponseEntity<DoacaoResponse> rejeitarDoacao(
             @PathVariable Integer id,
@@ -87,6 +105,9 @@ public class AdminController {
         return ResponseEntity.ok(doacao);
     }
 
+    /**
+     * Atualiza o status de uma doação.
+     */
     @PutMapping("/doacoes/{id}/status")
     public ResponseEntity<DoacaoResponse> alterarStatusDoacao(
             @PathVariable Integer id,
@@ -100,6 +121,9 @@ public class AdminController {
 
     // ==================== SOLICITAÇÕES ====================
 
+    /**
+     * Lista solicitações com filtro opcional por status.
+     */
     @GetMapping("/solicitacoes")
     public ResponseEntity<Page<SolicitacaoResponse>> listarSolicitacoes(
             @RequestParam(required = false) StatusSolicitacao status,
@@ -108,6 +132,9 @@ public class AdminController {
         return ResponseEntity.ok(solicitacoes);
     }
 
+    /**
+     * Aprova uma solicitação.
+     */
     @PutMapping("/solicitacoes/{id}/aprovar")
     public ResponseEntity<SolicitacaoResponse> aprovarSolicitacao(
             @PathVariable Integer id,
@@ -118,6 +145,9 @@ public class AdminController {
         return ResponseEntity.ok(solicitacao);
     }
 
+    /**
+     * Aprova uma solicitação e vincula equipamentos.
+     */
     @PostMapping("/solicitacoes/{id}/aprovar-com-equipamentos")
     public ResponseEntity<SolicitacaoResponse> aprovarComEquipamentos(@PathVariable Integer id,
             @AuthenticationPrincipal User userDetails,
@@ -125,6 +155,9 @@ public class AdminController {
         return ResponseEntity.ok(adminService.aprovarComEquipamentos(id, getAuthenticatedAdminId(userDetails), request.equipamentos(), request.observacao()));
     }
 
+    /**
+     * Adiciona equipamentos a uma solicitação.
+     */
     @PostMapping("/solicitacoes/{id}/atribuir-equipamentos")
     public ResponseEntity<SolicitacaoResponse> atribuirEquipamentos(@PathVariable Integer id,
             @AuthenticationPrincipal User userDetails,
@@ -132,11 +165,17 @@ public class AdminController {
         return ResponseEntity.ok(adminService.adicionarEquipamentos(id, getAuthenticatedAdminId(userDetails), request.equipamentos(), request.observacao()));
     }
 
+    /**
+     * Lista os equipamentos vinculados a uma solicitação.
+     */
     @GetMapping("/solicitacoes/{id}/equipamentos")
     public ResponseEntity<List<com.doatec.dto.response.EquipamentoResponse>> listarEquipamentosSolicitacao(@PathVariable Integer id) {
         return ResponseEntity.ok(adminService.listarEquipamentosSolicitacao(id));
     }
 
+    /**
+     * Remove um equipamento vinculado a uma solicitação.
+     */
     @DeleteMapping("/solicitacoes/{id}/equipamentos/{equipamentoId}")
     public ResponseEntity<Void> removerEquipamentoSolicitacao(@PathVariable Integer id, @PathVariable Integer equipamentoId,
             @AuthenticationPrincipal User userDetails, @RequestParam boolean ultimoEsperado) {
@@ -144,6 +183,9 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Recusa uma solicitação.
+     */
     @PutMapping("/solicitacoes/{id}/rejeitar")
     public ResponseEntity<SolicitacaoResponse> rejeitarSolicitacao(
             @PathVariable Integer id,
@@ -154,6 +196,9 @@ public class AdminController {
         return ResponseEntity.ok(solicitacao);
     }
 
+    /**
+     * Atualiza o status de uma solicitação.
+     */
     @PutMapping("/solicitacoes/{id}/status")
     public ResponseEntity<SolicitacaoResponse> alterarStatusSolicitacao(
             @PathVariable Integer id,
@@ -165,6 +210,9 @@ public class AdminController {
         return ResponseEntity.ok(solicitacao);
     }
 
+    /**
+     * Conclui uma solicitação.
+     */
     @PutMapping("/solicitacoes/{id}/concluir")
     public ResponseEntity<SolicitacaoResponse> concluirSolicitacao(
             @PathVariable Integer id,
@@ -177,6 +225,9 @@ public class AdminController {
 
     // ==================== SUPORTE ====================
 
+    /**
+     * Lista tickets de suporte com filtro opcional por status.
+     */
     @GetMapping("/suporte")
     public ResponseEntity<Page<SuporteResponse>> listarTickets(
             @RequestParam(required = false) StatusSuporte status,
@@ -185,6 +236,9 @@ public class AdminController {
         return ResponseEntity.ok(tickets);
     }
 
+    /**
+     * Responde a um ticket de suporte.
+     */
     @PutMapping("/suporte/{id}/responder")
     public ResponseEntity<SuporteResponse> responderTicket(
             @PathVariable Integer id,
@@ -195,6 +249,9 @@ public class AdminController {
         return ResponseEntity.ok(ticket);
     }
 
+    /**
+     * Atualiza o status de um ticket de suporte.
+     */
     @PutMapping("/suporte/{id}/status")
     public ResponseEntity<SuporteResponse> atualizarStatusTicket(
             @PathVariable Integer id,
@@ -205,6 +262,9 @@ public class AdminController {
 
     // ==================== USUÁRIOS ====================
 
+    /**
+     * Lista os usuários cadastrados.
+     */
     @GetMapping("/usuarios")
     public ResponseEntity<Page<UsuarioAdminResponse>> listarTodosUsuarios(
             @PageableDefault(size = 20, sort = "id") Pageable pageable) {
@@ -212,6 +272,9 @@ public class AdminController {
         return ResponseEntity.ok(usuarios);
     }
 
+    /**
+     * Lista usuários pelo tipo de pessoa.
+     */
     @GetMapping("/usuarios/tipo/{tipoPessoa}")
     public ResponseEntity<List<UsuarioAdminResponse>> listarUsuariosPorTipo(
             @PathVariable TipoPessoa tipoPessoa) {
@@ -219,6 +282,9 @@ public class AdminController {
         return ResponseEntity.ok(usuarios);
     }
 
+    /**
+     * Lista usuários pelo perfil de acesso.
+     */
     @GetMapping("/usuarios/role/{role}")
     public ResponseEntity<List<UsuarioAdminResponse>> listarUsuariosPorRole(
             @PathVariable Role role) {
@@ -226,6 +292,9 @@ public class AdminController {
         return ResponseEntity.ok(usuarios);
     }
 
+    /**
+     * Ativa ou desativa um usuário.
+     */
     @PutMapping("/usuarios/{id}/status")
     public ResponseEntity<UsuarioAdminResponse> alterarStatusUsuario(
             @PathVariable Integer id,
@@ -236,6 +305,9 @@ public class AdminController {
         return ResponseEntity.ok(usuario);
     }
 
+    /**
+     * Altera o perfil de acesso de um usuário.
+     */
     @PutMapping("/usuarios/{id}/role")
     public ResponseEntity<UsuarioAdminResponse> alterarRoleUsuario(
             @PathVariable Integer id,

@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller para consulta e atualização de usuários.
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -70,6 +73,9 @@ public class UserController {
         return ResponseEntity.ok(PessoaMapper.toResponse(pessoa, totalDoacoes, totalSolicitacoes, totalTicketsSuporte));
     }
 
+    /**
+     * Busca os dados de um usuário pelo ID.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<UserLoginResponse> getUserById(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {
@@ -105,6 +111,9 @@ public class UserController {
         }
     }
 
+    /**
+     * Atualiza os dados do usuário autenticado.
+     */
     @PutMapping("/me")
     public ResponseEntity<String> updateCurrentUser(@AuthenticationPrincipal User userDetails, @Valid @RequestBody PessoaUpdateRequest dto) {
         if (userDetails == null) {
@@ -125,6 +134,9 @@ public class UserController {
         }
     }
 
+    /**
+     * Atualiza os dados de um usuário.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<String> updateUser(@PathVariable Integer id, @AuthenticationPrincipal User userDetails, @Valid @RequestBody PessoaUpdateRequest dto) {
         if (userDetails == null) {
@@ -153,6 +165,9 @@ public class UserController {
         }
     }
 
+    /**
+     * Lista as doações do usuário autenticado.
+     */
     @GetMapping("/me/donations")
     public ResponseEntity<List<DoacaoResponse>> getMyDonations(@AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {
@@ -165,6 +180,9 @@ public class UserController {
         return ResponseEntity.ok(doacoes);
     }
 
+    /**
+     * Lista as solicitações do usuário autenticado.
+     */
     @GetMapping("/me/solicitacoes")
     public ResponseEntity<List<SolicitacaoResponse>> getMySolicitacoes(@AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {
@@ -177,6 +195,9 @@ public class UserController {
         return ResponseEntity.ok(solicitacoes);
     }
 
+    /**
+     * Lista as doações de um usuário.
+     */
     @GetMapping("/{id}/donations")
     public ResponseEntity<List<DoacaoResponse>> getUserDonations(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {
@@ -199,6 +220,9 @@ public class UserController {
         return ResponseEntity.ok(doacoes);
     }
 
+    /**
+     * Lista as solicitações de um usuário.
+     */
     @GetMapping("/{id}/solicitacoes")
     public ResponseEntity<List<SolicitacaoResponse>> getUserSolicitacoes(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {

@@ -141,6 +141,9 @@ public class InventarioController {
     @Autowired
     private PessoaRepository pessoaRepository;
 
+    /**
+     * Busca o ID do administrador autenticado.
+     */
     private Integer getAuthenticatedAdminId(User userDetails) {
         return pessoaRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))

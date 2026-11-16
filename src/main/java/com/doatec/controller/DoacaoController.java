@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller para gerenciamento das doações.
+ */
 @RestController
 @RequestMapping("/api/donations")
 public class DoacaoController {
@@ -23,6 +26,9 @@ public class DoacaoController {
     @Autowired
     private DoacaoService doacaoService;
 
+    /**
+     * Lista doações com filtros opcionais.
+     */
     @GetMapping
     public ResponseEntity<List<DoacaoResponse>> listDonations(
             @RequestParam(required = false) StatusDoacao status,
@@ -31,6 +37,9 @@ public class DoacaoController {
         return ResponseEntity.ok(doacoes);
     }
 
+    /**
+     * Registra uma doação do usuário autenticado.
+     */
     @PostMapping
     public ResponseEntity<DoacaoResponse> createDonation(@Valid @RequestBody DoacaoRequest doacaoRequest,
                                                           @AuthenticationPrincipal User userDetails) {
@@ -43,6 +52,9 @@ public class DoacaoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Exclui uma doação do usuário autenticado.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
         doacaoService.excluirDoacao(id, userDetails.getUsername());

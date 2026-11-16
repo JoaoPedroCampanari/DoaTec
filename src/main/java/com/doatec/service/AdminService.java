@@ -45,6 +45,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Serviço para gerenciamento administrativo do sistema.
+ */
 @Service
 public class AdminService {
 
@@ -76,6 +79,9 @@ public class AdminService {
 
     // ==================== DASHBOARD ====================
 
+    /**
+     * Retorna os indicadores do painel administrativo.
+     */
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboardStats() {
         long totalDoacoes = doacaoRepository.count();
@@ -103,6 +109,9 @@ public class AdminService {
 
     // ==================== DOAÇÕES ====================
 
+    /**
+     * Lista as doações com filtro por status.
+     */
     @Transactional(readOnly = true)
     public Page<DoacaoResponse> listarDoacoes(StatusDoacao status, Pageable pageable) {
         Page<Doacao> doacoes = status != null
@@ -112,6 +121,9 @@ public class AdminService {
         return doacoes.map(DoacaoMapper::toResponse);
     }
 
+    /**
+     * Aprova uma doação.
+     */
     @Transactional
     public DoacaoResponse aprovarDoacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         Doacao doacao = doacaoRepository.findByIdForUpdate(id)
@@ -151,6 +163,9 @@ public class AdminService {
         return DoacaoMapper.toResponse(doacaoAtualizada);
     }
 
+    /**
+     * Recusa uma doação.
+     */
     @Transactional
     public DoacaoResponse rejeitarDoacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         Doacao doacao = doacaoRepository.findByIdForUpdate(id)
@@ -188,6 +203,9 @@ public class AdminService {
         return DoacaoMapper.toResponse(doacaoAtualizada);
     }
 
+    /**
+     * Atualiza o status de uma doação.
+     */
     @Transactional
     public DoacaoResponse alterarStatusDoacao(Integer id, StatusDoacao novoStatus, Integer adminId, AvaliacaoRequest request) {
         Doacao doacao = doacaoRepository.findByIdForUpdate(id)
@@ -231,12 +249,18 @@ public class AdminService {
         return DoacaoMapper.toResponse(doacaoAtualizada);
     }
 
+    /**
+     * Define o status inicial de uma doação aprovada.
+     */
     private StatusDoacao statusInicialAprovado(Doacao doacao) {
         if (doacao.getPreferenciaEntrega() == PreferenciaEntrega.PONTO_DE_COLETA) return StatusDoacao.AGUARDANDO_ENTREGA;
         if (doacao.getPreferenciaEntrega() == PreferenciaEntrega.SOLICITAR_RETIRADA) return StatusDoacao.COLETA_AGENDADA;
         throw new BusinessException("A modalidade de entrega da doação não foi informada.");
     }
 
+    /**
+     * Verifica se a mudança de status da doação é permitida.
+     */
     private void validarTransicaoDoacao(Doacao doacao, StatusDoacao novo) {
         StatusDoacao atual = doacao.getStatus();
         boolean entrega = doacao.getPreferenciaEntrega() == PreferenciaEntrega.PONTO_DE_COLETA;
@@ -251,6 +275,9 @@ public class AdminService {
         if (!valida) throw new BusinessException("Transição de status inválida para esta modalidade de doação.");
     }
 
+    /**
+     * Retorna o nome de exibição do status da doação.
+     */
     private String rotuloStatusDoacao(StatusDoacao status) {
         return switch (status) {
             case EM_ANALISE -> "Em análise";
@@ -266,6 +293,9 @@ public class AdminService {
 
     // ==================== SOLICITAÇÕES ====================
 
+    /**
+     * Lista as solicitações com filtro por status.
+     */
     @Transactional(readOnly = true)
     public Page<SolicitacaoResponse> listarSolicitacoes(StatusSolicitacao status, Pageable pageable) {
         Page<SolicitacaoHardware> solicitacoes = status != null
@@ -275,6 +305,9 @@ public class AdminService {
         return solicitacoes.map(SolicitacaoMapper::toResponse);
     }
 
+    /**
+     * Verifica se a mudança de status da solicitação é permitida.
+     */
     private void validarTransicaoSolicitacao(StatusSolicitacao atual, StatusSolicitacao novo) {
         boolean transicaoValida = switch (atual) {
             case EM_ANALISE -> novo == StatusSolicitacao.APROVADA || novo == StatusSolicitacao.REJEITADA;
@@ -289,21 +322,33 @@ public class AdminService {
         }
     }
 
+    /**
+     * Aprova uma solicitação.
+     */
     @Transactional
     public SolicitacaoResponse aprovarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         throw new BusinessException("Selecione pelo menos um equipamento para aprovar a solicitação.");
     }
 
+    /**
+     * Aprova uma solicitação e vincula equipamentos.
+     */
     @Transactional
     public SolicitacaoResponse aprovarComEquipamentos(Integer id, Integer adminId, java.util.List<Integer> ids, String observacao) {
         return vincularEquipamentos(id, adminId, ids, observacao, true);
     }
 
+    /**
+     * Adiciona equipamentos a uma solicitação.
+     */
     @Transactional
     public SolicitacaoResponse adicionarEquipamentos(Integer id, Integer adminId, java.util.List<Integer> ids, String observacao) {
         return vincularEquipamentos(id, adminId, ids, observacao, false);
     }
 
+    /**
+     * Vincula equipamentos a uma solicitação.
+     */
     private SolicitacaoResponse vincularEquipamentos(Integer id, Integer adminId, java.util.List<Integer> ids, String observacao, boolean aprovar) {
         if (ids == null || ids.isEmpty() || ids.size() > 100 || ids.stream().anyMatch(i -> i == null || i <= 0))
             throw new BusinessException("Selecione pelo menos um equipamento válido.");
@@ -347,6 +392,9 @@ public class AdminService {
         return SolicitacaoMapper.toResponse(solicitacao);
     }
 
+    /**
+     * Lista os equipamentos vinculados a uma solicitação.
+     */
     @Transactional(readOnly = true)
     public List<com.doatec.dto.response.EquipamentoResponse> listarEquipamentosSolicitacao(Integer solicitacaoId) {
         if (!solicitacaoRepository.existsById(solicitacaoId))
@@ -355,6 +403,9 @@ public class AdminService {
                 .map(com.doatec.dto.response.EquipamentoResponse::from).toList();
     }
 
+    /**
+     * Remove um equipamento vinculado a uma solicitação.
+     */
     @Transactional
     public void removerEquipamentoSolicitacao(Integer solicitacaoId, Integer equipamentoId, Integer adminId, boolean ultimoEsperado) {
         Pessoa admin = validarAdmin(adminId);
@@ -389,6 +440,9 @@ public class AdminService {
                 "Equipamento removido da solicitação #" + solicitacaoId + (voltouAnalise ? "; solicitação voltou para análise" : ""));
     }
 
+    /**
+     * Recusa uma solicitação.
+     */
     @Transactional
     public SolicitacaoResponse rejeitarSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
@@ -425,6 +479,9 @@ public class AdminService {
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
     }
 
+    /**
+     * Marca como entregues os equipamentos de uma solicitação.
+     */
     private void entregarEquipamentosDaSolicitacao(Integer solicitacaoId) {
         List<Equipamento> equipamentos = equipamentoRepository.findBySolicitacaoDestinoIdForUpdate(solicitacaoId);
         if (equipamentos.stream().anyMatch(e -> e.getStatus() != StatusEquipamento.RESERVADO && e.getStatus() != StatusEquipamento.ENTREGUE))
@@ -439,6 +496,9 @@ public class AdminService {
         }
     }
 
+    /**
+     * Conclui uma solicitação.
+     */
     @Transactional
     public SolicitacaoResponse concluirSolicitacao(Integer id, Integer adminId, AvaliacaoRequest request) {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
@@ -471,6 +531,9 @@ public class AdminService {
         return SolicitacaoMapper.toResponse(solicitacaoAtualizada);
     }
 
+    /**
+     * Atualiza o status de uma solicitação.
+     */
     @Transactional
     public SolicitacaoResponse alterarStatusSolicitacao(Integer id, StatusSolicitacao novoStatus, Integer adminId, AvaliacaoRequest request) {
         SolicitacaoHardware solicitacao = solicitacaoRepository.findByIdForUpdate(id)
@@ -528,6 +591,9 @@ public class AdminService {
 
     // ==================== SUPORTE ====================
 
+    /**
+     * Lista os tickets de suporte com filtro por status.
+     */
     @Transactional(readOnly = true)
     public Page<SuporteResponse> listarTickets(StatusSuporte status, Pageable pageable) {
         Page<SuporteFormulario> tickets = status != null
@@ -537,6 +603,9 @@ public class AdminService {
         return tickets.map(SuporteMapper::toResponse);
     }
 
+    /**
+     * Registra uma resposta para um ticket de suporte.
+     */
     @Transactional
     public SuporteResponse responderTicket(Integer id, Integer adminId, RespostaSuporteRequest request) {
         SuporteFormulario ticket = suporteRepository.findByIdForUpdate(id)
@@ -572,6 +641,9 @@ public class AdminService {
         return SuporteMapper.toResponse(ticketAtualizado);
     }
 
+    /**
+     * Atualiza o status de um ticket de suporte.
+     */
     @Transactional
     public SuporteResponse atualizarStatusTicket(Integer id, StatusSuporte novoStatus) {
         SuporteFormulario ticket = suporteRepository.findByIdForUpdate(id)
@@ -591,6 +663,9 @@ public class AdminService {
         return SuporteMapper.toResponse(ticketAtualizado);
     }
 
+    /**
+     * Verifica se um ticket está aberto.
+     */
     private void validarTicketAberto(SuporteFormulario ticket) {
         if (ticket.getStatus() == StatusSuporte.RESOLVIDO || ticket.getStatus() == StatusSuporte.FECHADO) {
             throw new BusinessException("Tickets resolvidos ou fechados não podem ser alterados.");
@@ -599,12 +674,18 @@ public class AdminService {
 
     // ==================== USUÁRIOS ====================
 
+    /**
+     * Lista os usuários cadastrados.
+     */
     @Transactional(readOnly = true)
     public Page<UsuarioAdminResponse> listarTodosUsuarios(Pageable pageable) {
         return pessoaRepository.findAll(pageable)
                 .map(PessoaMapper::toAdminResponse);
     }
 
+    /**
+     * Lista os usuários pelo tipo de pessoa.
+     */
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarUsuariosPorTipoPessoa(TipoPessoa tipoPessoa) {
         return pessoaRepository.findByTipo(tipoPessoa.getClasse()).stream()
@@ -612,6 +693,9 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Lista os usuários pelo perfil de acesso.
+     */
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarUsuariosPorRole(Role role) {
         return pessoaRepository.findByRole(role).stream()
@@ -619,6 +703,9 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Ativa ou desativa um usuário.
+     */
     @Transactional
     public UsuarioAdminResponse alterarStatusUsuario(Integer id, Boolean ativo, Integer adminId) {
         Pessoa admin = validarAdmin(adminId);
@@ -645,6 +732,9 @@ public class AdminService {
         return PessoaMapper.toAdminResponse(pessoaAtualizada);
     }
 
+    /**
+     * Altera o perfil de acesso de um usuário.
+     */
     @Transactional
     public UsuarioAdminResponse alterarRoleUsuario(Integer id, Role novaRole, Integer adminId) {
         Pessoa admin = validarAdmin(adminId);
@@ -663,6 +753,9 @@ public class AdminService {
 
     // ==================== MÉTODOS AUXILIARES ====================
 
+    /**
+     * Busca e valida o administrador responsável.
+     */
     private Pessoa validarAdmin(Integer adminId) {
         Pessoa admin = pessoaRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException("Admin não encontrado com ID: " + adminId));
@@ -674,6 +767,9 @@ public class AdminService {
         return admin;
     }
 
+    /**
+     * Registra uma ação administrativa.
+     */
     private void registrarLog(Pessoa admin, AcaoTipo acao, String entidade, Integer entidadeId, String descricao) {
         LogAcao log = LogAcao.builder()
                 .admin(admin)

@@ -41,6 +41,9 @@ public class NotificacaoService {
     @Autowired
     private SuporteFormularioRepository suporteRepository;
 
+    /**
+     * Prepara as notificações com o número do item para o destinatário.
+     */
     private List<NotificacaoResponse> respostasComNumero(List<Notificacao> notificacoes, Integer destinatarioId) {
         Map<String, Map<Integer, Integer>> numerosPorTipo = new HashMap<>();
         if (notificacoes.stream().anyMatch(n -> "DOACAO".equalsIgnoreCase(n.getEntidadeRelacionadaTipo()))) {

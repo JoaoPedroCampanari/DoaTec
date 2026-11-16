@@ -18,6 +18,9 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Controller para envio de arquivos.
+ */
 @RestController
 @RequestMapping("/api/upload")
 public class FileUploadController {
@@ -36,6 +39,9 @@ public class FileUploadController {
         "image/webp", new byte[]{0x52, 0x49, 0x46, 0x46}  // RIFF header (WebP container)
     );
 
+    /**
+     * Inicializa o diretório de arquivos enviados.
+     */
     @PostConstruct
     public void init() {
         uploadDir = Paths.get(System.getProperty("user.dir"), uploadPath).toAbsolutePath().normalize();
@@ -49,6 +55,9 @@ public class FileUploadController {
         }
     }
 
+    /**
+     * Recebe uma foto para armazenamento.
+     */
     @PostMapping("/foto")
     public ResponseEntity<String> uploadFoto(@RequestParam("file") MultipartFile file, @AuthenticationPrincipal User usuario) {
         String contentType = file.getContentType();
@@ -95,6 +104,9 @@ public class FileUploadController {
         return saveFile(file, usuario);
     }
 
+    /**
+     * Salva o arquivo enviado.
+     */
     private ResponseEntity<String> saveFile(MultipartFile file, User usuario) {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         String tipo = file.getContentType();
@@ -116,6 +128,9 @@ public class FileUploadController {
         }
     }
 
+    /**
+     * Verifica a assinatura de um arquivo PDF.
+     */
     private boolean validatePdfSignature(MultipartFile file) {
         byte[] expected = new byte[]{0x25, 0x50, 0x44, 0x46}; // %PDF
         try {
@@ -131,6 +146,9 @@ public class FileUploadController {
         }
     }
 
+    /**
+     * Verifica a assinatura de um arquivo de imagem.
+     */
     private boolean validateImageSignature(MultipartFile file, String contentType) {
         byte[] expected = IMAGE_SIGNATURES.get(contentType);
         if (expected == null) {

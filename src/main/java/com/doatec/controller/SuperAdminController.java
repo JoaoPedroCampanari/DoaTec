@@ -16,6 +16,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller para gerenciamento de administradores.
+ */
 @RestController
 @RequestMapping("/api/super-admin")
 public class SuperAdminController {
@@ -28,18 +31,27 @@ public class SuperAdminController {
         this.pessoaRepository = pessoaRepository;
     }
 
+    /**
+     * Busca o ID do superadministrador autenticado.
+     */
     private Integer getAuthenticatedSuperAdminId(@AuthenticationPrincipal User userDetails) {
         return pessoaRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new BusinessException("Super Admin não encontrado"))
                 .getId();
     }
 
+    /**
+     * Lista as contas de administradores.
+     */
     @GetMapping("/admins")
     public ResponseEntity<Page<UsuarioAdminResponse>> listarAdmins(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(superAdminService.listarAdmins(pageable));
     }
 
+    /**
+     * Cria uma conta de administrador.
+     */
     @PostMapping("/admins")
     public ResponseEntity<UsuarioAdminResponse> criarAdmin(
             @Valid @RequestBody CriarAdminRequest request,
@@ -49,6 +61,9 @@ public class SuperAdminController {
                 .body(superAdminService.criarAdmin(request, superAdminId));
     }
 
+    /**
+     * Remove o acesso de administrador de um usuário.
+     */
     @PutMapping("/admins/{id}/rebaixar")
     public ResponseEntity<UsuarioAdminResponse> rebaixarAdmin(
             @PathVariable Integer id,
@@ -57,6 +72,9 @@ public class SuperAdminController {
         return ResponseEntity.ok(superAdminService.rebaixarAdmin(id, superAdminId));
     }
 
+    /**
+     * Altera o perfil de acesso de um administrador.
+     */
     @PutMapping("/admins/{id}/role")
     public ResponseEntity<UsuarioAdminResponse> alterarRoleAdmin(
             @PathVariable Integer id,
@@ -66,6 +84,9 @@ public class SuperAdminController {
         return ResponseEntity.ok(superAdminService.alterarRoleAdmin(id, novaRole, superAdminId));
     }
 
+    /**
+     * Ativa ou desativa uma conta de administrador.
+     */
     @PutMapping("/admins/{id}/status")
     public ResponseEntity<UsuarioAdminResponse> alterarStatusAdmin(
             @PathVariable Integer id,
@@ -79,6 +100,9 @@ public class SuperAdminController {
         return ResponseEntity.ok(superAdminService.alterarStatusAdmin(id, ativo, superAdminId));
     }
 
+    /**
+     * Exclui uma conta de administrador.
+     */
     @DeleteMapping("/admins/{id}")
     public ResponseEntity<Void> excluirAdmin(
             @PathVariable Integer id,

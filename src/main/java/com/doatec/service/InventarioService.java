@@ -360,6 +360,9 @@ public class InventarioService {
         return admin;
     }
 
+    /**
+     * Registra uma ação administrativa no inventário.
+     */
     private void registrarLog(Pessoa admin, AcaoTipo acao, Integer entidadeId, String descricao) {
         LogAcao log = LogAcao.builder()
                 .admin(admin)

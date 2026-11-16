@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 
+/**
+ * Controller para gerenciamento dos tickets de suporte.
+ */
 @RestController
 @RequestMapping("/api/suporte")
 public class SuporteController {
@@ -34,6 +37,9 @@ public class SuporteController {
     @Autowired
     private PessoaRepository pessoaRepository;
 
+    /**
+     * Registra um ticket de suporte do usuário autenticado.
+     */
     @PostMapping
     public ResponseEntity<SuporteResponse> receberFormulario(@Valid @RequestBody SuporteFormularioRequest dto,
                                                                @AuthenticationPrincipal User userDetails) {
@@ -46,6 +52,9 @@ public class SuporteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Lista os tickets do usuário autenticado.
+     */
     @GetMapping("/meus-tickets")
     public ResponseEntity<List<SuporteResponse>> getMeusTickets(@AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {
@@ -60,6 +69,9 @@ public class SuporteController {
         return ResponseEntity.ok(tickets);
     }
 
+    /**
+     * Exclui um ticket do usuário autenticado.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluirTicket(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
         if (userDetails == null) {

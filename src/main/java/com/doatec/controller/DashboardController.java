@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller para consulta dos indicadores do sistema.
+ */
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
@@ -15,6 +18,9 @@ public class DashboardController {
     @Autowired
     private DoacaoService doacaoService;
 
+    /**
+     * Retorna os indicadores gerais do sistema.
+     */
     @GetMapping("/stats")
     public ResponseEntity<DashboardStatsResponse> getStats() {
         DashboardStatsResponse stats = doacaoService.getDashboardStats();

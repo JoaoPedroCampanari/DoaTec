@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Serviço para gerenciamento das solicitações de equipamentos.
+ */
 @Service
 public class SolicitacaoService {
     @Autowired private ArquivoService arquivoService;
@@ -27,6 +30,9 @@ public class SolicitacaoService {
     @Autowired
     private SolicitacaoHardwareRepository solicitacaoHardwareRepository;
 
+    /**
+     * Lista as solicitações de um aluno.
+     */
     @Transactional(readOnly = true)
     public List<SolicitacaoResponse> findSolicitacoesByAlunoId(Integer alunoId) {
         return solicitacaoHardwareRepository.findByAlunoIdOrderByDataSolicitacaoDescIdDesc(alunoId).stream()
@@ -34,6 +40,9 @@ public class SolicitacaoService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Registra uma solicitação de equipamento.
+     */
     @Transactional
     public SolicitacaoHardware criarSolicitacao(String authenticatedEmail, SolicitacaoRequest dto) {
 
@@ -61,6 +70,9 @@ public class SolicitacaoService {
         return solicitacaoHardwareRepository.save(novaSolicitacao);
     }
 
+    /**
+     * Exclui uma solicitação do aluno informado.
+     */
     @Transactional
     public void excluirSolicitacao(Integer id, String email) {
         SolicitacaoHardware solicitacao = solicitacaoHardwareRepository.findById(id)

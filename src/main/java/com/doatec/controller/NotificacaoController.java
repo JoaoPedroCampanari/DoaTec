@@ -26,6 +26,9 @@ public class NotificacaoController {
     @Autowired
     private PessoaRepository pessoaRepository;
 
+    /**
+     * Busca o ID do usuário autenticado.
+     */
     private Integer getAuthenticatedUserId(User userDetails) {
         return pessoaRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"))

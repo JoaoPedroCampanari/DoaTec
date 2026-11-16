@@ -22,6 +22,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 
+/**
+ * Serviço para gerenciamento das doações.
+ */
 @Service
 public class DoacaoService {
     @Autowired private ArquivoService arquivoService;
@@ -32,6 +35,9 @@ public class DoacaoService {
     @Autowired
     private PessoaRepository pessoaRepository;
 
+    /**
+     * Lista as doações com filtros opcionais.
+     */
     @Transactional(readOnly = true)
     public List<DoacaoResponse> listDoacoes(StatusDoacao status, Integer doadorId) {
         List<Doacao> doacoes;
@@ -47,6 +53,9 @@ public class DoacaoService {
         return doacoes.stream().map(DoacaoMapper::toResponse).collect(Collectors.toList());
     }
 
+    /**
+     * Lista as doações de um doador.
+     */
     @Transactional(readOnly = true)
     public List<DoacaoResponse> findDoacoesByDoadorId(Integer doadorId) {
         return doacaoRepository.findByDoadorIdOrderByDataDoacaoDescIdDesc(doadorId).stream()
@@ -54,6 +63,9 @@ public class DoacaoService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Registra uma nova doação.
+     */
     @Transactional
     public Doacao registrarDoacao(DoacaoRequest dto) {
         Optional<Pessoa> doadorOptional = pessoaRepository.findByEmail(dto.email());
@@ -113,6 +125,9 @@ public class DoacaoService {
         return doacaoRepository.save(novaDoacao);
     }
 
+    /**
+     * Retorna a quantidade de doações e a data da mais recente.
+     */
     @Transactional(readOnly = true)
     public DashboardStatsResponse getDashboardStats() {
         long total = doacaoRepository.count();
@@ -123,6 +138,9 @@ public class DoacaoService {
         return new DashboardStatsResponse(total, lastDate);
     }
 
+    /**
+     * Exclui uma doação do doador informado.
+     */
     @Transactional
     public void excluirDoacao(Integer id, String email) {
         Doacao doacao = doacaoRepository.findByIdForUpdate(id)

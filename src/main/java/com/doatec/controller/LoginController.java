@@ -20,6 +20,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller para autenticação dos usuários.
+ */
 @RestController
 @RequestMapping("/api/login")
 public class LoginController {
@@ -33,6 +36,9 @@ public class LoginController {
     @Autowired
     private SecurityContextRepository securityContextRepository;
 
+    /**
+     * Autentica o usuário e inicia sua sessão.
+     */
     @PostMapping
     public ResponseEntity<?> loginUser(
             @Valid @RequestBody LoginRequest loginRequest,

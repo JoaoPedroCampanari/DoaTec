@@ -11,6 +11,9 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Locale;
 
+/**
+ * Serviço para confirmação do e-mail de cadastro.
+ */
 @Service
 public class VerificacaoCadastroService {
     private static final String CHAVE = VerificacaoCadastroService.class.getName() + ".codigo";
@@ -24,8 +27,14 @@ public class VerificacaoCadastroService {
         this.pessoas = pessoas; this.mail = mail; this.encoder = encoder; this.request = request;
     }
     private record Estado(String email, String hash, Instant criado, int tentativas, boolean confirmado) implements java.io.Serializable {}
+    /**
+     * Padroniza o e-mail informado.
+     */
     private String normalizar(String email) { return email.trim().toLowerCase(Locale.ROOT); }
 
+    /**
+     * Envia o código de confirmação para o e-mail do cadastro.
+     */
     public void enviar(String email) {
         email = normalizar(email);
         HttpSession sessao = request.getSession(true);
@@ -39,6 +48,9 @@ public class VerificacaoCadastroService {
         sessao.setAttribute(CHAVE, new Estado(email, encoder.encode(codigo), Instant.now(), 0, false));
     }
 
+    /**
+     * Valida o código enviado ao e-mail.
+     */
     public void confirmar(String email, String codigo) {
         HttpSession sessao = request.getSession(false);
         Estado estado = sessao == null ? null : (Estado) sessao.getAttribute(CHAVE);
@@ -54,12 +66,18 @@ public class VerificacaoCadastroService {
         sessao.setAttribute(CHAVE, new Estado(estado.email(), estado.hash(), Instant.now(), estado.tentativas(), true));
     }
 
+    /**
+     * Verifica se o e-mail foi confirmado antes do cadastro.
+     */
     public void exigirConfirmacao(String email) {
         HttpSession sessao = request.getSession(false);
         Estado estado = sessao == null ? null : (Estado) sessao.getAttribute(CHAVE);
         if (estado == null || !estado.confirmado() || !estado.email().equals(normalizar(email)) || !estado.criado().plusSeconds(1800).isAfter(Instant.now()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Confirme seu e-mail antes de criar a conta.");
     }
+    /**
+     * Remove a confirmação de e-mail da sessão.
+     */
     public void consumir() {
         HttpSession sessao = request.getSession(false);
         if (sessao != null) sessao.removeAttribute(CHAVE);

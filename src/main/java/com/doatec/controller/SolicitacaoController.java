@@ -13,6 +13,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller para gerenciamento das solicitações.
+ */
 @RestController
 @RequestMapping("/api/solicitacoes")
 public class SolicitacaoController {
@@ -20,6 +23,9 @@ public class SolicitacaoController {
     @Autowired
     private SolicitacaoService solicitacaoService;
 
+    /**
+     * Registra uma solicitação do aluno autenticado.
+     */
     @PostMapping
     public ResponseEntity<SolicitacaoResponse> criar(
             @AuthenticationPrincipal User userDetails,
@@ -33,6 +39,9 @@ public class SolicitacaoController {
         }
     }
 
+    /**
+     * Exclui uma solicitação do aluno autenticado.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Integer id, @AuthenticationPrincipal User userDetails) {
         solicitacaoService.excluirSolicitacao(id, userDetails.getUsername());

@@ -12,6 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Serviço para gerenciamento de administradores.
+ */
 @Service
 public class SuperAdminService {
 
@@ -23,6 +26,9 @@ public class SuperAdminService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Busca e valida o superadministrador responsável.
+     */
     private Pessoa validarSuperAdmin(Integer superAdminId) {
         Pessoa superAdmin = pessoaRepository.findById(superAdminId)
                 .orElseThrow(() -> new BusinessException("Super Admin não encontrado"));
@@ -32,11 +38,17 @@ public class SuperAdminService {
         return superAdmin;
     }
 
+    /**
+     * Lista as contas de administradores.
+     */
     public Page<UsuarioAdminResponse> listarAdmins(Pageable pageable) {
         return pessoaRepository.findByRoleIn(java.util.List.of(Role.ADMIN, Role.SUPER_ADMIN), pageable)
                 .map(PessoaMapper::toAdminResponse);
     }
 
+    /**
+     * Cria uma conta de administrador.
+     */
     @Transactional
     public UsuarioAdminResponse criarAdmin(CriarAdminRequest request, Integer superAdminId) {
         validarSuperAdmin(superAdminId);
@@ -92,6 +104,9 @@ public class SuperAdminService {
         return PessoaMapper.toAdminResponse(pessoa);
     }
 
+    /**
+     * Remove o acesso de administrador de um usuário.
+     */
     @Transactional
     public UsuarioAdminResponse rebaixarAdmin(Integer id, Integer superAdminId) {
         validarSuperAdmin(superAdminId);
@@ -116,6 +131,9 @@ public class SuperAdminService {
         return PessoaMapper.toAdminResponse(pessoaRepository.save(pessoa));
     }
 
+    /**
+     * Exclui uma conta de administrador.
+     */
     @Transactional
     public void excluirAdmin(Integer id, Integer superAdminId) {
         validarSuperAdmin(superAdminId);
@@ -141,6 +159,9 @@ public class SuperAdminService {
         pessoaRepository.save(pessoa);
     }
 
+    /**
+     * Altera o perfil de acesso de um administrador.
+     */
     @Transactional
     public UsuarioAdminResponse alterarRoleAdmin(Integer id, Role novaRole, Integer superAdminId) {
         validarSuperAdmin(superAdminId);
@@ -169,6 +190,9 @@ public class SuperAdminService {
         return PessoaMapper.toAdminResponse(pessoaRepository.save(pessoa));
     }
 
+    /**
+     * Ativa ou desativa uma conta de administrador.
+     */
     @Transactional
     public UsuarioAdminResponse alterarStatusAdmin(Integer id, Boolean ativo, Integer superAdminId) {
         validarSuperAdmin(superAdminId);

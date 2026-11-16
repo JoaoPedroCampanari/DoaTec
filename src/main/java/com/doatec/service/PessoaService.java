@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Serviço para gerenciamento dos usuários.
+ */
 @Service
 public class PessoaService {
 
@@ -33,21 +36,33 @@ public class PessoaService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Busca uma pessoa pelo ID.
+     */
     @Transactional(readOnly = true)
     public Pessoa findById(Integer id) {
         return pessoaRepository.findById(id).orElse(null);
     }
 
+    /**
+     * Lista as pessoas cadastradas.
+     */
     @Transactional(readOnly = true)
     public List<Pessoa> findAll() {
         return pessoaRepository.findAll();
     }
 
+    /**
+     * Exclui uma pessoa pelo ID.
+     */
     @Transactional
     public void deleteById(Integer id) {
         pessoaRepository.deleteById(id);
     }
 
+    /**
+     * Autentica um usuário com os dados de acesso.
+     */
     public Pessoa autenticar(LoginRequest loginRequest) {
         Optional<Pessoa> pessoaOptional = pessoaRepository.findByEmail(loginRequest.email());
 
@@ -204,6 +219,9 @@ public class PessoaService {
         return pessoaRepository.save(novaPessoa);
     }
 
+    /**
+     * Atualiza os dados do perfil de uma pessoa.
+     */
     @Transactional
     public Pessoa updatePessoaProfile(Integer id, PessoaUpdateRequest dto) {
         Pessoa pessoaExistente = pessoaRepository.findById(id)
@@ -243,6 +261,9 @@ public class PessoaService {
         return pessoaRepository.save(pessoaExistente);
     }
 
+    /**
+     * Lista os usuários cadastrados.
+     */
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarTodosUsuarios() {
         return pessoaRepository.findAll().stream()
@@ -250,6 +271,9 @@ public class PessoaService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Lista os usuários pelo tipo de pessoa.
+     */
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarUsuariosPorTipoPessoa(TipoPessoa tipoPessoa) {
         // Usar query com TYPE() para filtrar por subclasse
@@ -266,6 +290,9 @@ public class PessoaService {
         };
     }
 
+    /**
+     * Lista os usuários pelo perfil de acesso.
+     */
     @Transactional(readOnly = true)
     public List<UsuarioAdminResponse> listarUsuariosPorRole(Role role) {
         return pessoaRepository.findByRole(role).stream()
@@ -273,6 +300,9 @@ public class PessoaService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Ativa ou desativa um usuário.
+     */
     @Transactional
     public UsuarioAdminResponse alterarStatusUsuario(Integer id, Boolean ativo, Integer adminId) {
         Pessoa admin = pessoaRepository.findById(adminId)
@@ -301,6 +331,9 @@ public class PessoaService {
         return PessoaMapper.toAdminResponse(pessoaAtualizada);
     }
 
+    /**
+     * Altera o perfil de acesso de um usuário.
+     */
     @Transactional
     public UsuarioAdminResponse alterarRoleUsuario(Integer id, Role novaRole, Integer adminId) {
         Pessoa admin = pessoaRepository.findById(adminId)

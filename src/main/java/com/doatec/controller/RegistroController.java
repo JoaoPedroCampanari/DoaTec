@@ -47,12 +47,18 @@ public class RegistroController {
 
     public record CodigoCadastroRequest(@NotBlank @Size(max = 120) @jakarta.validation.constraints.Email String email, @NotBlank @Pattern(regexp = "[0-9]{8}") String codigo) {}
 
+    /**
+     * Envia um código de confirmação para o e-mail do cadastro.
+     */
     @PostMapping("/enviar-codigo")
     public Map<String, String> enviarCodigo(@Valid @RequestBody ConsultaEmailRequest request) {
         verificacaoCadastro.enviar(request.email());
         return Map.of("message", "Código enviado.");
     }
 
+    /**
+     * Confirma o código enviado para o e-mail do cadastro.
+     */
     @PostMapping("/confirmar-codigo")
     public Map<String, String> confirmarCodigo(@Valid @RequestBody CodigoCadastroRequest request) {
         verificacaoCadastro.confirmar(request.email(), request.codigo());
@@ -63,6 +69,9 @@ public class RegistroController {
             @NotBlank @Size(max = 120)
             @Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$") String email) {}
 
+    /**
+     * Verifica se o e-mail está disponível para cadastro.
+     */
     @PostMapping("/verificar-email")
     public Map<String, Boolean> verificarEmail(@Valid @RequestBody ConsultaEmailRequest request) {
         return Map.of("disponivel", !pessoaRepository.emailJaUtilizado(request.email().trim()));
@@ -74,6 +83,9 @@ public class RegistroController {
             @jakarta.validation.constraints.NotNull TipoConsultaDocumento tipo,
             @NotBlank @Pattern(regexp = "[0-9]{11,14}") String documento) {}
 
+    /**
+     * Verifica se CPF, CNPJ ou RA já está cadastrado.
+     */
     @PostMapping("/verificar-documento")
     public Map<String, Boolean> verificarDocumento(@Valid @RequestBody ConsultaDocumentoRequest request) {
         int tamanho = switch (request.tipo()) { case CPF -> 11; case CNPJ -> 14; case RA -> 13; };

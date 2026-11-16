@@ -21,6 +21,9 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Controller para alteração do e-mail do usuário.
+ */
 @RestController
 @RequestMapping("/api/users/me/email")
 public class AlteracaoEmailController {
@@ -40,6 +43,9 @@ public class AlteracaoEmailController {
     public record Confirmacao(@NotBlank String codigo) {}
     private record Pendente(Integer pessoaId, String email, String codigoHash, Instant criadoEm, int tentativas) implements java.io.Serializable {}
 
+    /**
+     * Envia um código de confirmação para o novo e-mail.
+     */
     @PostMapping("/solicitar")
     public Map<String, String> solicitar(@AuthenticationPrincipal User usuario, @Valid @RequestBody Solicitacao pedido, HttpSession sessao) {
         Pessoa pessoa = pessoas.findByEmail(usuario.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
@@ -55,6 +61,9 @@ public class AlteracaoEmailController {
         return Map.of("message", "Código enviado ao novo e-mail.");
     }
 
+    /**
+     * Confirma o código e atualiza o e-mail do usuário.
+     */
     @PostMapping("/confirmar")
     @Transactional
     public Map<String, String> confirmar(@AuthenticationPrincipal User usuario, @Valid @RequestBody Confirmacao pedido, HttpSession sessao) {

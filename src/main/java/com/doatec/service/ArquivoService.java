@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Arrays;
 
+/**
+ * Serviço para gerenciamento e controle de acesso aos arquivos.
+ */
 @Service
 public class ArquivoService {
     private final ArquivoUploadRepository arquivos;
@@ -22,11 +25,17 @@ public class ArquivoService {
     public ArquivoService(ArquivoUploadRepository arquivos, PessoaRepository pessoas, DoacaoRepository doacoes, SolicitacaoHardwareRepository solicitacoes) {
         this.arquivos = arquivos; this.pessoas = pessoas; this.doacoes = doacoes; this.solicitacoes = solicitacoes;
     }
+    /**
+     * Registra os dados de um arquivo enviado.
+     */
     @Transactional
     public void registrar(String nome, String email, String tipo, String nomeOriginal) {
         Pessoa pessoa = pessoas.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
         arquivos.saveAndFlush(new ArquivoUpload(nome, pessoa, tipo, limparNome(nomeOriginal)));
     }
+    /**
+     * Remove caracteres e caminhos indesejados do nome do arquivo.
+     */
     private String limparNome(String original) {
         if (original == null) return null;
         String limpo = original.replace('\\', '/');
@@ -34,17 +43,26 @@ public class ArquivoService {
         if (limpo.isEmpty()) return null;
         return limpo.length() > 200 ? limpo.substring(limpo.length() - 200) : limpo;
     }
+    /**
+     * Busca o nome original de um arquivo pela URL.
+     */
     @Transactional(readOnly = true)
     public String nomeOriginal(String url) {
         if (url == null || !url.startsWith("/uploads/")) return null;
         return arquivos.findById(url.substring("/uploads/".length())).map(ArquivoUpload::getNomeOriginal).orElse(null);
     }
+    /**
+     * Verifica se o usuário pode acessar um arquivo.
+     */
     @Transactional(readOnly = true)
     public boolean podeLer(String nome, String email) {
         Pessoa pessoa = pessoas.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
         if (pessoa.getRole() == Role.ADMIN || pessoa.getRole() == Role.SUPER_ADMIN) return true;
         return pertence(nome, pessoa);
     }
+    /**
+     * Verifica se os arquivos pertencem ao proprietário informado.
+     */
     @Transactional(readOnly = true)
     public void validarVinculo(String urls, Pessoa proprietario) {
         if (urls == null || urls.isBlank()) return;
@@ -55,6 +73,9 @@ public class ArquivoService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Arquivo inválido ou sem permissão.");
         }
     }
+    /**
+     * Verifica se um arquivo pertence a uma pessoa.
+     */
     private boolean pertence(String nome, Pessoa pessoa) {
         var registro = arquivos.findById(nome);
         if (registro.isPresent()) return registro.get().getProprietario().getId().equals(pessoa.getId());

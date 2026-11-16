@@ -23,6 +23,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * Serviço para gerenciamento das conversas.
+ */
 @Service
 public class ChatService {
 
@@ -44,6 +47,9 @@ public class ChatService {
     @Autowired
     private NotificacaoService notificacaoService;
 
+    /**
+     * Registra uma mensagem e notifica os destinatários.
+     */
     @Transactional
     public ChatResponse enviarMensagem(ChatRequest request, Pessoa remetente) {
         var conversa = carregarContexto(request.contexto(), request.referenciaId(), true);
@@ -74,12 +80,18 @@ public class ChatService {
         return toResponse(saved);
     }
 
+    /**
+     * Cria uma notificação de nova mensagem.
+     */
     private void notificarMensagem(Pessoa destinatario, ChatRequest request) {
         notificacaoService.criarNotificacao(destinatario.getId(), "Nova mensagem no chat",
                 "Nova mensagem em " + request.contexto().name().toLowerCase() + " #" + request.referenciaId(),
                 TipoNotificacao.SISTEMA, request.referenciaId(), request.contexto().name());
     }
 
+    /**
+     * Busca o histórico de mensagens de uma conversa.
+     */
     public List<ChatResponse> buscarHistorico(ContextoChat contexto, Integer referenciaId, Pessoa usuario) {
         validarAcesso(contexto, referenciaId, usuario);
         List<MensagemChat> mensagens = mensagemChatRepository
@@ -90,6 +102,9 @@ public class ChatService {
     public record ConversaResponse(boolean podeEnviar, List<ChatResponse> mensagens) {}
     private record ContextoConversa(Pessoa dono, boolean encerrada) {}
 
+    /**
+     * Busca as mensagens e verifica se a conversa permite envio.
+     */
     @Transactional(readOnly = true)
     public ConversaResponse buscarConversa(ContextoChat contexto, Integer id, Pessoa usuario) {
         ContextoConversa conversa = carregarContexto(contexto, id, false);
@@ -99,11 +114,17 @@ public class ChatService {
         return new ConversaResponse(!conversa.encerrada(), mensagens);
     }
 
+    /**
+     * Verifica se o usuário pode acessar a conversa.
+     */
     private void validarProprietario(Pessoa dono, Pessoa usuario) {
         if (!usuario.isAdmin() && !dono.getId().equals(usuario.getId()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a este chat");
     }
 
+    /**
+     * Busca o proprietário e a situação da conversa.
+     */
     private ContextoConversa carregarContexto(ContextoChat contexto, Integer id, boolean bloquear) {
         return switch (contexto) {
             case SUPORTE -> {
@@ -124,6 +145,9 @@ public class ChatService {
         };
     }
 
+    /**
+     * Verifica a permissão de acesso ao histórico da conversa.
+     */
     private void validarAcesso(ContextoChat contexto, Integer referenciaId, Pessoa usuario) {
         if (usuario.isAdmin()) {
             return;
@@ -154,6 +178,9 @@ public class ChatService {
         }
     }
 
+    /**
+     * Converte uma mensagem para o formato de resposta.
+     */
     private ChatResponse toResponse(MensagemChat msg) {
         return new ChatResponse(
                 msg.getId(),

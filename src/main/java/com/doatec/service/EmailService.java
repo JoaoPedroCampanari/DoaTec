@@ -12,6 +12,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
+/**
+ * Serviço para envio de e-mails do sistema.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,9 @@ public class EmailService {
     @Value("${app.email.from:no-reply@doatec.com}")
     private String fromEmail;
 
+    /**
+     * Envia por e-mail uma resposta ao ticket de suporte.
+     */
     public void enviarSuporteResposta(String para, String nomeUsuario, String assunto, String resposta) {
         String texto = "Olá, " + nomeUsuario + "!\n\nSeu ticket sobre \"" + assunto + "\" recebeu uma resposta:\n\n" + resposta + "\n\nAcesse seus tickets no DoaTec para continuar a conversa.";
         String corpo = "<p>Olá, <strong>" + escapar(nomeUsuario) + "</strong>!</p>"
@@ -30,6 +36,9 @@ public class EmailService {
         enviar(para, "Nova resposta no seu ticket de suporte - DoaTec", "Atualização do suporte", texto, corpo);
     }
 
+    /**
+     * Envia uma atualização sobre o status de uma doação.
+     */
     public void enviarEmailStatusDoacao(String para, String nomeUsuario, String status, String descricaoDoacao) {
         String texto = "Olá, " + nomeUsuario + "!\n\nO status da sua doação \"" + descricaoDoacao + "\" foi atualizado para: " + status + ".\n\nAcesse Minhas Doações no DoaTec para mais detalhes.";
         String corpo = "<p>Olá, <strong>" + escapar(nomeUsuario) + "</strong>!</p>"
@@ -38,6 +47,9 @@ public class EmailService {
         enviar(para, "Status da sua doação atualizado - DoaTec", "Atualização da doação", texto, corpo);
     }
 
+    /**
+     * Envia uma atualização sobre o status de uma solicitação.
+     */
     public void enviarEmailStatusSolicitacao(String para, String nomeUsuario, String status, String descricao) {
         String texto = "Olá, " + nomeUsuario + "!\n\nO status da sua solicitação \"" + descricao + "\" foi atualizado para: " + status + ".\n\nAcesse Meus Pedidos no DoaTec para mais detalhes.";
         String corpo = "<p>Olá, <strong>" + escapar(nomeUsuario) + "</strong>!</p>"
@@ -46,21 +58,33 @@ public class EmailService {
         enviar(para, "Status da sua solicitação atualizado - DoaTec", "Atualização da solicitação", texto, corpo);
     }
 
+    /**
+     * Envia o código para redefinição de senha.
+     */
     public void enviarCodigoRedefinicaoSenha(String para, String codigo) {
         enviarCodigo(para, codigo, "Redefinição de senha - DoaTec", "Redefina sua senha",
                 "Use o código abaixo para redefinir a senha da sua conta DoaTec.");
     }
 
+    /**
+     * Envia o código de confirmação do cadastro.
+     */
     public void enviarCodigoCadastro(String para, String codigo) {
         enviarCodigo(para, codigo, "Confirme seu e-mail para criar sua conta - DoaTec", "Confirme seu e-mail",
                 "Use o código abaixo para confirmar seu e-mail e continuar seu cadastro no DoaTec.");
     }
 
+    /**
+     * Envia o código de confirmação da alteração de e-mail.
+     */
     public void enviarCodigoAlteracaoEmail(String para, String codigo) {
         enviarCodigo(para, codigo, "Confirme seu novo e-mail - DoaTec", "Confirme seu novo e-mail",
                 "Use o código abaixo para confirmar a alteração do e-mail da sua conta DoaTec.");
     }
 
+    /**
+     * Prepara o e-mail que contém um código de confirmação.
+     */
     private void enviarCodigo(String para, String codigo, String assunto, String titulo, String introducao) {
         String texto = introducao + "\n\nSeu código de confirmação é " + codigo + ". Ele expira em 10 minutos.\n\nSe você não solicitou este código, ignore este e-mail.";
         String corpo = "<p>" + escapar(introducao) + "</p>"
@@ -71,6 +95,9 @@ public class EmailService {
         enviar(para, assunto, titulo, texto, corpo);
     }
 
+    /**
+     * Monta e envia um e-mail.
+     */
     private void enviar(String para, String assunto, String titulo, String texto, String conteudo) {
         String html = """
                 <!doctype html><html lang="pt-BR"><body style="margin:0;padding:0;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#243247;">
@@ -96,7 +123,13 @@ public class EmailService {
         }
     }
 
+    /**
+     * Protege o texto para exibição no HTML do e-mail.
+     */
     private String escapar(String valor) { return HtmlUtils.htmlEscape(valor == null ? "" : valor); }
+    /**
+     * Monta uma caixa de conteúdo para o e-mail.
+     */
     private String caixa(String conteudo) {
         return "<div style=\"margin:20px 0;padding:16px 18px;background:#eff6ff;border-left:4px solid #2674c9;border-radius:4px;color:#173c69;\">" + conteudo + "</div>";
     }

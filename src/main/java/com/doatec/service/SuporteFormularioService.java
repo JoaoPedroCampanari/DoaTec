@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 
+/**
+ * Serviço para gerenciamento dos tickets de suporte.
+ */
 @Service
 public class SuporteFormularioService {
 
@@ -24,6 +27,9 @@ public class SuporteFormularioService {
     @Autowired
     private PessoaRepository pessoaRepository;
 
+    /**
+     * Registra um ticket de suporte.
+     */
     @Transactional
     public SuporteFormulario criarTicket(SuporteFormularioRequest dto) {
         Pessoa autor = pessoaRepository.findByEmail(dto.email())
@@ -43,6 +49,9 @@ public class SuporteFormularioService {
         return suporteRepository.save(novoTicket);
     }
 
+    /**
+     * Lista os tickets de um usuário.
+     */
     @Transactional(readOnly = true)
     public List<SuporteResponse> getTicketsByAutorId(Integer autorId) {
         return suporteRepository.findByAutorIdOrderByDataCriacaoDescIdDesc(autorId).stream()
@@ -50,6 +59,9 @@ public class SuporteFormularioService {
                 .toList();
     }
 
+    /**
+     * Exclui um ticket do usuário informado.
+     */
     @Transactional
     public void excluirTicket(Integer ticketId, Integer autorId) {
         SuporteFormulario ticket = suporteRepository.findById(ticketId)

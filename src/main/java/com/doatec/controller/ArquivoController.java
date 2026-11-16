@@ -19,6 +19,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 
+/**
+ * Controller para acesso aos arquivos enviados.
+ */
 @RestController
 public class ArquivoController {
     private final ArquivoService arquivos;
@@ -27,6 +30,9 @@ public class ArquivoController {
         this.arquivos = arquivos;
         this.diretorio = Paths.get(caminho).toAbsolutePath().normalize();
     }
+    /**
+     * Retorna um arquivo ao usuário autorizado.
+     */
     @GetMapping("/uploads/{nome:.+}")
     public ResponseEntity<Resource> ler(@PathVariable String nome, @AuthenticationPrincipal User usuario) {
         if (usuario == null) return ResponseEntity.status(401).build();
