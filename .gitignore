@@ -55,3 +55,8 @@ atlas-doatec.md
 contexto.md
 prompt-atlas-mimo.md
 analiseComplexa.md
+
+### Configuração local ###
+.env
+.env.*
+!.env.example

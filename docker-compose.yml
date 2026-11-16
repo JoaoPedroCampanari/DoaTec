@@ -7,6 +7,8 @@ services:
       - ./uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL:-}
+      - SUPER_ADMIN_SENHA=${SUPER_ADMIN_SENHA:-}
     depends_on:
       db:
         condition: service_healthy
