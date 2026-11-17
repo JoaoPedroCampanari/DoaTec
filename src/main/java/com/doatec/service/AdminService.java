@@ -235,7 +235,7 @@ public class AdminService {
         notificacaoService.criarNotificacao(
                 doacao.getDoador().getId(),
                 "Status da Doação Atualizado",
-                "Sua doação #" + doacao.getId() + " está com o status: " + rotuloStatusDoacao(novoStatus) + "." + (novoStatus == StatusDoacao.CANCELADA ? "" : " Combine os detalhes pelo chat."),
+                "Sua doação #" + doacao.getId() + " está com o status: " + rotuloStatusDoacao(novoStatus) + ".",
                 novoStatus == StatusDoacao.RECUSADO ? TipoNotificacao.DOACAO_REJEITADA
                         : statusAnterior == StatusDoacao.EM_ANALISE ? TipoNotificacao.DOACAO_APROVADA
                         : TipoNotificacao.DOACAO_STATUS_ATUALIZADO,

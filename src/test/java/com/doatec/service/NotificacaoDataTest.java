@@ -9,6 +9,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NotificacaoDataTest {
     @Test
+    void removeOrientacaoDeChatDeNotificacaoDeStatusAntiga() {
+        var notificacao = Notificacao.builder()
+                .titulo("Status da Doação Atualizado")
+                .mensagem("Sua doação #1 está com o status: Recusado. Combine os detalhes pelo chat.")
+                .entidadeRelacionadaTipo("DOACAO")
+                .entidadeRelacionadaId(1)
+                .build();
+        assertEquals("Sua doação N° 1 (ID 1) está com o status: Recusado.",
+                NotificacaoResponse.from(notificacao, 1).mensagem());
+    }
+
+    @Test
     void dataSalvaEhExpostaComFusoUtc() {
         LocalDateTime dataSalva = LocalDateTime.of(2026, 11, 12, 15, 22);
         Notificacao notificacao = Notificacao.builder().dataCriacao(dataSalva).build();

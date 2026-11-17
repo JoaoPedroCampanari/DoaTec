@@ -139,6 +139,11 @@ const ChatWidget = {
             });
 
             container.scrollTop = container.scrollHeight;
+            if (Auth.isAdmin()) {
+                const ultimaMensagemId = Math.max(...mensagens.map(m => m.id));
+                const leitura = await apiFetch(`/api/chat/lidas-equipe/${this.contexto}/${this.referenciaId}?ultimaMensagemId=${ultimaMensagemId}`, { method: 'POST' });
+                if (leitura.ok) document.dispatchEvent(new Event('chat-equipe-lido'));
+            }
         } catch (e) {
             console.error('Chat: erro ao carregar mensagens', e);
             if (this.isOpen && this.overlay) {

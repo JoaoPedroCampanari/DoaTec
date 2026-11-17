@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=cards-texto1">
+    <link rel="stylesheet" href="style.css?v=mensagem-equipe2">
     <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
@@ -174,10 +174,10 @@
                             </div>
                         </div>
                         ${temResposta ? `
-                        <div style="margin-top: 12px; padding: 12px; border-left: 3px solid #10b981; background: #f0fdf4; border-radius: 4px;">
-                            <strong style="color: #059669;">Resposta do suporte:</strong>
-                            <p style="margin: 8px 0 0 0; line-height: 1.6;">${DoaTec.escapeHtml(t.resposta)}</p>
-                            <small style="color: #6b7280;">${t.dataResposta ? DoaTec.formatDate(t.dataResposta) : ''}</small>
+                        <div class="team-message">
+                            <strong>Resposta do suporte:</strong>
+                            <p>${DoaTec.escapeHtml(t.resposta)}</p>
+                            ${t.dataResposta ? `<small>${DoaTec.formatDate(t.dataResposta)}</small>` : ''}
                         </div>
                         ` : `
                         <div style="margin-top: 12px; color: #9ca3af; font-style: italic;">Aguardando resposta...</div>

@@ -36,6 +36,9 @@ public class MensagemChat {
     @Column(nullable = false)
     private ContextoChat contexto;
 
+    @Column(name = "lida_pela_equipe")
+    private Boolean lidaPelaEquipe;
+
     @PrePersist
     protected void onCreate() {
         dataEnvio = LocalDateTime.now();

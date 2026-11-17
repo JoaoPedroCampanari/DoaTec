@@ -27,6 +27,7 @@ const AdminPanel = {
 
     // Callback do modal de confirmação
     _confirmCallback: null,
+    conversasNaoLidas: new Set(),
 
     // ==================== INIT ====================
     async init() {
@@ -42,7 +43,31 @@ const AdminPanel = {
         this.setupTabs();
         this.setupFilters();
         this.setupSuperAdminEvents();
+        await this.atualizarConversasNaoLidas();
+        setInterval(() => this.atualizarConversasNaoLidas(), 10000);
+        document.addEventListener('chat-equipe-lido', () => this.atualizarConversasNaoLidas());
         this.loadDashboard();
+    },
+
+    async atualizarConversasNaoLidas() {
+        try {
+            const response = await apiFetch('/api/chat/nao-lidas-equipe');
+            if (!response.ok) return;
+            const conversas = await response.json();
+            this.conversasNaoLidas = new Set(conversas.map(c => `${c.contexto}:${c.referenciaId}`));
+            this.atualizarIndicadoresChat();
+        } catch (error) {
+            console.error('Erro ao verificar mensagens do chat:', error);
+        }
+    },
+
+    atualizarIndicadoresChat() {
+        document.querySelectorAll('[data-conversa]').forEach(botao => {
+            const temMensagem = this.conversasNaoLidas.has(botao.dataset.conversa);
+            botao.querySelector('.chat-indicador').hidden = !temMensagem;
+            botao.setAttribute('aria-label', temMensagem ? 'Conversar: há mensagem não lida' : 'Conversar');
+            botao.title = temMensagem ? 'Há mensagem não lida' : '';
+        });
     },
 
     // ==================== TABS ====================
@@ -311,6 +336,7 @@ const AdminPanel = {
             const pageData = await res.json();
             this.pagination.doacoes.total = pageData.totalPages || 1;
             this.renderDoacoes(pageData.content || []);
+            this.atualizarIndicadoresChat();
             this.renderPagination('doacoes-pagination', 'doacoes', pageData);
         } catch (err) {
             console.error('Doações:', err);
@@ -341,7 +367,7 @@ const AdminPanel = {
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${st === 'CANCELADA' ? 'Cancelar doação' : this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : '<select class="admin-status-select" disabled aria-label="Alterar status indisponível" title="Não há alterações de status disponíveis"><option>Alterar status</option></select>'}
-                    <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('DOACAO', ${d.id}, 'Doação #${d.id}')">Conversar</button>
+                    <button class="btn-action" data-conversa="DOACAO:${d.id}" onclick="event.stopPropagation(); ChatWidget.open('DOACAO', ${d.id}, 'Doação #${d.id}')">Conversar<span class="chat-indicador" hidden aria-hidden="true"></span></button>
                   </div>
                 </td>
             </tr>
@@ -441,6 +467,7 @@ const AdminPanel = {
             const pageData = await res.json();
             this.pagination.solicitacoes.total = pageData.totalPages || 1;
             this.renderSolicitacoes(pageData.content || []);
+            this.atualizarIndicadoresChat();
             this.renderPagination('solicitacoes-pagination', 'solicitacoes', pageData);
         } catch (err) {
             console.error('Solicitações:', err);
@@ -471,7 +498,7 @@ const AdminPanel = {
                             <option value="">Alterar status</option>
                             ${proximosStatus.map(st => `<option value="${st}">${st === 'CANCELADA' ? 'Cancelar solicitação' : this.formatStatusLabel(st)}</option>`).join('')}
                         </select>` : '<select class="admin-status-select" disabled aria-label="Alterar status indisponível" title="Não há alterações de status disponíveis"><option>Alterar status</option></select>'}
-                    <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SOLICITACAO', ${s.id}, 'Pedido #${s.id}')">Conversar</button>
+                    <button class="btn-action" data-conversa="SOLICITACAO:${s.id}" onclick="event.stopPropagation(); ChatWidget.open('SOLICITACAO', ${s.id}, 'Pedido #${s.id}')">Conversar<span class="chat-indicador" hidden aria-hidden="true"></span></button>
                     </div>
                 </td>
             </tr>
@@ -725,8 +752,8 @@ const AdminPanel = {
             const disponivel = eq.status === 'DISPONIVEL';
             const reservado = eq.status === 'RESERVADO';
             const acoes = [];
-            if (reservado) acoes.push(`<button class="btn-approve" onclick="AdminPanel.marcarEntregue(${eq.id})">Marcar Entregue</button>`);
             acoes.push(eq.status === 'ENTREGUE' ? `<button class="btn-action" disabled title="Equipamentos entregues não podem ser editados">Editar</button>` : `<button class="btn-action" onclick="AdminPanel.openEquipamentoModal(${eq.id})">Editar</button>`);
+            if (reservado) acoes.push(`<button class="btn-approve" onclick="AdminPanel.marcarEntregue(${eq.id})">Marcar Entregue</button>`);
             if (disponivel) acoes.push(`<button class="btn-reject" onclick="AdminPanel.deleteEquipamento(${eq.id})">Excluir</button>`);
             return `
             <tr>
@@ -872,6 +899,7 @@ const AdminPanel = {
             const pageData = await res.json();
             this.pagination.suporte.total = pageData.totalPages || 1;
             this.renderSuporte(pageData.content || []);
+            this.atualizarIndicadoresChat();
             this.renderPagination('suporte-pagination', 'suporte', pageData);
         } catch (err) {
             console.error('Suporte:', err);
@@ -896,7 +924,7 @@ const AdminPanel = {
                 <td class="admin-suporte-acoes-cell"><div class="admin-suporte-acoes">
                     ${!['RESOLVIDO', 'FECHADO'].includes(t.status) && !(t.resposta && t.resposta.trim()) ? `<button class="btn-action" onclick="event.stopPropagation(); AdminPanel.responderSuporte(${t.id})">Responder</button>` : '<button class="btn-action" disabled title="Ticket já respondido ou finalizado. Utilize o chat para continuar o atendimento.">Responder</button>'}
                     ${t.status === 'EM_ANDAMENTO' ? `<button class="btn-action" onclick="event.stopPropagation(); AdminPanel.alterarStatusSuporte(${t.id})">Status</button>` : `<button class="btn-action" disabled title="${t.status === 'ABERTO' ? 'Responda ao ticket para iniciá-lo.' : 'Ticket finalizado.'}">Status</button>`}
-                    <button class="btn-action" onclick="event.stopPropagation(); ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar</button>
+                    <button class="btn-action" data-conversa="SUPORTE:${t.id}" onclick="event.stopPropagation(); ChatWidget.open('SUPORTE', ${t.id}, 'Ticket #${t.id}')">Conversar<span class="chat-indicador" hidden aria-hidden="true"></span></button>
                 </div></td>
             </tr>
             <tr class="admin-detail-row" id="detail-suporte-${t.id}" style="display:none">
@@ -939,7 +967,6 @@ const AdminPanel = {
                 warning.style.display = 'block';
                 return;
             }
-            if (!await DoaTec.confirmarAcao({ titulo: 'Enviar resposta?', mensagem: 'Ao enviar a resposta, o ticket ficará em andamento.', botao: 'Enviar resposta' })) return;
             try {
                 const res = await apiFetch('/api/admin/suporte/' + id + '/responder', {
                     method: 'PUT',
@@ -968,7 +995,6 @@ const AdminPanel = {
         newBtn.addEventListener('click', async () => {
             try {
                 const status = select.value;
-                if (['RESOLVIDO', 'FECHADO'].includes(status) && !await DoaTec.confirmarAcao({ titulo: 'Alterar status do ticket?', mensagem: 'Este status é permanente e não poderá ser alterado.', botao: 'Confirmar' })) return;
                 const res = await apiFetch('/api/admin/suporte/' + id + '/status?status=' + status, {
                     method: 'PUT'
                 });

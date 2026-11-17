@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=cards-texto1">
+    <link rel="stylesheet" href="style.css?v=mensagem-equipe2">
     <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
@@ -177,7 +177,7 @@
                                 <span class="status-pill ${statusClass}">${statusText}</span>
                             </div>
                             <div class="donation-items" style="margin-top: 12px;">
-                                <div class="donation-item">
+                                <div class="donation-item donation-description">
                                     <strong>Descrição:</strong>
                                     <p style="margin: 8px 0 0 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere;">${donation.descricaoGeral ? escapeHtml(donation.descricaoGeral) : 'Não informada'}</p>
                                 </div>
@@ -187,7 +187,7 @@
                                     <strong>${entregaNaFatec ? 'Entrega' : retiradaNoEndereco ? 'Retirada' : 'Modalidade'}:</strong> ${entregaNaFatec ? 'Av. Presidente Vargas, 2331 - Garça, SP - 17400-000' : retiradaNoEndereco ? (donation.enderecoRetirada ? escapeHtml(donation.enderecoRetirada) : 'Endereço não informado') : 'Não informada'}
                                 </span>
                             </div>
-                            ${donation.observacaoAdmin && donation.observacaoAdmin.trim() ? `<div class="donation-meta"><span class="donation-meta-item" style="white-space:pre-wrap;overflow-wrap:anywhere;"><strong>Observação da equipe:</strong> ${escapeHtml(donation.observacaoAdmin)}</span></div>` : ''}
+                            ${donation.observacaoAdmin && donation.observacaoAdmin.trim() ? `<div class="team-message"><strong>Observação da equipe:</strong><p>${escapeHtml(donation.observacaoAdmin)}</p></div>` : ''}
                             ${itemsHtml}
                             <div class="donation-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
                                 <button class="btn btn-outline chat-btn" onclick="ChatWidget.open('DOACAO', ${donation.id}, 'Doação ${numeroDoacao} (ID ${donation.id})')">Conversar</button>

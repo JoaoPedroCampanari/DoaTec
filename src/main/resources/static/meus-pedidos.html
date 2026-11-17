@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=cards-texto1">
+    <link rel="stylesheet" href="style.css?v=mensagem-equipe2">
     <link rel="icon" href="doatec_logo.png" type="image/png">
 </head>
 <body>
@@ -172,7 +172,7 @@
                                     <p style="margin: 8px 0 0 0; line-height: 1.6;">${escapeHtml(pedido.justificativa || 'Não informada')}</p>
                                 </div>
                             </div>
-                            ${typeof pedido.observacaoAdmin === 'string' && pedido.observacaoAdmin.trim() ? `<div class="donation-meta" style="margin-top: 12px;"><span class="donation-meta-item" style="white-space:pre-wrap;overflow-wrap:anywhere;"><strong>Observação da equipe:</strong> ${escapeHtml(pedido.observacaoAdmin)}</span></div>` : ''}
+                            ${typeof pedido.observacaoAdmin === 'string' && pedido.observacaoAdmin.trim() ? `<div class="team-message"><strong>Observação da equipe:</strong><p>${escapeHtml(pedido.observacaoAdmin)}</p></div>` : ''}
                             ${comprovanteSeguro ? `<div style="margin-top: 14px;">
                                 <a href="${escapeHtml(urlComprovante)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; color: var(--primary-600); text-decoration: underline; overflow-wrap: anywhere;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.82-2.83l8.49-8.48"/></svg>

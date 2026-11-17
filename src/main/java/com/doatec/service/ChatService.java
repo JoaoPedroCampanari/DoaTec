@@ -100,7 +100,28 @@ public class ChatService {
     }
 
     public record ConversaResponse(boolean podeEnviar, List<ChatResponse> mensagens) {}
+    public record ConversaNaoLida(ContextoChat contexto, Integer referenciaId) {}
     private record ContextoConversa(Pessoa dono, boolean encerrada) {}
+
+    /** Lista as conversas com mensagens ainda não lidas pela equipe. */
+    @Transactional(readOnly = true)
+    public List<ConversaNaoLida> listarNaoLidasEquipe(Pessoa usuario) {
+        validarEquipe(usuario);
+        return mensagemChatRepository.buscarConversasNaoLidas(Role.USER).stream()
+                .map(item -> new ConversaNaoLida((ContextoChat) item[0], (Integer) item[1])).toList();
+    }
+
+    /** Marca como lidas pela equipe as mensagens exibidas na conversa. */
+    @Transactional
+    public void marcarLidasEquipe(ContextoChat contexto, Integer referenciaId, Integer ultimaMensagemId, Pessoa usuario) {
+        validarEquipe(usuario);
+        carregarContexto(contexto, referenciaId, false);
+        mensagemChatRepository.marcarLidasPelaEquipe(contexto, referenciaId, ultimaMensagemId, Role.USER);
+    }
+
+    private void validarEquipe(Pessoa usuario) {
+        if (!usuario.isAdmin()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso restrito à equipe.");
+    }
 
     /**
      * Busca as mensagens e verifica se a conversa permite envio.

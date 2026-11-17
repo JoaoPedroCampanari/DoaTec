@@ -29,6 +29,11 @@ public record NotificacaoResponse(
     public static NotificacaoResponse from(Notificacao notificacao, Integer numero) {
         String mensagem = notificacao.getMensagem();
         if (mensagem != null && "DOACAO".equalsIgnoreCase(notificacao.getEntidadeRelacionadaTipo())
+                && "Status da Doação Atualizado".equals(notificacao.getTitulo())
+                && mensagem.endsWith(" Combine os detalhes pelo chat.")) {
+            mensagem = mensagem.substring(0, mensagem.length() - " Combine os detalhes pelo chat.".length());
+        }
+        if (mensagem != null && "DOACAO".equalsIgnoreCase(notificacao.getEntidadeRelacionadaTipo())
                 && notificacao.getEntidadeRelacionadaId() != null) {
             Integer id = notificacao.getEntidadeRelacionadaId();
             String referencia = numero == null

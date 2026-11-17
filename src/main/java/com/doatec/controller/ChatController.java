@@ -63,6 +63,20 @@ public class ChatController {
         return ResponseEntity.ok(chatService.buscarConversa(contexto, referenciaId, getAuthenticatedUser(userDetails)));
     }
 
+    /** Lista as conversas com mensagens não lidas pela equipe. */
+    @GetMapping("/nao-lidas-equipe")
+    public List<ChatService.ConversaNaoLida> listarNaoLidasEquipe(@AuthenticationPrincipal User userDetails) {
+        return chatService.listarNaoLidasEquipe(getAuthenticatedUser(userDetails));
+    }
+
+    /** Registra a leitura das mensagens exibidas para a equipe. */
+    @PostMapping("/lidas-equipe/{contexto}/{referenciaId}")
+    public ResponseEntity<Void> marcarLidasEquipe(@PathVariable ContextoChat contexto, @PathVariable Integer referenciaId,
+                                                   @RequestParam Integer ultimaMensagemId, @AuthenticationPrincipal User userDetails) {
+        chatService.marcarLidasEquipe(contexto, referenciaId, ultimaMensagemId, getAuthenticatedUser(userDetails));
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * Busca o usuário autenticado.
      */

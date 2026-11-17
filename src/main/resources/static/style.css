@@ -1533,6 +1533,26 @@ body.perfil-page .login-box {
     font-size: 0.9rem;
 }
 
+.donation-description { font-size: 1rem; }
+
+.team-message {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 4px;
+    background: #eff6ff;
+    color: #1e3a5f;
+    font-size: 0.9375rem;
+    overflow-wrap: anywhere;
+}
+
+.team-message strong { color: #1453a3; }
+.team-message p { margin: 8px 0 0; line-height: 1.6; white-space: pre-wrap; }
+.team-message small { display: block; margin-top: 6px; color: #526b89; }
+
+html.dark-mode .team-message { background: #1a304b; color: #e1ecfa; }
+html.dark-mode .team-message strong { color: #93c5fd; }
+html.dark-mode .team-message small { color: #b2c8e1; }
+
 /* ==================== STATUS PILLS ==================== */
 .status-pill {
     display: inline-block;
@@ -3413,7 +3433,22 @@ html.dark-mode .admin-table tr:hover td {
 #tab-doacoes .admin-table th:nth-child(4) { width: 150px; }
 #tab-doacoes .admin-table th:nth-child(6) { width: 200px; }
 #tab-doacoes .admin-table td { overflow-wrap: anywhere; }
-#tab-doacoes .admin-table .status-pill { white-space: nowrap; overflow-wrap: normal; }
+#tab-doacoes .admin-table .status-pill {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: normal;
+    text-align: center;
+}
+
+.chat-indicador:not([hidden]) {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: #e11d48;
+    vertical-align: middle;
+}
 
 #tab-suporte .admin-table { table-layout: fixed; min-width: 1000px; }
 #tab-suporte .admin-table th:nth-child(1) { width: 70px; }

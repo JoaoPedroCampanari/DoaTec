@@ -46,7 +46,7 @@ class AdminServiceDoacaoTest {
         when(doacoes.save(any())).thenAnswer(i -> i.getArgument(0));
         service.alterarStatusDoacao(1, decisao, 1, null);
         assertEquals(decisao, d.getStatus());
-        verify(notificacoes).criarNotificacao(eq(1), anyString(), anyString(), any(), eq(1), eq("DOACAO"));
+        verify(notificacoes).criarNotificacao(eq(1), anyString(), argThat(m -> !m.contains("Combine os detalhes pelo chat")), any(), eq(1), eq("DOACAO"));
     }
 
     @ParameterizedTest
